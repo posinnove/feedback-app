@@ -1,0 +1,124 @@
+name: Discord PR Notifications
+
+on:
+  pull_request:
+    types: [opened, reopened, closed]
+  pull_request_review:
+    types: [submitted]
+  issue_comment:
+    types: [created]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord Embed Notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+          USER="${{ github.actor }}"
+          EVENT="${{ github.event_name }}"
+          ACTION="${{ github.event.action }}"
+
+          if [ "$EVENT" = "pull_request" ]; then
+            TITLE="${{ github.event.pull_request.title }}"
+            URL="${{ github.event.pull_request.html_url }}"
+            NUMBER="${{ github.event.pull_request.number }}"
+            COMMITS="${{ github.event.pull_request.commits }}"
+            MERGED="${{ github.event.pull_request.merged }}"
+            BRANCH="${{ github.event.pull_request.head.ref }}"
+
+            # Icon for the pull request
+            ICON_URL="https://img.icons8.com/ios/25/FFFFFF/pull-request.png"
+            TITLE_TEXT="Pull Request $ACTION"
+
+            if [ "$MERGED" = "true" ]; then
+              ICON_URL="https://img.icons8.com/ios/25/FFFFFF/merge-git.png"
+              TITLE_TEXT="Pull Request Merged"
+              COLOR=3066993
+            else
+              COLOR=3447003
+            fi
+
+            # in here i am fetching recent commit messages (About to lose my sanity tho)
+            COMMIT_MSGS=$(curl -s \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$REPO/pulls/$NUMBER/commits" \
+              | jq -r '.[].commit.message' \
+              | head -n 5)
+
+            EMBED=$(jq -n \
+              --arg title "$TITLE_TEXT" \
+              --arg desc "**$TITLE**" \
+              --arg url "$URL" \
+              --arg branch "$BRANCH" \
+              --arg user "$USER" \
+              --arg commits "$COMMITS" \
+              --arg messages "$COMMIT_MSGS" \
+              --arg icon "$ICON_URL" \
+              --argjson color $COLOR \
+              '{
+                embeds: [{
+                  author: {
+                    name: $title,
+                    icon_url: $icon,
+                    url: $url
+                  },
+                  description: $desc,
+                  url: $url,
+                  color: $color,
+                  fields: [
+                    { "name": "Branch", "value": $branch, "inline": true },
+                    { "name": "Author", "value": $user, "inline": true },
+                    { "name": "Commits", "value": $commits, "inline": true },
+                    { "name": "Recent Commits", "value": $messages }
+                  ],
+                  footer: {
+                    text: "GitHub Pull Requests"
+                  },
+                  timestamp: "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+                }]
+              }')
+
+            curl -H "Content-Type: application/json" \
+                 -d "$EMBED" \
+                 $DISCORD_WEBHOOK
+
+          elif [ "$EVENT" = "issue_comment" ]; then
+            COMMENT_URL="${{ github.event.comment.html_url }}"
+            COMMENT_BODY="${{ github.event.comment.body }}"
+            ICON_URL="https://img.icons8.com/ios/25/FFFFFF/speech-bubble--v1.png"
+
+            EMBED=$(jq -n \
+              --arg repo "$REPO" \
+              --arg user "$USER" \
+              --arg url "$COMMENT_URL" \
+              --arg body "$COMMENT_BODY" \
+              --arg icon "$ICON_URL" \
+              '{
+                embeds: [{
+                  author: {
+                    name: "New Comment",
+                    icon_url: $icon,
+                    url: $url
+                  },
+                  description: $body,
+                  url: $url,
+                  color: 10181046,
+                  fields: [
+                    { "name": "Repository", "value": $repo, "inline": true },
+                    { "name": "Comment by", "value": $user, "inline": true }
+                  ],
+                  footer: {
+                    text: "GitHub Comments"
+                  },
+                  timestamp: "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+                }]
+              }')
+
+            curl -H "Content-Type: application/json" \
+                 -d "$EMBED" \
+                 $DISCORD_WEBHOOK
+          fi
