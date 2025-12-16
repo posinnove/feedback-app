@@ -1,0 +1,23 @@
+# Ignore settings files
+.vscode
+.vite
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+build
+
+# Env & secrets
+.env
+
+# Tooling & generated files
+coverage
+.vite
+.eslintcache
+
+# Lock files (optional but recommended)
+package-lock.json
+backend/package-lock.json
+yarn.lock
+backend/yarn.lock
