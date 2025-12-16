@@ -1,0 +1,10 @@
+name: First CI Test
+
+on:
+  push:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "GitHub Actions is working"
