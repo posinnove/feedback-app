@@ -1,22 +1,12 @@
-import express from "express"
-import cors from "cors"
 import {env} from "./config/env.js"
 import { connectDb } from "./db/sequelize.js"
-
-const app = express()
-
-app.use(cors())
-app.use(express.json())
-
-app.get("/", (req, res) => {
-  res.json({ message: "Server running" })
-})
+import app from "./app.js"
 
 const PORT = env.port || 3000
 
-async function start() {
+async function startServer() {
   try {
-    await connectDb()
+    await connectDb();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
     })
@@ -26,4 +16,4 @@ async function start() {
   }
 }
 
-start()
+startServer()
