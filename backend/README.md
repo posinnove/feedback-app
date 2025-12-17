@@ -1,9 +1,5 @@
 # Backend Setup
 
-## Prerequisites
-- Node.js 18+
-- PostgreSQL 13+
-
 ## Installation
 1. Install dependencies:
    ```bash
@@ -11,16 +7,17 @@
    ```
 2. Copy `.env.example` to `.env` and adjust the values:
    ```bash
-   cp .env.example .env
+   copy .env.example .env
    ```
-   Provide either a `DATABASE_URL` or the individual `DB_*` values for your Postgres instance.
 
 ## Running the server
 ```bash
 npm run dev
 ```
-The server will attempt to connect to PostgreSQL before starting. On success it will listen on the port defined by `PORT` (defaults to `3000`).
 
 ## Troubleshooting
-- Ensure the database credentials in `.env` are correct and the database is reachable.
-- Set `DB_LOGGING=true` to see Sequelize SQL logs when debugging locally.
+- Make sure you have PostgreSQL installed in your computer 
+
+   postgresql host server: https://www.postgresql.org/download/ <br/>
+   pgAdmin: https://www.pgadmin.org/download/
+
