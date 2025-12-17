@@ -1,6 +1,7 @@
 import {env} from "./config/env.js"
-import { connectDb } from "./db/sequelize.js"
+import { connectDb } from "./config/db.js"
 import app from "./app.js"
+import "./models/users.model.js"
 
 const PORT = env.port || 3000
 
