@@ -1,10 +1,7 @@
 import express from "express"
-import dotenv from "dotenv"
 import cors from "cors"
-
+import {env} from "./config/env.js"
 import { connectDb } from "./db/sequelize.js"
-
-dotenv.config()
 
 const app = express()
 
@@ -15,7 +12,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Server running" })
 })
 
-const PORT = process.env.PORT || 3000
+const PORT = env.port || 3000
 
 async function start() {
   try {

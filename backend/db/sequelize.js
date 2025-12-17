@@ -1,13 +1,9 @@
 import { Sequelize } from "sequelize"
+import { env } from "../config/env.js"
 
-const {
-  DATABASE_URL,
-  NODE_ENV,
-} = process.env
+const logging = env.nodeEnv === "development" ? console.log : false
 
-const logging = NODE_ENV === "development" ? console.log : false
-
-export const sequelize = new Sequelize(DATABASE_URL, {
+export const sequelize = new Sequelize(env.databaseURL, {
       dialect: "postgres",
       logging,
     })
