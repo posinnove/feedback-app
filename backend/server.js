@@ -1,20 +1,20 @@
-import express from "express"
-import dotenv from "dotenv"
-import cors from "cors"
+import {env} from "./config/env.js"
+import { connectDb } from "./config/db.js"
+import app from "./app.js"
+import "./models/users.model.js"
 
-dotenv.config()
+const PORT = env.port || 3000
 
-const app = express()
+async function startServer() {
+  try {
+    await connectDb();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`)
+    })
+  } catch (error) {
+    console.error("Failed to start server due to database connection error")
+    process.exit(1)
+  }
+}
 
-app.use(cors())
-app.use(express.json())
-
-app.get("/", (req, res) => {
-  res.json({ message: "Server running" })
-})
-
-const PORT = process.env.PORT || 3000
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+startServer()
