@@ -35,6 +35,7 @@
       
       --background: var(--color-bg);
       --border: var(--color-border);
+      --card-bg: var(--color-card-bg);
       --base-200: var(--color-base-200);
       --base-100: var(--color-base-100);
   }
@@ -46,6 +47,23 @@
   }
 
   .btn {
-    @apply px-[15px] py-[4px] rounded-full cursor-pointer
+    @apply px-[15px] py-[4px] rounded-full cursor-pointer capitalize transition-all hover:opacity-80 shadow-xl
+  }
+
+  .btn-primary{
+    @apply bg-primary-800 text-white
+  }
+  .btn-success {
+    @apply bg-status-completed text-white
+  }
+  .btn-warning {
+    @apply bg-status-in-progress text-white
+  }
+  .btn-danger {
+    @apply bg-status-rejected text-white
+  }
+
+  .card{
+    @apply bg-card-bg border border-border px-[16px] py-[8px] rounded-[7px] shadow-md shadow-black/5;
   }
 }
