@@ -1,4 +1,4 @@
-import FeedbackBoard from './components/FeedbackBoard'
+import PublicFeedbackBoard from './components/PublicFeedbackBoard'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import { mockFeedbacks } from './data/mockFeedback'
@@ -9,7 +9,7 @@ function App() {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
-        <FeedbackBoard feedbacks={mockFeedbacks} />
+        <PublicFeedbackBoard feedbacks={mockFeedbacks} />
       </div>
     </div>
   )
