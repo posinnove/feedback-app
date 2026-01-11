@@ -91,7 +91,11 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
   )
 }
 
-export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { feedbacks?: Feedback[] }) {
+export default function PublicFeedbackBoard({
+  feedbacks = mockFeedbacks,
+}: {
+  feedbacks?: Feedback[]
+}) {
   return (
     <div className="flex-1 bg-background">
       <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -99,7 +103,9 @@ export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { fee
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-base-200">Public Feedback</h1>
-              <p className="text-sm text-base-100">See what your audience is saying — public submissions only.</p>
+              <p className="text-sm text-base-100">
+                See what your audience is saying — public submissions only.
+              </p>
             </div>
             <div className="flex items-center gap-3">
               <input
@@ -131,7 +137,9 @@ export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { fee
                 <div className="text-xs text-base-100">Total posts</div>
               </div>
               <div>
-                <div className="text-2xl font-bold">{feedbacks.reduce((s, x) => s + x.upvotes, 0)}</div>
+                <div className="text-2xl font-bold">
+                  {feedbacks.reduce((s, x) => s + x.upvotes, 0)}
+                </div>
                 <div className="text-xs text-base-100">Total upvotes</div>
               </div>
             </div>
@@ -155,7 +163,10 @@ export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { fee
               {Array.from(
                 feedbacks
                   .flatMap((f) => f.reachedTo.map((r) => r.name))
-                  .reduce((m, name) => m.set(name, (m.get(name) || 0) + 1), new Map<string, number>()),
+                  .reduce(
+                    (m, name) => m.set(name, (m.get(name) || 0) + 1),
+                    new Map<string, number>()
+                  )
               ).map(([name, count]) => (
                 <div key={name} className="flex items-center gap-3">
                   <Avatar name={name} />
