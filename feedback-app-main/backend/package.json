@@ -7,8 +7,9 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+     "dev": "ts-node backend/server.ts",
+  "build": "tsc -p backend/tsconfig.json",
+  "start": "node backend/dist/server.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
