@@ -1,7 +1,7 @@
-import { env } from "./config/env";
-import { connectDb } from "./config/db";
-import app from "./app";
-import { Users } from "./models/users.model";
+import { env } from "./config/env.ts";
+import { connectDb } from "./config/db.ts";
+import app from "./app.ts";
+import { Users } from "./models/users.model.ts";
 
 
 
@@ -10,7 +10,7 @@ const PORT: number = Number(env.port) || 3000;
 async function startServer() {
   try {
     await connectDb();
-    await Users.sync(); 
+    await Users.sync();
     const server = app.listen(PORT, () => { // optional: type inferred
       console.log(`Server running on port ${PORT}`);
     });

@@ -1,5 +1,6 @@
-import { DataTypes, Model, Sequelize, InferAttributes, InferCreationAttributes, CreationOptional } from "sequelize";
-import { sequelize } from "../config/db";
+import { DataTypes, Model, Sequelize } from "sequelize";
+import type { InferAttributes, InferCreationAttributes, CreationOptional } from "sequelize";
+import { sequelize } from "../config/db.ts";
 
 // Define the User model class
 export class Users extends Model<InferAttributes<Users>, InferCreationAttributes<Users>> {

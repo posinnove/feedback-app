@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import { env } from "./env";
+import { env } from "./env.ts";
 
 const logging = env.nodeEnv === "development" ? console.log : false;
 
