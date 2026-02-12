@@ -1,4 +1,4 @@
-import { DataTypes, Model, Sequelize } from "sequelize";
+import { DataTypes, Model, ModelStatic } from "sequelize";
 import type { InferAttributes, InferCreationAttributes, CreationOptional } from "sequelize";
 import { sequelize } from "../config/db.ts";
 
@@ -15,7 +15,7 @@ export class Users extends Model<InferAttributes<Users>, InferCreationAttributes
   declare updatedAt: CreationOptional<Date>;
 
   // Optional: associations
-  static associate(models: any) {
+  static associate(_models: Record<string, ModelStatic<Model>>) {
     // e.g., Users.hasMany(models.Post);
   }
 }

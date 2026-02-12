@@ -13,8 +13,9 @@ export async function connectDb() {
     await sequelize.authenticate();
     await sequelize.sync();
     console.log("Connected to DB successfully [VOXELA]");
-  } catch (error: any) {
-    console.error("Unable to connect to the database:", error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Unable to connect to the database:", message);
     throw error;
   }
 }

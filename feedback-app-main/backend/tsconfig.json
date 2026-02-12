@@ -8,12 +8,13 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "outDir": "dist",
-    "rootDir": "."
+    "rootDir": "src"
   },
   "include": [
-    "**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "database"
   ]
 }

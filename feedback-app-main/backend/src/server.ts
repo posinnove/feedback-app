@@ -11,12 +11,13 @@ async function startServer() {
   try {
     await connectDb();
     await Users.sync();
-    const server = app.listen(PORT, () => { // optional: type inferred
+    app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
     // server is of type http.Server if you want to use it
-  } catch (error: any) {
-    console.error("Failed to start server:", error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("Failed to start server:", message);
     process.exit(1);
   }
 }
