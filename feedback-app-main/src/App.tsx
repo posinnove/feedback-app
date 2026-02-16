@@ -1,17 +1,19 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Outlet } from 'react-router-dom'
 import PublicFeedbackBoard from './components/PublicFeedbackBoard'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import CompanyBoardPage from './pages/CompanyBoardPage'
 import { mockFeedbacks } from './data/mockFeedback'
 
-function DashboardLayout() {
+function AppLayout() {
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <PublicFeedbackBoard feedbacks={mockFeedbacks} />
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
+      <div className="flex flex-1">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
       </div>
     </div>
   )
@@ -20,11 +22,12 @@ function DashboardLayout() {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<DashboardLayout />} />
-      <Route path="/company/:slug" element={<CompanyBoardPage />} />
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<PublicFeedbackBoard feedbacks={mockFeedbacks} />} />
+        <Route path="/company/:slug" element={<CompanyBoardPage />} />
+      </Route>
     </Routes>
   )
 }
 
 export default App
-

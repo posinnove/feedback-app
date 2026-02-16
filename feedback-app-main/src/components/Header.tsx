@@ -1,13 +1,21 @@
+import { Link } from 'react-router-dom'
+import Avatar from './ui/Avatar'
+
 export default function Header() {
   return (
-    <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between">
+    <header className="bg-white border-b border-border px-6 py-3 flex items-center justify-between">
+      {/* Brand */}
+      <Link to="/" className="text-xl font-bold text-primary-600 tracking-tight mr-6">
+        VOXELLA
+      </Link>
+
       {/* Search Bar */}
       <div className="flex-1 max-w-md">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
-              width="20"
-              height="20"
+              width="18"
+              height="18"
               viewBox="0 0 20 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -32,15 +40,15 @@ export default function Header() {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent text-base-200 placeholder:text-base-100"
+            className="input pl-10"
           />
         </div>
       </div>
 
       {/* Right Side - Icons and User */}
-      <div className="flex items-center gap-4">
-        {/* Notification Icons */}
-        <button className="relative p-2 text-base-100 hover:text-base-200 transition-colors">
+      <div className="flex items-center gap-3">
+        {/* Notification Bell */}
+        <button className="relative p-2 text-base-100 hover:text-base-200 transition-colors" aria-label="Notifications">
           <svg
             width="20"
             height="20"
@@ -49,22 +57,18 @@ export default function Header() {
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M10 2C8.89543 2 8 2.89543 8 4C8 5.10457 8.89543 6 10 6C11.1046 6 12 5.10457 12 4C12 2.89543 11.1046 2 10 2Z"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M3 17C3 14.2386 5.23858 12 8 12H12C14.7614 12 17 14.2386 17 17"
+              d="M15 6.667A5 5 0 005 6.667C5 12.5 2.5 14.167 2.5 14.167H17.5S15 12.5 15 6.667zM11.442 17.5a1.667 1.667 0 01-2.884 0"
               stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-status-rejected rounded-full"></span>
         </button>
-        <button className="relative p-2 text-base-100 hover:text-base-200 transition-colors">
+
+        {/* Info / Help */}
+        <button className="relative p-2 text-base-100 hover:text-base-200 transition-colors" aria-label="Help">
           <svg
             width="20"
             height="20"
@@ -73,55 +77,30 @@ export default function Header() {
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M10 2C8.89543 2 8 2.89543 8 4C8 5.10457 8.89543 6 10 6C11.1046 6 12 5.10457 12 4C12 2.89543 11.1046 2 10 2Z"
+              d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z"
               stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
             <path
-              d="M3 17C3 14.2386 5.23858 12 8 12H12C14.7614 12 17 14.2386 17 17"
+              d="M7.575 7.5A2.5 2.5 0 0110.5 5.625C11.881 5.625 13 6.494 13 7.575C13 8.656 11.881 9.525 10.5 9.525V10.625"
               stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-          </svg>
-        </button>
-        <button className="relative p-2 text-base-100 hover:text-base-200 transition-colors">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M2 5L10 1L18 5V11C18 15.4183 14.4183 19 10 19C5.58172 19 2 15.4183 2 11V5Z"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M6 9L9 12L14 7"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <circle cx="10.5" cy="13" r="0.5" fill="currentColor" />
           </svg>
         </button>
 
         {/* User Profile */}
-        <div className="flex items-center gap-3 pl-4 border-l border-border">
-          <div className="w-8 h-8 rounded-full bg-primary-600 text-white text-sm flex items-center justify-center font-medium">
-            MJ
-          </div>
+        <div className="flex items-center gap-3 pl-3 border-l border-border">
+          <Avatar name="Mellow Junior" size="lg" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-base-200">Mellow Junior</span>
           </div>
-          <button className="text-base-100 hover:text-base-200">
+          <button className="text-base-100 hover:text-base-200" aria-label="User menu">
             <svg
               width="16"
               height="16"
@@ -143,4 +122,3 @@ export default function Header() {
     </header>
   )
 }
-

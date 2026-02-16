@@ -1,46 +1,9 @@
 import type { Feedback } from '../types/feedback'
 import { mockFeedbacks } from '../data/mockFeedback'
-
-function Avatar({ name, avatar }: { name: string; avatar?: string }) {
-  const initials = name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-
-  if (avatar) {
-    return (
-      <img
-        src={avatar}
-        alt={name}
-        className="w-6 h-6 rounded-full object-cover border-2 border-white"
-      />
-    )
-  }
-
-  const colors = ['bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-violet-500']
-  const colorIndex = name.charCodeAt(0) % colors.length
-  const bgColor = colors[colorIndex]
-
-  return (
-    <div
-      className={`w-6 h-6 rounded-full ${bgColor} text-white text-xs flex items-center justify-center font-medium border-2 border-white`}
-    >
-      {initials}
-    </div>
-  )
-}
+import Avatar from './ui/Avatar'
+import { formatDate } from '../utils/formatDate'
 
 function FeedbackCard({ feedback }: { feedback: Feedback }) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const day = date.getDate()
-    const month = date.toLocaleDateString('en-US', { month: 'short' })
-    const year = date.getFullYear()
-    return `${day} ${month}, ${year}`
-  }
-
   return (
     <div className="card flex flex-col p-0 overflow-hidden">
       <div className="flex items-start justify-between gap-2 p-4 pb-3">
@@ -105,9 +68,9 @@ export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { fee
               <input
                 type="search"
                 placeholder="Search feedback..."
-                className="px-3 py-2 border border-border rounded-md focus:outline-none"
+                className="input max-w-[200px]"
               />
-              <select className="px-3 py-2 border border-border rounded-md">
+              <select className="input max-w-[180px]">
                 <option>Sort: Newest</option>
                 <option>Sort: Most Upvotes</option>
                 <option>Sort: Most Comments</option>

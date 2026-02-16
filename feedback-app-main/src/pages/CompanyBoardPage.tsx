@@ -1,34 +1,11 @@
 import { useParams, Link } from 'react-router-dom'
 import type { CompanyData, CompanyFeedback } from '../types/company'
 import { useCompany } from '../api/company'
-
-const STATUS_COLORS: Record<string, string> = {
-    planned: 'bg-blue-100 text-blue-700',
-    'in-progress': 'bg-amber-100 text-amber-700',
-    completed: 'bg-emerald-100 text-emerald-700',
-    'under-review': 'bg-gray-100 text-gray-600',
-    rejected: 'bg-red-100 text-red-700',
-}
-
-function StatusBadge({ status }: { status: string }) {
-    const color = STATUS_COLORS[status] ?? 'bg-gray-100 text-gray-600'
-    const label = status.replace(/-/g, ' ')
-    return (
-        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize ${color}`}>
-            {label}
-        </span>
-    )
-}
+import StatusBadge from '../components/ui/StatusBadge'
+import VoteButtons from '../components/ui/VoteButtons'
+import { timeAgo } from '../utils/formatDate'
 
 function FeedbackCard({ feedback }: { feedback: CompanyFeedback }) {
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString)
-        const day = date.getDate()
-        const month = date.toLocaleDateString('en-US', { month: 'short' })
-        const year = date.getFullYear()
-        return `${day} ${month}, ${year}`
-    }
-
     return (
         <div className="card flex flex-col p-0 overflow-hidden hover:shadow-lg transition-shadow duration-200">
             {/* Header */}
@@ -40,7 +17,7 @@ function FeedbackCard({ feedback }: { feedback: CompanyFeedback }) {
                         </div>
                         <span>Company names</span>
                         <span>·</span>
-                        <span>{formatDate(feedback.createdAt)}</span>
+                        <span>{timeAgo(feedback.createdAt)}</span>
                     </div>
                     <h3 className="text-sm font-semibold text-base-200 leading-snug">{feedback.title}</h3>
                 </div>
@@ -69,17 +46,9 @@ function FeedbackCard({ feedback }: { feedback: CompanyFeedback }) {
             <div className="px-4 pb-3 pt-2 mt-auto border-t border-border/50">
                 <div className="flex items-center gap-3 text-xs text-base-100">
                     {/* Upvotes */}
-                    <div className="flex items-center gap-1">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 13V3M8 3L4 7M8 3L12 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span className="font-medium">{feedback.upvotes}</span>
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 3V13M8 13L4 9M8 13L12 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </div>
+                    <VoteButtons count={feedback.upvotes} />
 
-                    {/* Comments placeholder */}
+                    {/* Comments */}
                     <div className="flex items-center gap-1">
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M3 6C3 4.89543 3.89543 4 5 4H11C12.1046 4 13 4.89543 13 6V11C13 12.1046 12.1046 13 11 13H8L5 15V13H5C3.89543 13 3 12.1046 3 11V6Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -210,38 +179,16 @@ export default function CompanyBoardPage() {
     if (isError || !company) return <NotFoundState />
 
     return (
-        <div className="min-h-screen bg-background">
-            {/* Top bar */}
-            <header className="bg-white border-b border-border px-6 py-3">
-                <div className="max-w-6xl mx-auto flex items-center justify-between">
-                    <Link to="/" className="text-xl font-bold text-primary-600">VOXELLA</Link>
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-base-100">
-                                    <path d="M9 17C13.4183 17 17 13.4183 17 9C17 4.58172 13.4183 1 9 1C4.58172 1 1 4.58172 1 9C1 13.4183 4.58172 17 9 17Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                    <path d="M19 19L14.65 14.65" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                className="pl-9 pr-4 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </header>
-
+        <div className="bg-background">
             {/* Main content */}
             <div className="max-w-6xl mx-auto px-6 py-6">
                 <CompanyHeader company={company} />
 
                 {/* Tabs */}
-                <div className="flex gap-0 mb-6 border-b border-border">
-                    <button className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-t-lg">Overview</button>
-                    <button className="px-4 py-2 text-sm font-medium text-base-100 hover:text-base-200 transition-colors">Posts</button>
-                    <button className="px-4 py-2 text-sm font-medium text-base-100 hover:text-base-200 transition-colors">Comments</button>
+                <div className="flex gap-2 mb-6">
+                    <button className="px-4 py-1.5 text-sm font-medium text-primary-600 bg-primary-100 rounded-full transition-colors">Overview</button>
+                    <button className="px-4 py-1.5 text-sm font-medium text-base-100 hover:bg-gray-100 rounded-full transition-colors">Posts</button>
+                    <button className="px-4 py-1.5 text-sm font-medium text-base-100 hover:bg-gray-100 rounded-full transition-colors">Comments</button>
                 </div>
 
                 {/* Feedback list */}
