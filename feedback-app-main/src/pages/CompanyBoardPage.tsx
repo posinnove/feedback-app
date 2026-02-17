@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import type { CompanyData, CompanyFeedback } from '../types/company'
-import { useCompany } from '../api/company'
+import { useGetCompanyBySlugQuery } from '../store/api/companyApi'
 import StatusBadge from '../components/ui/StatusBadge'
 import VoteButtons from '../components/ui/VoteButtons'
 import { timeAgo } from '../utils/formatDate'
@@ -173,7 +173,7 @@ function NotFoundState() {
 
 export default function CompanyBoardPage() {
     const { slug } = useParams<{ slug: string }>()
-    const { data: company, isLoading, isError } = useCompany(slug)
+    const { data: company, isLoading, isError } = useGetCompanyBySlugQuery(slug!, { skip: !slug })
 
     if (isLoading) return <LoadingSpinner />
     if (isError || !company) return <NotFoundState />

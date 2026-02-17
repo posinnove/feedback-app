@@ -1,5 +1,3 @@
-import axios from 'axios'
-
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
@@ -21,10 +19,16 @@ export const uploadFileToCloudinary = async (
   formData.append('folder', 'feedback-uploads')
 
   try {
-    const { data } = await axios.post(
+    const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
-      formData,
+      { method: 'POST', body: formData },
     )
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}`)
+    }
+
+    const data = await response.json()
 
     return {
       url: data.secure_url,
@@ -42,4 +46,3 @@ export const uploadFileToCloudinary = async (
 // const results = await Promise.all(
 //   files.map(file => uploadFileToCloudinary(file))
 // )
-
