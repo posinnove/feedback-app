@@ -62,10 +62,31 @@ module.exports = {
                 updated_at: new Date(),
             },
         ]);
+
+        // Insert Irembo company (no feedbacks — to test empty board state)
+        const [iremboUsers] = await queryInterface.sequelize.query(
+            `SELECT id FROM users WHERE email = 'admin@irembo.com' LIMIT 1;`
+        );
+        const iremboUserId = iremboUsers[0].id;
+
+        await queryInterface.bulkInsert('companies', [
+            {
+                user_id: iremboUserId,
+                name: 'Irembo',
+                slug: 'irembo',
+                description:
+                    'Irembo is a technology company that builds digital solutions to improve the delivery of government services.',
+                logo_url: null,
+                created_at: new Date(),
+                updated_at: new Date(),
+            },
+        ]);
     },
 
     async down(queryInterface) {
         await queryInterface.bulkDelete('feedbacks', null);
-        await queryInterface.bulkDelete('companies', { slug: 'posinnove' });
+        await queryInterface.bulkDelete('companies', {
+            slug: ['posinnove', 'irembo'],
+        });
     },
 };

@@ -18,12 +18,22 @@ module.exports = {
                 created_at: new Date(),
                 updated_at: new Date(),
             },
+            {
+                first_name: 'Irembo',
+                last_name: 'Admin',
+                email: 'admin@irembo.com',
+                password: hashedPassword,
+                phone_number: '+250780000002',
+                role: 'company',
+                created_at: new Date(),
+                updated_at: new Date(),
+            },
         ]);
     },
 
     async down(queryInterface) {
         await queryInterface.bulkDelete('users', {
-            email: 'arsene@posinnove.com',
+            email: ['arsene@posinnove.com', 'admin@irembo.com'],
         });
     },
 };
