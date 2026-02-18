@@ -57,25 +57,29 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
 export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { feedbacks?: Feedback[] }) {
   return (
     <div className="flex-1 bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <main className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-base-200">Public Feedback</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-base-200">Public Feedback</h1>
               <p className="text-sm text-base-100">See what your audience is saying — public submissions only.</p>
             </div>
             <div className="flex items-center gap-3">
-              <input
-                type="search"
-                placeholder="Search feedback..."
-                className="input max-w-[200px]"
-              />
               <select className="input max-w-[180px]">
                 <option>Sort: Newest</option>
                 <option>Sort: Most Upvotes</option>
                 <option>Sort: Most Comments</option>
               </select>
             </div>
+          </div>
+
+          {/* Search input — aligned to sidebar edge */}
+          <div className="mb-6">
+            <input
+              type="search"
+              placeholder="Search feedback..."
+              className="input max-w-xs"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -85,7 +89,7 @@ export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { fee
           </div>
         </main>
 
-        <aside className="space-y-4">
+        <aside className="hidden lg:block space-y-4">
           <div className="card p-4">
             <h3 className="text-sm font-medium text-base-200 mb-2">Overview</h3>
             <div className="grid grid-cols-2 gap-2 text-center">

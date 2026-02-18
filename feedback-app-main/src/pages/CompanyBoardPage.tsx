@@ -1,11 +1,20 @@
 import { useParams, Link } from 'react-router-dom'
+import {
+    IconDotsVertical,
+    IconMessage,
+    IconClock,
+    IconChevronDown,
+    IconAlertCircle,
+    IconCircleX,
+} from '@tabler/icons-react'
 import type { CompanyData, CompanyFeedback } from '../types/company'
 import { useGetCompanyBySlugQuery } from '../store/api/companyApi'
 import StatusBadge from '../components/ui/StatusBadge'
 import VoteButtons from '../components/ui/VoteButtons'
+import ShareButton from '../components/ui/ShareButton'
 import { timeAgo } from '../utils/formatDate'
 
-function FeedbackCard({ feedback }: { feedback: CompanyFeedback }) {
+function FeedbackCard({ feedback, companySlug }: { feedback: CompanyFeedback; companySlug: string }) {
     return (
         <div className="card flex flex-col p-0 overflow-hidden hover:shadow-lg transition-shadow duration-200">
             {/* Header */}
@@ -22,11 +31,7 @@ function FeedbackCard({ feedback }: { feedback: CompanyFeedback }) {
                     <h3 className="text-sm font-semibold text-base-200 leading-snug">{feedback.title}</h3>
                 </div>
                 <button className="text-base-100 hover:text-base-200 p-1 shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="10" cy="5" r="1.2" fill="currentColor" />
-                        <circle cx="10" cy="10" r="1.2" fill="currentColor" />
-                        <circle cx="10" cy="15" r="1.2" fill="currentColor" />
-                    </svg>
+                    <IconDotsVertical size={16} stroke={1.5} />
                 </button>
             </div>
 
@@ -34,35 +39,25 @@ function FeedbackCard({ feedback }: { feedback: CompanyFeedback }) {
             {feedback.description && (
                 <div className="px-4 pb-3">
                     <p className="text-sm text-base-100 leading-relaxed line-clamp-3">{feedback.description}</p>
-                    <ul className="mt-2 space-y-1 text-sm text-base-100 list-disc pl-4">
-                        <li>Super fast setup. I had auth, database, and file handling running almost immediately.</li>
-                        <li>Local first development felt simple and predictable.</li>
-                        <li>It handled small but important things like user management and permissions without extra layers....</li>
-                    </ul>
                 </div>
             )}
 
             {/* Footer */}
             <div className="px-4 pb-3 pt-2 mt-auto border-t border-border/50">
                 <div className="flex items-center gap-3 text-xs text-base-100">
-                    {/* Upvotes */}
                     <VoteButtons count={feedback.upvotes} />
 
-                    {/* Comments */}
-                    <div className="flex items-center gap-1">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 6C3 4.89543 3.89543 4 5 4H11C12.1046 4 13 4.89543 13 6V11C13 12.1046 12.1046 13 11 13H8L5 15V13H5C3.89543 13 3 12.1046 3 11V6Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                    <div className="flex items-center gap-1 bg-gray-100 rounded-md px-2 py-1 hover:bg-gray-200 transition-colors cursor-pointer">
+                        <IconMessage size={14} stroke={1.5} />
                         <span>0</span>
                     </div>
 
-                    {/* Share */}
-                    <button className="flex items-center gap-1 ml-auto px-2 py-1 rounded-md hover:bg-gray-100 transition-colors">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 8V13H12V8M8 2V10M8 2L5 5M8 2L11 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span>Share</span>
-                    </button>
+                    <div className="ml-auto">
+                        <ShareButton
+                            url={`${window.location.origin}/company/${companySlug}/feedback/${feedback.id}`}
+                            size={14}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -74,49 +69,48 @@ function FeedbackCard({ feedback }: { feedback: CompanyFeedback }) {
     )
 }
 
-function CompanyHeader({ company }: { company: CompanyData }) {
+function CompanyInfo({ company }: { company: CompanyData }) {
+    return (
+        <div className="flex items-center gap-4 mb-6">
+            <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-100 flex items-center justify-center border border-border shrink-0">
+                {company.logoUrl ? (
+                    <img src={company.logoUrl} alt={company.name} className="w-full h-full rounded-2xl object-cover" />
+                ) : (
+                    <span className="text-xl lg:text-2xl font-bold text-primary-600">{company.name.charAt(0).toUpperCase()}</span>
+                )}
+            </div>
+            <div className="flex-1 min-w-0">
+                <h1 className="text-xl lg:text-2xl font-bold text-base-200 truncate">{company.name}</h1>
+                {company.description && (
+                    <p className="text-sm text-base-100 mt-0.5 line-clamp-1">{company.description.split('.')[0]}.</p>
+                )}
+            </div>
+            {/* Mobile share button — visible only when stats card is hidden */}
+            <div className="lg:hidden shrink-0">
+                <ShareButton size={16} label="" />
+            </div>
+        </div>
+    )
+}
+
+function StatsCard({ company }: { company: CompanyData }) {
     const totalUpvotes = company.feedbacks.reduce((sum, f) => sum + f.upvotes, 0)
 
     return (
-        <div className="flex items-start gap-8 mb-6">
-            {/* Company info */}
-            <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center border border-border">
-                    {company.logoUrl ? (
-                        <img src={company.logoUrl} alt={company.name} className="w-full h-full rounded-2xl object-cover" />
-                    ) : (
-                        <span className="text-2xl font-bold text-primary-600">{company.name.charAt(0).toUpperCase()}</span>
-                    )}
+        <div className="card p-4 sticky top-6">
+            <ShareButton variant="primary" size={14} className="mb-3" />
+            <div className="text-sm text-base-100 mb-2">400 followers</div>
+            <p className="text-xs text-base-100 mb-3 leading-relaxed">
+                {company.description ?? `Welcome to ${company.name}'s feedback board.`}
+            </p>
+            <div className="grid grid-cols-2 gap-3 text-center">
+                <div>
+                    <div className="text-lg font-bold text-base-200">{company.feedbacks.length}</div>
+                    <div className="text-xs text-base-100">Posts</div>
                 </div>
                 <div>
-                    <h1 className="text-2xl font-bold text-base-200">{company.name}</h1>
-                    {company.description && (
-                        <p className="text-sm text-base-100 mt-0.5">{company.description.split('.')[0]}.</p>
-                    )}
-                </div>
-            </div>
-
-            {/* Stats sidebar */}
-            <div className="ml-auto card p-4 min-w-[200px]">
-                <button className="btn btn-primary flex items-center gap-2 w-full justify-center mb-3 text-sm">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 8V13H12V8M8 2V10M8 2L5 5M8 2L11 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Share
-                </button>
-                <div className="text-sm text-base-100 mb-2">400 followers</div>
-                <p className="text-xs text-base-100 mb-3 leading-relaxed">
-                    {company.description ?? `Welcome to ${company.name}'s feedback board.`}
-                </p>
-                <div className="grid grid-cols-2 gap-3 text-center">
-                    <div>
-                        <div className="text-lg font-bold text-base-200">{company.feedbacks.length}</div>
-                        <div className="text-xs text-base-100">Posts</div>
-                    </div>
-                    <div>
-                        <div className="text-lg font-bold text-base-200">{totalUpvotes.toLocaleString()}</div>
-                        <div className="text-xs text-base-100">Total Upvotes</div>
-                    </div>
+                    <div className="text-lg font-bold text-base-200">{totalUpvotes.toLocaleString()}</div>
+                    <div className="text-xs text-base-100">Total Upvotes</div>
                 </div>
             </div>
         </div>
@@ -127,9 +121,7 @@ function EmptyState() {
     return (
         <div className="card p-12 text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-100 flex items-center justify-center">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary-600">
-                    <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <IconAlertCircle size={28} stroke={2} className="text-primary-600" />
             </div>
             <h3 className="text-lg font-semibold text-base-200 mb-2">No feedback yet</h3>
             <p className="text-sm text-base-100 max-w-sm mx-auto">
@@ -155,9 +147,7 @@ function NotFoundState() {
         <div className="flex items-center justify-center min-h-[50vh]">
             <div className="card p-12 text-center max-w-md">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-red-500">
-                        <path d="M12 9V13M12 17H12.01M4.93 4.93L19.07 19.07M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <IconCircleX size={28} stroke={2} className="text-red-500" />
                 </div>
                 <h3 className="text-lg font-semibold text-base-200 mb-2">Company not found</h3>
                 <p className="text-sm text-base-100 mb-4">
@@ -180,37 +170,39 @@ export default function CompanyBoardPage() {
 
     return (
         <div className="bg-background">
-            {/* Main content */}
-            <div className="max-w-6xl mx-auto px-6 py-6">
-                <CompanyHeader company={company} />
+            <div className="max-w-6xl mx-auto px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 lg:gap-8">
+                {/* Left column — Company info, tabs, feedback */}
+                <div className="min-w-0">
+                    <CompanyInfo company={company} />
 
-                {/* Tabs */}
-                <div className="flex gap-2 mb-6">
-                    <button className="px-4 py-1.5 text-sm font-medium text-primary-600 bg-primary-100 rounded-full transition-colors">Overview</button>
-                    <button className="px-4 py-1.5 text-sm font-medium text-base-100 hover:bg-gray-100 rounded-full transition-colors">Posts</button>
-                    <button className="px-4 py-1.5 text-sm font-medium text-base-100 hover:bg-gray-100 rounded-full transition-colors">Comments</button>
+                    {/* Tabs */}
+                    <div className="flex gap-2 mb-6">
+                        <button className="px-4 py-1.5 text-sm font-medium text-primary-600 bg-primary-100 rounded-full transition-colors">Overview</button>
+                        <button className="px-4 py-1.5 text-sm font-medium text-base-100 hover:bg-gray-100 rounded-full transition-colors">Posts</button>
+                        <button className="px-4 py-1.5 text-sm font-medium text-base-100 hover:bg-gray-100 rounded-full transition-colors">Comments</button>
+                    </div>
+
+                    {/* Feedback list */}
+                    {company.feedbacks.length === 0 ? (
+                        <EmptyState />
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm text-base-100 mb-2">
+                                <IconClock size={16} stroke={1.5} />
+                                Showing all content
+                                <IconChevronDown size={14} stroke={1.5} className="ml-auto" />
+                            </div>
+                            {company.feedbacks.map((feedback) => (
+                                <FeedbackCard key={feedback.id} feedback={feedback} companySlug={slug!} />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* Feedback list */}
-                {company.feedbacks.length === 0 ? (
-                    <EmptyState />
-                ) : (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm text-base-100 mb-2">
-                            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" className="text-base-100">
-                                <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
-                                <path d="M10 7V10L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                            </svg>
-                            Showing all content
-                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="ml-auto">
-                                <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </div>
-                        {company.feedbacks.map((feedback) => (
-                            <FeedbackCard key={feedback.id} feedback={feedback} />
-                        ))}
-                    </div>
-                )}
+                {/* Right column — Stats/Share card (hidden on mobile) */}
+                <div className="hidden lg:block">
+                    <StatsCard company={company} />
+                </div>
             </div>
         </div>
     )

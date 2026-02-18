@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { IconStar, IconStarFilled } from '@tabler/icons-react'
 
 interface CompanyListItemProps {
     name: string
@@ -31,25 +32,14 @@ export default function CompanyListItem({
             </Link>
             <button
                 onClick={onToggleFavorite}
-                className="text-base-100 hover:text-amber-400 transition-colors opacity-0 group-hover:opacity-100"
+                className={`transition-colors opacity-0 group-hover:opacity-100 ${isFavorite ? 'text-amber-400 opacity-100' : 'text-base-100 hover:text-amber-400'}`}
                 aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
-                <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill={isFavorite ? 'currentColor' : 'none'}
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={isFavorite ? 'text-amber-400 opacity-100' : ''}
-                >
-                    <path
-                        d="M8 1.5L9.79 5.14L13.76 5.72L10.88 8.52L11.58 12.47L8 10.56L4.42 12.47L5.12 8.52L2.24 5.72L6.21 5.14L8 1.5Z"
-                        stroke="currentColor"
-                        strokeWidth="1"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                </svg>
+                {isFavorite ? (
+                    <IconStarFilled size={16} />
+                ) : (
+                    <IconStar size={16} stroke={1} />
+                )}
             </button>
         </div>
     )
