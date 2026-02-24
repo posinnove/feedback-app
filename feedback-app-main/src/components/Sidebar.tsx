@@ -1,37 +1,14 @@
 import { useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-    IconHome,
-    IconStar,
-    IconCompass,
-    IconList,
     IconPlus,
     IconChevronUp,
     IconEye,
 } from '@tabler/icons-react'
 import CompanyListItem from './ui/CompanyListItem'
+import { useGetCompaniesQuery } from '../store/api/companyApi'
+import { NAV_ITEMS } from '../utils/navItems'
 
-// Placeholder companies — replace with API data when available
-const MOCK_COMPANIES = [
-    { name: 'Irembo', slug: 'irembo' },
-    { name: 'Posinnove', slug: 'posinnove' },
-    { name: 'Umurava', slug: 'umurava' },
-    { name: 'Solvit Africa', slug: 'solvit-africa' },
-    { name: 'Imena', slug: 'imena' },
-    { name: 'Google', slug: 'google' },
-    { name: 'Awesomity', slug: 'awesomity' },
-    { name: 'Lerony', slug: 'lerony' },
-    { name: 'Mellow', slug: 'mellow' },
-    { name: 'Umuseke', slug: 'umuseke' },
-    { name: 'IGIHE', slug: 'igihe' },
-]
-
-const NAV_ITEMS = [
-    { label: 'Home', path: '/', icon: <IconHome size={20} stroke={1.5} /> },
-    { label: 'Popular', path: '/popular', icon: <IconStar size={20} stroke={1.5} /> },
-    { label: 'Explore', path: '/explore', icon: <IconCompass size={20} stroke={1.5} /> },
-    { label: 'All', path: '/all', icon: <IconList size={20} stroke={1.5} /> },
-]
 
 interface SidebarProps {
     open: boolean
@@ -40,6 +17,7 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
     const location = useLocation()
+    const { data: companies, isLoading: companiesLoading } = useGetCompaniesQuery()
 
     // Auto-close sidebar on navigation (mobile)
     const prevPathname = useRef(location.pathname)
@@ -120,13 +98,17 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                         </Link>
 
                         <div className="space-y-0.5 overflow-y-auto max-h-[calc(100vh-380px)]">
-                            {MOCK_COMPANIES.map((company) => (
-                                <CompanyListItem
-                                    key={company.slug}
-                                    name={company.name}
-                                    slug={company.slug}
-                                />
-                            ))}
+                            {companiesLoading ? (
+                                <div className="px-3 py-2 text-xs text-base-100">Loading...</div>
+                            ) : (
+                                companies?.map((company) => (
+                                    <CompanyListItem
+                                        key={company.slug}
+                                        name={company.name}
+                                        slug={company.slug}
+                                    />
+                                ))
+                            )}
                         </div>
                     </div>
                 </nav>
@@ -134,7 +116,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 {/* Footer */}
                 <div className="p-4 border-t border-border">
                     <p className="text-xs text-base-100">
-                        Voxella, Inc. © 2026. All rights reserved.
+                        Voxella, Inc. © {new Date().getFullYear()}. All rights reserved.
                     </p>
                 </div>
             </aside>

@@ -1,3 +1,9 @@
+export interface CompanySummary {
+    id: number
+    name: string
+    slug: string
+}
+
 export interface CompanyData {
     id: number
     userId: number
