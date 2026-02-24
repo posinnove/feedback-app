@@ -1,9 +1,13 @@
+import 'dotenv/config';
 import { Sequelize } from "sequelize";
-import { env } from "./env.ts";
+import logger from "../utils/logger.ts";
 
-const logging = env.nodeEnv === "development" ? console.log : false;
+const logging =
+  process.env.NODE_ENV === "development"
+    ? (sql: string) => logger.debug(sql)
+    : false;
 
-export const sequelize = new Sequelize(env.databaseURL, {
+export const sequelize = new Sequelize(process.env.DATABASE_URL as string, {
   dialect: "postgres",
   logging,
 });
@@ -12,10 +16,10 @@ export async function connectDb() {
   try {
     await sequelize.authenticate();
     await sequelize.sync();
-    console.log("Connected to DB successfully [VOXELA]");
+    logger.info("Connected to DB successfully [VOXELA]");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error("Unable to connect to the database:", message);
+    logger.error("Unable to connect to the database:", { message });
     throw error;
   }
 }

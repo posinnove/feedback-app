@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { getCompanyBySlug } from "../controllers/company.controller.ts";
+import { getAllCompanies, getCompanyBySlug } from "../controllers/company.controller.ts";
+import { validateSlug } from "../middleware/slug.validation.ts";
+import { resolveCompany } from "../middleware/resolve-company.ts";
 
 const router = Router();
 
-// Public endpoint — no auth required
-router.get("/:slug", getCompanyBySlug);
+router.get("/", getAllCompanies);
+router.get("/:slug", validateSlug, resolveCompany, getCompanyBySlug);
 
 export default router;
