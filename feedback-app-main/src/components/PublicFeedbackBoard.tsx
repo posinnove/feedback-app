@@ -93,7 +93,7 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
 
 export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { feedbacks?: Feedback[] }) {
   return (
-    <div className="flex-1 bg-background">
+    <div className="flex-1 bg-background"> g0egfdsgshvdh
       <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <main className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
