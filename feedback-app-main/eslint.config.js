@@ -25,17 +25,18 @@ export default defineConfig([
     },
   },
 
-  // Tha Backend
+  // The Backend
   {
     files: ['backend/**/*.{js,ts}'],
-    extends: [js.configs.recommended, prettier],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended, prettier],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.node,
-      sourceType: 'commonjs',
+      sourceType: 'module',
     },
     rules: {
       'no-console': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
 ])

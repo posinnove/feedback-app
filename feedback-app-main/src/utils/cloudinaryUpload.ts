@@ -19,16 +19,16 @@ export const uploadFileToCloudinary = async (
   formData.append('folder', 'feedback-uploads')
 
   try {
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
-      method: 'POST',
-      body: formData,
-    })
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
+      { method: 'POST', body: formData },
+    )
 
-    if (!res.ok) {
-      throw new Error(`Cloudinary upload failed with status ${res.status}`)
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}`)
     }
 
-    const data = await res.json()
+    const data = await response.json()
 
     return {
       url: data.secure_url,

@@ -1,46 +1,9 @@
 import type { Feedback } from '../types/feedback'
 import { mockFeedbacks } from '../data/mockFeedback'
-
-function Avatar({ name, avatar }: { name: string; avatar?: string }) {
-  const initials = name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-
-  if (avatar) {
-    return (
-      <img
-        src={avatar}
-        alt={name}
-        className="w-6 h-6 rounded-full object-cover border-2 border-white"
-      />
-    )
-  }
-
-  const colors = ['bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-violet-500']
-  const colorIndex = name.charCodeAt(0) % colors.length
-  const bgColor = colors[colorIndex]
-
-  return (
-    <div
-      className={`w-6 h-6 rounded-full ${bgColor} text-white text-xs flex items-center justify-center font-medium border-2 border-white`}
-    >
-      {initials}
-    </div>
-  )
-}
+import Avatar from './ui/Avatar'
+import { formatDate } from '../utils/formatDate'
 
 function FeedbackCard({ feedback }: { feedback: Feedback }) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const day = date.getDate()
-    const month = date.toLocaleDateString('en-US', { month: 'short' })
-    const year = date.getFullYear()
-    return `${day} ${month}, ${year}`
-  }
-
   return (
     <div className="card flex flex-col p-0 overflow-hidden">
       <div className="flex items-start justify-between gap-2 p-4 pb-3">
@@ -94,25 +57,29 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
 export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { feedbacks?: Feedback[] }) {
   return (
     <div className="flex-1 bg-background">
-      <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-7xl mx-auto px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <main className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-base-200">Public Feedback</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-base-200">Public Feedback</h1>
               <p className="text-sm text-base-100">See what your audience is saying — public submissions only.</p>
             </div>
             <div className="flex items-center gap-3">
-              <input
-                type="search"
-                placeholder="Search feedback..."
-                className="px-3 py-2 border border-border rounded-md focus:outline-none"
-              />
-              <select className="px-3 py-2 border border-border rounded-md">
+              <select className="input max-w-[180px]">
                 <option>Sort: Newest</option>
                 <option>Sort: Most Upvotes</option>
                 <option>Sort: Most Comments</option>
               </select>
             </div>
+          </div>
+
+          {/* Search input — aligned to sidebar edge */}
+          <div className="mb-6">
+            <input
+              type="search"
+              placeholder="Search feedback..."
+              className="input max-w-xs"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -122,7 +89,7 @@ export default function PublicFeedbackBoard({ feedbacks = mockFeedbacks }: { fee
           </div>
         </main>
 
-        <aside className="space-y-4">
+        <aside className="hidden lg:block space-y-4">
           <div className="card p-4">
             <h3 className="text-sm font-medium text-base-200 mb-2">Overview</h3>
             <div className="grid grid-cols-2 gap-2 text-center">
