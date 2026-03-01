@@ -5,12 +5,10 @@ import { sequelize } from "../config/db.ts";
 // Define the User model class
 export class Users extends Model<InferAttributes<Users>, InferCreationAttributes<Users>> {
   declare id: CreationOptional<number>;
-  declare firstName: string;
-  declare lastName: string;
+  declare userName: string;
   declare email: string;
   declare password: string;
-  declare phoneNumber: string;
-  declare role: "admin" | "company" | "user";
+  declare accountType: "admin" | "company" | "user";
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
@@ -28,13 +26,11 @@ Users.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    firstName: {
+    userName: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      unique: true,
+      field: "user_name",
     },
     email: {
       type: DataTypes.STRING,
@@ -48,15 +44,11 @@ Users.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    phoneNumber: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    role: {
+    accountType: {
       type: DataTypes.ENUM("admin", "company", "user"),
       allowNull: false,
       defaultValue: "user",
+      field: "account_type",
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

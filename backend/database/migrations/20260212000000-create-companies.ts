@@ -27,6 +27,11 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             allowNull: false,
             unique: true,
         },
+        email: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
+        },
         description: {
             type: DataTypes.TEXT,
             allowNull: true,
