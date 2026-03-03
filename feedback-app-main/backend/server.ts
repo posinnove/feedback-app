@@ -1,22 +1,26 @@
-import { env } from "./config/env";
+import "./config/env";
 import { connectDb } from "./config/db";
 import app from "./app";
 import { Users } from "./models/users.model";
+import { Feedback } from "./models/feedback.model";
+import { FeedbackReply } from "./models/feedbackReply.model";
 
-
-
-const PORT: number = Number(env.port) || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 async function startServer() {
   try {
     await connectDb();
-    await Users.sync(); 
-    const server = app.listen(PORT, () => { // optional: type inferred
+
+    // Ensure tables exist (safe even if they already exist)
+    await Users.sync();
+    await Feedback.sync();
+    await FeedbackReply.sync();
+
+    app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
-    // server is of type http.Server if you want to use it
   } catch (error: any) {
-    console.error("Failed to start server:", error.message);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }

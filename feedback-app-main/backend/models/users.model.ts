@@ -1,37 +1,48 @@
-import { DataTypes, Model, Sequelize, InferAttributes, InferCreationAttributes, CreationOptional } from "sequelize";
+import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../config/db";
 
-// Define the User model class
-export class Users extends Model<InferAttributes<Users>, InferCreationAttributes<Users>> {
-  declare id: CreationOptional<number>;
-  declare firstName: string;
-  declare lastName: string;
-  declare email: string;
-  declare password: string;
-  declare phoneNumber: string;
-  declare role: "admin" | "company" | "user";
-  declare createdAt: CreationOptional<Date>;
-  declare updatedAt: CreationOptional<Date>;
-
-  // Optional: associations
-  static associate(models: any) {
-    // e.g., Users.hasMany(models.Post);
-  }
+export interface UserAttributes {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  phone_number: string;
+  role: "admin" | "company" | "user";
+  created_at?: Date;
+  updated_at?: Date;
 }
 
-// Initialize the model
+interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
+
+export class Users
+  extends Model<UserAttributes, UserCreationAttributes>
+  implements UserAttributes
+{
+  public id!: number;
+  public first_name!: string;
+  public last_name!: string;
+  public email!: string;
+  public password!: string;
+  public phone_number!: string;
+  public role!: "admin" | "company" | "user";
+
+  public readonly created_at!: Date;
+  public readonly updated_at!: Date;
+}
+
 Users.init(
   {
     id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
-    firstName: {
+    first_name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    lastName: {
+    last_name: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -39,15 +50,12 @@ Users.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-      validate: {
-        isEmail: true,
-      },
     },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    phoneNumber: {
+    phone_number: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
@@ -57,18 +65,12 @@ Users.init(
       allowNull: false,
       defaultValue: "user",
     },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE,
   },
   {
     sequelize,
     tableName: "users",
     timestamps: true,
-    underscored: true,
+    createdAt: "created_at",
+    updatedAt: "updated_at",
   }
 );
-
-// Sync function
-export async function syncUsersModel(options = {}) {
-  await Users.sync(options);
-}
