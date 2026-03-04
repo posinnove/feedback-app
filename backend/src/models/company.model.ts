@@ -30,7 +30,6 @@ export class Company extends Model<
     declare userId: ForeignKey<Users["id"]>;
     declare name: string;
     declare slug: string;
-    declare email: string;
     declare description: CreationOptional<string | null>;
     declare logoUrl: CreationOptional<string | null>;
     declare createdAt: CreationOptional<Date>;
@@ -58,11 +57,6 @@ Company.init(
             allowNull: false,
         },
         slug: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true,
-        },
-        email: {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,

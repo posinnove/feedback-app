@@ -8,10 +8,13 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             primaryKey: true,
             allowNull: false,
         },
-        user_name: {
+        first_name: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true,
+        },
+        last_name: {
+            type: DataTypes.STRING,
+            allowNull: false,
         },
         email: {
             type: DataTypes.STRING,
@@ -22,7 +25,12 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             type: DataTypes.STRING,
             allowNull: false,
         },
-        account_type: {
+        phone_number: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
+        },
+        role: {
             type: DataTypes.ENUM('admin', 'company', 'user'),
             allowNull: false,
             defaultValue: 'user',

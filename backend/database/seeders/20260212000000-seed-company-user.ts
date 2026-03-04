@@ -6,18 +6,22 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
 
     await queryInterface.bulkInsert('users', [
         {
-            user_name: 'arsene_shema',
+            first_name: 'Arsene',
+            last_name: 'Shema',
             email: 'arsene@posinnove.com',
             password: hashedPassword,
-            account_type: 'company',
+            phone_number: '+250780000001',
+            role: 'company',
             created_at: new Date(),
             updated_at: new Date(),
         },
         {
-            user_name: 'irembo_admin',
+            first_name: 'Irembo',
+            last_name: 'Admin',
             email: 'admin@irembo.com',
             password: hashedPassword,
-            account_type: 'company',
+            phone_number: '+250780000002',
+            role: 'company',
             created_at: new Date(),
             updated_at: new Date(),
         },
