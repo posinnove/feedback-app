@@ -13,7 +13,6 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             user_id: userId,
             name: 'Posinnove',
             slug: 'posinnove',
-            email: 'contact@posinnove.com',
             description:
                 'We are an organization dedicated to creating practical education that aligns with industry needs.',
             logo_url: null,
@@ -73,7 +72,6 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             user_id: iremboUserId,
             name: 'Irembo',
             slug: 'irembo',
-            email: 'contact@irembo.com',
             description:
                 'Irembo is a technology company that builds digital solutions to improve the delivery of government services.',
             logo_url: null,
