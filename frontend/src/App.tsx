@@ -10,7 +10,7 @@ function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const toggleSidebar = useCallback(() => {
-    setSidebarOpen(prev => !prev)
+    setSidebarOpen((prev) => !prev)
   }, [])
 
   const closeSidebar = useCallback(() => {

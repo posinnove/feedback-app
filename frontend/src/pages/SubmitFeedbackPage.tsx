@@ -81,7 +81,7 @@ const SubmitFeedbackPage = () => {
             New Post
           </a>
         </div>
-        
+
         {/* Page title */}
         <div className="flex justify-between items-center">
           <h1 className="text-lg md:text-3xl font-semibold">Create Feedback Post</h1>

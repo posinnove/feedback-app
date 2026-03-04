@@ -84,22 +84,13 @@ export default function Sidebar() {
               Feedback Posts
             </a>
             <div className="ml-8 mt-1 space-y-1">
-              <a
-                href="#"
-                className="block px-3 py-2 rounded-lg text-sm bg-primary-600 text-white"
-              >
+              <a href="#" className="block px-3 py-2 rounded-lg text-sm bg-primary-600 text-white">
                 Post Submissions
               </a>
-              <a
-                href="#"
-                className="block px-3 py-2 rounded-lg text-sm bg-primary-600 text-white"
-              >
+              <a href="#" className="block px-3 py-2 rounded-lg text-sm bg-primary-600 text-white">
                 Create Post
               </a>
-              <a
-                href="#"
-                className="block px-3 py-2 rounded-lg text-sm bg-primary-600 text-white"
-              >
+              <a href="#" className="block px-3 py-2 rounded-lg text-sm bg-primary-600 text-white">
                 View Posts
               </a>
             </div>
@@ -143,11 +134,8 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="p-4 border-t border-border">
-        <p className="text-xs text-base-100">
-          Voxella, Inc. © 2024. All rights reserved.
-        </p>
+        <p className="text-xs text-base-100">Voxella, Inc. © 2024. All rights reserved.</p>
       </div>
     </aside>
   )
 }
-
