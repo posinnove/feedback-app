@@ -8,16 +8,6 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             primaryKey: true,
             allowNull: false,
         },
-        user_id: {
-            type: DataTypes.INTEGER.UNSIGNED,
-            allowNull: false,
-            references: {
-                model: 'users',
-                key: 'id',
-            },
-            onUpdate: 'CASCADE',
-            onDelete: 'CASCADE',
-        },
         name: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -27,12 +17,50 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             allowNull: false,
             unique: true,
         },
+        email: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
+        },
+        password: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        location: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        website: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         description: {
             type: DataTypes.TEXT,
             allowNull: true,
         },
         logo_url: {
             type: DataTypes.STRING,
+            allowNull: true,
+        },
+        is_email_verified: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
+        },
+        email_verification_token: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        email_verification_expires: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        password_reset_token: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        password_reset_expires: {
+            type: DataTypes.DATE,
             allowNull: true,
         },
         created_at: {

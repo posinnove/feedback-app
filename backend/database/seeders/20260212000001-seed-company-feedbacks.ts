@@ -1,33 +1,55 @@
 import { QueryInterface } from 'sequelize';
+import bcrypt from 'bcryptjs';
 
 export async function up(queryInterface: QueryInterface): Promise<void> {
-    // Find the seeded user
-    const [users] = await queryInterface.sequelize.query(
-        `SELECT id FROM users WHERE email = 'arsene@posinnove.com' LIMIT 1;`,
-    );
-    const userId = (users as { id: number }[])[0].id;
+    const hashedPassword = await bcrypt.hash('Test@12345', 10);
 
-    // Insert company
     await queryInterface.bulkInsert('companies', [
         {
-            user_id: userId,
             name: 'Posinnove',
             slug: 'posinnove',
+            email: 'contact@posinnove.com',
+            password: hashedPassword,
+            location: 'Kigali, Rwanda',
+            website: 'https://posinnove.com',
             description:
                 'We are an organization dedicated to creating practical education that aligns with industry needs.',
             logo_url: null,
+            is_email_verified: true,
+            email_verification_token: null,
+            email_verification_expires: null,
+            password_reset_token: null,
+            password_reset_expires: null,
+            created_at: new Date(),
+            updated_at: new Date(),
+        },
+        {
+            name: 'Irembo',
+            slug: 'irembo',
+            email: 'contact@irembo.com',
+            password: hashedPassword,
+            location: 'Kigali, Rwanda',
+            website: 'https://irembo.com',
+            description:
+                'Irembo is a technology company that builds digital solutions to improve the delivery of government services.',
+            logo_url: null,
+            is_email_verified: true,
+            email_verification_token: null,
+            email_verification_expires: null,
+            password_reset_token: null,
+            password_reset_expires: null,
             created_at: new Date(),
             updated_at: new Date(),
         },
     ]);
 
-    // Find the company
+    // Find the Posinnove company
     const [companies] = await queryInterface.sequelize.query(
         `SELECT id FROM companies WHERE slug = 'posinnove' LIMIT 1;`,
     );
     const companyId = (companies as { id: number }[])[0].id;
 
-    // Insert feedbacks
+    // Insert feedbacks for Posinnove
     await queryInterface.bulkInsert('feedbacks', [
         {
             company_id: companyId,
@@ -60,30 +82,12 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             updated_at: new Date(),
         },
     ]);
-
-    // Insert Irembo company (no feedbacks — to test empty board state)
-    const [iremboUsers] = await queryInterface.sequelize.query(
-        `SELECT id FROM users WHERE email = 'admin@irembo.com' LIMIT 1;`,
-    );
-    const iremboUserId = (iremboUsers as { id: number }[])[0].id;
-
-    await queryInterface.bulkInsert('companies', [
-        {
-            user_id: iremboUserId,
-            name: 'Irembo',
-            slug: 'irembo',
-            description:
-                'Irembo is a technology company that builds digital solutions to improve the delivery of government services.',
-            logo_url: null,
-            created_at: new Date(),
-            updated_at: new Date(),
-        },
-    ]);
+    // Irembo has no feedbacks — to test empty board state
 }
 
 export async function down(queryInterface: QueryInterface): Promise<void> {
     await queryInterface.bulkDelete('feedbacks', {});
     await queryInterface.bulkDelete('companies', {
         slug: ['posinnove', 'irembo'],
-    });
+    } as Record<string, unknown>);
 }
