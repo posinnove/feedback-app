@@ -6,9 +6,11 @@ export interface CompanySummary {
 
 export interface CompanyData {
     id: number
-    userId: number
     name: string
     slug: string
+    email: string
+    location: string | null
+    website: string | null
     description: string | null
     logoUrl: string | null
     createdAt: string
