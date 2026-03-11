@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   fetchFeedbackById,
   Feedback,
@@ -8,88 +8,84 @@ import {
   addReply,
   updateFeedbackStatusApi,
   FeedbackStatus,
-} from "../api/companyFeedback";
-import { statusDot,statusPill ,statusSelect } from "../utils/statusStyles";
-
+} from '../api/companyFeedback'
+import { statusDot, statusPill } from '../utils/statusStyles'
+import { formatDateTime } from '../utils/formatDateTime'
+import { postTypeBadge, postTypeLabel } from '../utils/postTypeStyles'
+import PostMediaPreview from '../components/posts/PostMediaPreview'
 
 export default function PostDetails() {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const { id } = useParams()
+  const navigate = useNavigate()
 
-  const feedbackId = Number(id);
+  const feedbackId = Number(id)
 
-  const [item, setItem] = useState<Feedback | null>(null);
-  const [replies, setReplies] = useState<FeedbackReply[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [replyText, setReplyText] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [item, setItem] = useState<Feedback | null>(null)
+  const [replies, setReplies] = useState<FeedbackReply[]>([])
+  const [loading, setLoading] = useState(true)
+  const [replyText, setReplyText] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   const load = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     if (!id || Number.isNaN(feedbackId)) {
-      setLoading(false);
-      setError("Invalid post id in URL.");
-      return;
+      setLoading(false)
+      setError('Invalid post id in URL.')
+      return
     }
 
     try {
-      const [f, r] = await Promise.all([
-        fetchFeedbackById(feedbackId),
-        fetchReplies(feedbackId),
-      ]);
-      setItem(f);
-      setReplies(r);
+      const [f, r] = await Promise.all([fetchFeedbackById(feedbackId), fetchReplies(feedbackId)])
+      setItem(f)
+      setReplies(r)
     } catch (e: any) {
-      setItem(null);
-      setReplies([]);
-      setError(e?.message ?? "Failed to load post details");
+      setItem(null)
+      setReplies([])
+      setError(e?.message ?? 'Failed to load post details')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    load();
+    load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id])
 
   const changeStatus = async (status: FeedbackStatus) => {
-    if (!item) return;
-    setError(null);
+    if (!item) return
+    setError(null)
     try {
-      const updated = await updateFeedbackStatusApi(item.id, status);
-      setItem(updated);
+      const updated = await updateFeedbackStatusApi(item.id, status)
+      setItem(updated)
     } catch (e: any) {
-      setError(e?.message ?? "Failed to update status");
+      setError(e?.message ?? 'Failed to update status')
     }
-  };
+  }
 
   const submitReply = async () => {
-    if (!item) return;
-    if (!replyText.trim()) return;
+    if (!item) return
+    if (!replyText.trim()) return
 
-    setError(null);
+    setError(null)
     try {
-      const newReply = await addReply(item.id, replyText.trim());
-      setReplies((prev) => [...prev, newReply]);
-      setReplyText("");
+      const newReply = await addReply(item.id, replyText.trim())
+      setReplies((prev) => [...prev, newReply])
+      setReplyText('')
     } catch (e: any) {
-      setError(e?.message ?? "Failed to reply");
+      setError(e?.message ?? 'Failed to reply')
     }
-  };
+  }
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <div className="p-6">Loading...</div>
 
   // IMPORTANT: show error instead of silent "Not found"
   if (error) {
     return (
       <div className="p-6 space-y-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="text-sm text-indigo-600 hover:underline"
-        >
+        <button onClick={() => navigate(-1)} className="text-sm text-indigo-600 hover:underline">
           ← Back
         </button>
         <div className="text-red-600 text-sm">{error}</div>
@@ -100,63 +96,74 @@ export default function PostDetails() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
-  if (!item) return <div className="p-6">Not found</div>;
+  if (!item) return <div className="p-6">Not found</div>
 
   return (
     <div className="p-6 space-y-4">
-      <button
-        onClick={() => navigate(-1)}
-        className="text-sm text-indigo-600 hover:underline"
-      >
+      <button onClick={() => navigate(-1)} className="text-sm text-indigo-600 hover:underline">
         ← Back
       </button>
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-  {/* Header row */}
-  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-    <div className="min-w-0">
-      <div className="flex items-center gap-2">
-        <span className={`h-2.5 w-2.5 rounded-full ${statusDot(item.status)}`} />
-        <span className="text-xs text-gray-500">Post #{item.id}</span>
-        <span className={`text-xs px-2.5 py-1 rounded-full border ${statusPill(item.status)}`}>
-          {item.status}
-        </span>
+        {/* Header row */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className={`h-2.5 w-2.5 rounded-full ${statusDot(item.status)}`} />
+              <span className="text-xs text-gray-500">Post #{item.id}</span>
+              <span
+                className={`text-xs px-2.5 py-1 rounded-full border ${statusPill(item.status)}`}
+              >
+                {item.status}
+              </span>
+              <span
+                className={`text-xs px-2.5 py-1 rounded-full border ${postTypeBadge(item.postType)}`}
+              >
+                {postTypeLabel(item.postType)}
+              </span>
+            </div>
+
+            <h1 className="mt-2 text-2xl font-semibold text-gray-900 leading-snug">{item.title}</h1>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Category: <span className="text-gray-800 font-medium">{item.category}</span>
+            </p>
+            <p className="mt-1 text-sm text-gray-400">Created: {formatDateTime(item.createdAt)}</p>
+          </div>
+
+          {/* Status dropdown (no "Status" label) */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">Change:</span>
+            <select
+              value={item.status}
+              onChange={(e) => changeStatus(e.target.value as FeedbackStatus)}
+              className="border border-gray-200 rounded-md px-3 py-2 text-sm bg-white"
+            >
+              <option value="open">Open</option>
+              <option value="reviewed">Reviewed</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Description */}
+        <div className="mt-5 border-t pt-5 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Details</h2>
+            <p className="mt-2 text-gray-700 leading-relaxed">{item.description}</p>
+          </div>
+
+          {(item.imageUrl || item.videoUrl || item.linkUrl) && (
+            <PostMediaPreview
+              imageUrl={item.imageUrl}
+              videoUrl={item.videoUrl}
+              linkUrl={item.linkUrl}
+            />
+          )}
+        </div>
       </div>
-
-      <h1 className="mt-2 text-2xl font-semibold text-gray-900 leading-snug">
-        {item.title}
-      </h1>
-
-      <p className="mt-1 text-sm text-gray-500">
-        Category: <span className="text-gray-800 font-medium">{item.category}</span>
-      </p>
-    </div>
-
-    {/* Status dropdown (no "Status" label) */}
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-gray-500">Change:</span>
-      <select
-        value={item.status}
-        onChange={(e) => changeStatus(e.target.value as FeedbackStatus)}
-        className={`rounded-xl px-3 py-2 text-sm border outline-none focus:ring-2 transition ${statusSelect(
-          item.status
-        )}`}
-      >
-        <option value="open">Open</option>
-        <option value="reviewed">Reviewed</option>
-        <option value="resolved">Resolved</option>
-      </select>
-    </div>
-  </div>
-
-  {/* Description */}
-  <div className="mt-5 border-t pt-5">
-    <h2 className="text-sm font-semibold text-gray-900">Details</h2>
-    <p className="mt-2 text-gray-700 leading-relaxed">{item.description}</p>
-  </div>
-</div>
       <div className="bg-white border rounded-xl p-6 space-y-3">
         <h2 className="font-semibold">Replies</h2>
 
@@ -189,5 +196,5 @@ export default function PostDetails() {
         </div>
       </div>
     </div>
-  );
+  )
 }

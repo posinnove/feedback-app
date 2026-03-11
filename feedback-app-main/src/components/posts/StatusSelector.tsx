@@ -1,16 +1,16 @@
-import { FeedbackStatus } from "../../types/post";
+import { FeedbackStatus } from '../../types/post'
 
 const statuses: FeedbackStatus[] = [
-  "UNDER_REVIEW",
-  "PLANNED",
-  "IN_PROGRESS",
-  "COMPLETED",
-  "REJECTED",
-];
+  'UNDER_REVIEW',
+  'PLANNED',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'REJECTED',
+]
 
 interface Props {
-  value: FeedbackStatus;
-  onChange: (status: FeedbackStatus) => void;
+  value: FeedbackStatus
+  onChange: (status: FeedbackStatus) => void
 }
 
 export default function StatusSelector({ value, onChange }: Props) {
@@ -22,9 +22,9 @@ export default function StatusSelector({ value, onChange }: Props) {
     >
       {statuses.map((status) => (
         <option key={status} value={status}>
-          {status.replace("_", " ")}
+          {status.replace('_', ' ')}
         </option>
       ))}
     </select>
-  );
+  )
 }

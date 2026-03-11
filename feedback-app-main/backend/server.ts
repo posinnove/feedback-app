@@ -4,6 +4,8 @@ import app from "./app";
 import { Users } from "./models/users.model";
 import { Feedback } from "./models/feedback.model";
 import { FeedbackReply } from "./models/feedbackReply.model";
+import express from "express";
+import path from "path";
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -15,7 +17,8 @@ async function startServer() {
     await Users.sync();
     await Feedback.sync();
     await FeedbackReply.sync();
-
+  
+    app.use("/uploads", express.static(path.join(__dirname, "uploads")));
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });

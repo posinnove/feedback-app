@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState } from 'react'
 
 interface Props {
-  onSubmit: (message: string) => void;
+  onSubmit: (message: string) => void
 }
 
 export default function ReplyBox({ onSubmit }: Props) {
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState('')
 
   return (
     <div className="space-y-2">
@@ -17,14 +17,14 @@ export default function ReplyBox({ onSubmit }: Props) {
       />
       <button
         onClick={() => {
-          if (!message.trim()) return;
-          onSubmit(message);
-          setMessage("");
+          if (!message.trim()) return
+          onSubmit(message)
+          setMessage('')
         }}
         className="bg-indigo-600 text-white px-3 py-1 rounded-md text-sm"
       >
         Reply
       </button>
     </div>
-  );
+  )
 }

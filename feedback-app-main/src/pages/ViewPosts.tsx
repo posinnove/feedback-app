@@ -1,89 +1,120 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { fetchCompanyFeedback, Feedback } from "../api/companyFeedback";
-import { statusDot, statusPill } from "../utils/statusStyles";
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { fetchCompanyFeedback, Feedback } from '../api/companyFeedback'
+import PostCard from '../components/posts/PostCard'
+import KanbanColumn from '../components/posts/KanbanColumn'
+import { LayoutGrid, Columns3, Rows3 } from 'lucide-react'
+
+type ViewMode = 'board' | 'kanban-horizontal' | 'kanban-vertical'
 
 export default function ViewPosts() {
-  const navigate = useNavigate();
-  const [items, setItems] = useState<Feedback[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate()
+  const [items, setItems] = useState<Feedback[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>('board')
 
   useEffect(() => {
-    (async () => {
+    ;(async () => {
       try {
-        setLoading(true);
-        const data = await fetchCompanyFeedback();
-        setItems(data);
+        setLoading(true)
+        const data = await fetchCompanyFeedback()
+        setItems(data)
       } catch (e: any) {
-        setError(e.message ?? "Failed to load posts");
+        setError(e.message ?? 'Failed to load posts')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    })();
-  }, []);
+    })()
+  }, [])
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (error) return <div className="p-6 text-red-600">{error}</div>;
+  const grouped = useMemo(() => {
+    return {
+      open: items.filter((item) => item.status === 'open'),
+      reviewed: items.filter((item) => item.status === 'reviewed'),
+      resolved: items.filter((item) => item.status === 'resolved'),
+    }
+  }, [items])
+
+  if (loading) return <div className="p-6">Loading...</div>
+  if (error) return <div className="p-6 text-red-600">{error}</div>
 
   return (
     <div className="p-6 space-y-5">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Feedback Posts</h1>
-          <p className="text-sm text-gray-500">Manage posts, status and replies</p>
+          <p className="text-sm text-gray-500">Manage posts in board or kanban view</p>
         </div>
 
-        <button
-          onClick={() => navigate("/posts/create")}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
-        >
-          + Create Post
-        </button>
-      </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+            <button
+              onClick={() => setViewMode('board')}
+              className={`p-2 rounded-lg transition ${
+                viewMode === 'board'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <LayoutGrid size={18} />
+            </button>
 
-      {/* Cards grid */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {items.map((f) => (
+            <button
+              onClick={() => setViewMode('kanban-horizontal')}
+              className={`p-2 rounded-lg transition ${
+                viewMode === 'kanban-horizontal'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Columns3 size={18} />
+            </button>
+
+            <button
+              onClick={() => setViewMode('kanban-vertical')}
+              className={`p-2 rounded-lg transition ${
+                viewMode === 'kanban-vertical'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Rows3 size={18} />
+            </button>
+          </div>
+
           <button
-            key={f.id}
-            onClick={() => navigate(`/posts/${f.id}`)}
-            className="text-left group bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-gray-200 transition"
+            onClick={() => navigate('/posts/create')}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition"
           >
-            {/* Top row */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className={`h-2.5 w-2.5 rounded-full ${statusDot(f.status)}`} />
-                  <p className="text-[11px] text-gray-500 truncate">#{f.id}</p>
-                </div>
-
-                <h3 className="mt-1 font-semibold text-gray-900 leading-snug line-clamp-2">
-                  {f.title}
-                </h3>
-
-                <p className="mt-1 text-sm text-gray-500 line-clamp-2">{f.description}</p>
-              </div>
-
-              <span className={`shrink-0 text-xs px-2.5 py-1 rounded-full border ${statusPill(f.status)}`}>
-                {f.status}
-              </span>
-            </div>
-
-            {/* Footer row */}
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-xs text-gray-500">
-                Category: <span className="text-gray-700">{f.category}</span>
-              </span>
-
-              <span className="text-xs font-medium text-indigo-600 group-hover:underline">
-                Open →
-              </span>
-            </div>
+            + Create Post
           </button>
-        ))}
+        </div>
       </div>
+
+      {viewMode === 'board' && (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {items.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
+      )}
+
+      {viewMode === 'kanban-horizontal' && (
+        <div className="grid gap-4 xl:grid-cols-3">
+          <KanbanColumn title="Open" posts={grouped.open} status="open" />
+          <KanbanColumn title="Reviewed" posts={grouped.reviewed} status="reviewed" />
+          <KanbanColumn title="Resolved" posts={grouped.resolved} status="resolved" />
+        </div>
+      )}
+
+      {viewMode === 'kanban-vertical' && (
+        <div className="space-y-6">
+          <KanbanColumn title="Open" posts={grouped.open} status="open" />
+          <KanbanColumn title="Reviewed" posts={grouped.reviewed} status="reviewed" />
+          <KanbanColumn title="Resolved" posts={grouped.resolved} status="resolved" />
+        </div>
+      )}
     </div>
-  );
+  )
 }

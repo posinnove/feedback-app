@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from 'express'
 import {
   getCompanyFeedback,
   getFeedbackById,
@@ -6,17 +6,25 @@ import {
   createCompanyPost,
   getFeedbackReplies,
   addCompanyReply,
-} from "../controllers/companyFeedback.controller";
+} from '../controllers/companyFeedback.controller'
+import { upload } from "../middleware/upload";
 
-const router = Router();
+const router = Router()
 
-router.get("/", getCompanyFeedback);
-router.post("/", createCompanyPost);
+router.get('/', getCompanyFeedback)
+router.post(
+  "/",
+  upload.fields([
+    { name: "image", maxCount: 1 },
+    { name: "video", maxCount: 1 },
+  ]),
+  createCompanyPost
+);
 
-router.get("/:id", getFeedbackById);
-router.patch("/:id/status", updateFeedbackStatus);
+router.get('/:id', getFeedbackById)
+router.patch('/:id/status', updateFeedbackStatus)
 
-router.get("/:id/replies", getFeedbackReplies);
-router.post("/:id/replies", addCompanyReply);
+router.get('/:id/replies', getFeedbackReplies)
+router.post('/:id/replies', addCompanyReply)
 
-export default router;
+export default router
