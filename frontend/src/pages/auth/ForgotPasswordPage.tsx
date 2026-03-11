@@ -1,11 +1,8 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { IconArrowLeft, IconCheck } from '@tabler/icons-react'
-import {
-    useForgotPasswordUserMutation,
-    useForgotPasswordCompanyMutation,
-} from '../../store/api/authApi'
+import { useForgotPasswordMutation } from '../../store/api/authApi'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
 import forgotBg from '../../assets/auth - signup - 4.jpg'
 
@@ -14,9 +11,6 @@ interface ForgotFormValues {
 }
 
 export default function ForgotPasswordPage() {
-    const [searchParams] = useSearchParams()
-    const type = searchParams.get('type') === 'company' ? 'company' : 'user'
-
     const [submitted, setSubmitted] = useState(false)
     const [apiError, setApiError] = useState<string | null>(null)
 
@@ -27,15 +21,13 @@ export default function ForgotPasswordPage() {
         formState: { errors, isSubmitting },
     } = useForm<ForgotFormValues>({ defaultValues: { email: '' } })
 
-    const [forgotUser, { isLoading: userLoading }] = useForgotPasswordUserMutation()
-    const [forgotCompany, { isLoading: companyLoading }] = useForgotPasswordCompanyMutation()
-    const isLoading = isSubmitting || userLoading || companyLoading
+    const [forgotPassword, { isLoading }] = useForgotPasswordMutation()
+    const isBusy = isSubmitting || isLoading
 
     async function onSubmit(values: ForgotFormValues) {
         setApiError(null)
         try {
-            if (type === 'user') await forgotUser({ email: values.email }).unwrap()
-            else await forgotCompany({ email: values.email }).unwrap()
+            await forgotPassword({ email: values.email }).unwrap()
             setSubmitted(true)
         } catch (err: unknown) {
             const msg = (err as { data?: { message?: string } })?.data?.message
@@ -57,7 +49,7 @@ export default function ForgotPasswordPage() {
             {/* Right form */}
             <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-14 xl:px-20 py-12 bg-white">
                 <Link
-                    to={`/auth/login?type=${type}`}
+                    to="/auth/login"
                     className="inline-flex items-center gap-1.5 text-sm text-base-100 hover:text-base-200 mb-8 transition-colors"
                 >
                     <IconArrowLeft size={16} stroke={1.5} />
@@ -86,7 +78,7 @@ export default function ForgotPasswordPage() {
                                 If <strong>{getValues('email')}</strong> is registered, you'll receive a reset link shortly.
                             </p>
                             <Link
-                                to={`/auth/login?type=${type}`}
+                                to="/auth/login"
                                 className="mt-4 inline-block text-sm text-primary-600 hover:underline font-medium"
                             >
                                 Back to login
@@ -112,10 +104,10 @@ export default function ForgotPasswordPage() {
                             </div>
                             <button
                                 type="submit"
-                                disabled={isLoading}
+                                disabled={isBusy}
                                 className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                                {isLoading ? 'Sending…' : 'Send reset link'}
+                                {isBusy ? 'Sending…' : 'Send reset link'}
                             </button>
                         </form>
                     )}

@@ -2,10 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router-dom'
 import { IconArrowLeft, IconCheck, IconAlertCircle, IconEye, IconEyeOff } from '@tabler/icons-react'
-import {
-    useResetPasswordUserMutation,
-    useResetPasswordCompanyMutation,
-} from '../../store/api/authApi'
+import { useResetPasswordMutation } from '../../store/api/authApi'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
 import forgotBg from '../../assets/auth - signup - 4.jpg'
 
@@ -17,7 +14,6 @@ interface ResetFormValues {
 export default function ResetPasswordPage() {
     const [searchParams] = useSearchParams()
     const token = searchParams.get('token') ?? ''
-    const type = searchParams.get('type') === 'company' ? 'company' : 'user'
 
     const [showPassword, setShowPassword] = useState(false)
     const [success, setSuccess] = useState(false)
@@ -30,9 +26,8 @@ export default function ResetPasswordPage() {
         formState: { errors, isSubmitting },
     } = useForm<ResetFormValues>({ defaultValues: { password: '', confirm: '' } })
 
-    const [resetUser, { isLoading: userLoading }] = useResetPasswordUserMutation()
-    const [resetCompany, { isLoading: companyLoading }] = useResetPasswordCompanyMutation()
-    const isLoading = isSubmitting || userLoading || companyLoading
+    const [resetPassword, { isLoading }] = useResetPasswordMutation()
+    const isBusy = isSubmitting || isLoading
     const watchedPassword = watch('password')
 
     async function onSubmit(values: ResetFormValues) {
@@ -42,8 +37,7 @@ export default function ResetPasswordPage() {
             return
         }
         try {
-            if (type === 'user') await resetUser({ token, password: values.password }).unwrap()
-            else await resetCompany({ token, password: values.password }).unwrap()
+            await resetPassword({ token, password: values.password }).unwrap()
             setSuccess(true)
         } catch (err: unknown) {
             const msg = (err as { data?: { message?: string } })?.data?.message
@@ -65,7 +59,7 @@ export default function ResetPasswordPage() {
             {/* Right form */}
             <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-14 xl:px-20 py-12 bg-white">
                 <Link
-                    to={`/auth/login?type=${type}`}
+                    to="/auth/login"
                     className="inline-flex items-center gap-1.5 text-sm text-base-100 hover:text-base-200 mb-8 transition-colors"
                 >
                     <IconArrowLeft size={16} stroke={1.5} />
@@ -97,7 +91,7 @@ export default function ResetPasswordPage() {
                             <p className="font-medium text-green-700">Password reset successfully!</p>
                             <p className="text-green-600 text-sm mt-1">You can now log in with your new password.</p>
                             <Link
-                                to={`/auth/login?type=${type}`}
+                                to="/auth/login"
                                 className="mt-4 inline-block px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-800 transition-colors"
                             >
                                 Sign in
@@ -154,10 +148,10 @@ export default function ResetPasswordPage() {
 
                             <button
                                 type="submit"
-                                disabled={isLoading || !token}
+                                disabled={isBusy || !token}
                                 className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                                {isLoading ? 'Resetting…' : 'Reset password'}
+                                {isBusy ? 'Resetting…' : 'Reset password'}
                             </button>
                         </form>
                     )}
