@@ -1,18 +1,13 @@
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { IconCircleCheck, IconAlertCircle, IconLoader2 } from '@tabler/icons-react'
-import { useVerifyEmailUserQuery, useVerifyEmailCompanyQuery } from '../../store/api/authApi'
+import { useVerifyEmailQuery } from '../../store/api/authApi'
 
 export default function VerifyEmailPage() {
     const [searchParams] = useSearchParams()
     const token = searchParams.get('token') ?? ''
-    const type = searchParams.get('type') === 'company' ? 'company' : 'user'
 
-    const userQuery = useVerifyEmailUserQuery(token, { skip: !token || type !== 'user' })
-    const companyQuery = useVerifyEmailCompanyQuery(token, { skip: !token || type !== 'company' })
-
-    const query = type === 'user' ? userQuery : companyQuery
-    const { isLoading, isSuccess, isError } = query
+    const { isLoading, isSuccess, isError } = useVerifyEmailQuery(token, { skip: !token })
 
     // scroll to top
     useEffect(() => { window.scrollTo(0, 0) }, [])
@@ -59,7 +54,7 @@ export default function VerifyEmailPage() {
                             Your account is now active. You can log in and start using Voxella.
                         </p>
                         <Link
-                            to={`/auth/login?type=${type}`}
+                            to="/auth/login"
                             className="inline-block px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-800 transition-colors"
                         >
                             Sign in
@@ -77,7 +72,7 @@ export default function VerifyEmailPage() {
                             The link may have expired or already been used. Request a new verification email.
                         </p>
                         <Link
-                            to={`/auth/login?type=${type}`}
+                            to="/auth/login"
                             className="inline-block px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-800 transition-colors"
                         >
                             Back to login

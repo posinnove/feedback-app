@@ -1,18 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { IconEye, IconEyeOff, IconArrowLeft, IconBuilding, IconUser } from '@tabler/icons-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { IconEye, IconEyeOff, IconArrowLeft } from '@tabler/icons-react'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { setCredentials } from '../../store/slices/authSlice'
 import {
-    useLoginUserMutation,
-    useLoginCompanyMutation,
-    extractEntityFromResponse,
+    useLoginMutation,
+    extractEntityFromUnifiedResponse,
 } from '../../store/api/authApi'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
 import signupBg from '../../assets/auth - signup - 1.jpg'
-
-type Tab = 'user' | 'company'
 
 interface LoginFormValues {
     email: string
@@ -22,48 +19,33 @@ interface LoginFormValues {
 export default function LoginPage() {
     const dispatch = useAppDispatch()
     const navigate = useNavigate()
-    const [searchParams] = useSearchParams()
     const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
 
-    const defaultTab = (searchParams.get('type') as Tab) ?? 'user'
-    const [tab, setTab] = useState<Tab>(defaultTab)
     const [showPassword, setShowPassword] = useState(false)
     const [apiError, setApiError] = useState<string | null>(null)
 
     const {
         register,
         handleSubmit,
-        reset,
         formState: { errors, isSubmitting },
     } = useForm<LoginFormValues>({ defaultValues: { email: '', password: '' } })
 
-    const [loginUser, { isLoading: userLoading }] = useLoginUserMutation()
-    const [loginCompany, { isLoading: companyLoading }] = useLoginCompanyMutation()
-    const isLoading = isSubmitting || userLoading || companyLoading
+    const [login, { isLoading }] = useLoginMutation()
+    const isBusy = isSubmitting || isLoading
 
     useEffect(() => {
         if (isAuthenticated) navigate('/', { replace: true })
     }, [isAuthenticated, navigate])
 
-    function handleTabChange(next: Tab) {
-        setTab(next)
-        setApiError(null)
-        reset()
-    }
-
     async function onSubmit(values: LoginFormValues) {
         setApiError(null)
         try {
-            const response =
-                tab === 'user'
-                    ? await loginUser(values).unwrap()
-                    : await loginCompany(values).unwrap()
-
-            const entity = extractEntityFromResponse(response, tab)
+            const response = await login(values).unwrap()
+            const entity = extractEntityFromUnifiedResponse(response)
             dispatch(
                 setCredentials({
                     entity,
-                    type: tab,
+                    type: response.type,
                     accessToken: response.accessToken,
                     refreshToken: response.refreshToken,
                 }),
@@ -113,24 +95,6 @@ export default function LoginPage() {
                         </Link>
                     </p>
 
-                    {/* Tab Toggle */}
-                    <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-8">
-                        {(['user', 'company'] as Tab[]).map((t) => (
-                            <button
-                                key={t}
-                                type="button"
-                                onClick={() => handleTabChange(t)}
-                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${tab === t
-                                    ? 'bg-white text-primary-600 shadow-sm'
-                                    : 'text-base-100 hover:text-base-200'
-                                    }`}
-                            >
-                                {t === 'user' ? <IconUser size={16} stroke={1.5} /> : <IconBuilding size={16} stroke={1.5} />}
-                                {t === 'user' ? 'User' : 'Business'}
-                            </button>
-                        ))}
-                    </div>
-
                     {/* API Error */}
                     {apiError && (
                         <div className="mb-5 px-4 py-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">
@@ -142,12 +106,12 @@ export default function LoginPage() {
                         {/* Email */}
                         <div>
                             <label className="block text-sm font-medium text-base-200 mb-1.5">
-                                {tab === 'company' ? 'Business email' : 'Email'}
+                                Email
                             </label>
                             <input
                                 type="email"
                                 autoComplete="email"
-                                placeholder={tab === 'company' ? 'contact@yourcompany.com' : 'you@example.com'}
+                                placeholder="you@example.com"
                                 className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
                                 {...register('email', {
                                     required: 'Email is required',
@@ -183,7 +147,7 @@ export default function LoginPage() {
                             )}
                             <div className="mt-2 text-right">
                                 <Link
-                                    to={`/auth/forgot-password?type=${tab}`}
+                                    to="/auth/forgot-password"
                                     className="text-xs text-primary-600 hover:underline"
                                 >
                                     Forgot password?
@@ -193,11 +157,11 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isBusy}
                             className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm
                                        hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? 'Signing in…' : `Sign in as ${tab === 'company' ? 'Business' : 'User'}`}
+                            {isBusy ? 'Signing in…' : 'Sign in'}
                         </button>
                     </form>
                 </div>
