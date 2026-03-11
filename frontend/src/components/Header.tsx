@@ -149,7 +149,7 @@ export default function Header({
 
         {/* Auth state conditional */}
         {isAuthenticated && entity ? (
-          /* ── Authenticated: Profile dropdown ── */
+          /* Authenticated: Profile dropdown */
           <div
             className="relative flex items-center gap-2 lg:gap-3 pl-2 lg:pl-3 border-l border-border"
             ref={dropdownRef}
@@ -212,7 +212,7 @@ export default function Header({
           </button>
         </div>
         ) : (
-          /* ── Unauthenticated: Login + Signup buttons ── */
+          /* Unauthenticated: Login + Signup buttons */
           <div className="flex items-center gap-2 pl-2 lg:pl-3 border-l border-border">
             <Link
               to="/auth/login"

@@ -1,61 +1,65 @@
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router-dom'
 import { IconArrowLeft, IconCheck } from '@tabler/icons-react'
 import {
     useForgotPasswordUserMutation,
     useForgotPasswordCompanyMutation,
 } from '../../store/api/authApi'
-// import forgotBg from '../../assets/auth - forget password - 4.jpg'
+import AuthImagePanel from '../../components/auth/AuthImagePanel'
 import forgotBg from '../../assets/auth - signup - 4.jpg'
+
+interface ForgotFormValues {
+    email: string
+}
+
 export default function ForgotPasswordPage() {
     const [searchParams] = useSearchParams()
     const type = searchParams.get('type') === 'company' ? 'company' : 'user'
-    const [email, setEmail] = useState('')
+
     const [submitted, setSubmitted] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const [apiError, setApiError] = useState<string | null>(null)
+
+    const {
+        register,
+        handleSubmit,
+        getValues,
+        formState: { errors, isSubmitting },
+    } = useForm<ForgotFormValues>({ defaultValues: { email: '' } })
 
     const [forgotUser, { isLoading: userLoading }] = useForgotPasswordUserMutation()
     const [forgotCompany, { isLoading: companyLoading }] = useForgotPasswordCompanyMutation()
-    const isLoading = userLoading || companyLoading
+    const isLoading = isSubmitting || userLoading || companyLoading
 
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault()
-        setError(null)
+    async function onSubmit(values: ForgotFormValues) {
+        setApiError(null)
         try {
-            if (type === 'user') await forgotUser({ email }).unwrap()
-            else await forgotCompany({ email }).unwrap()
+            if (type === 'user') await forgotUser({ email: values.email }).unwrap()
+            else await forgotCompany({ email: values.email }).unwrap()
             setSubmitted(true)
         } catch (err: unknown) {
             const msg = (err as { data?: { message?: string } })?.data?.message
-            setError(msg ?? 'Something went wrong. Please try again.')
+            setApiError(msg ?? 'Something went wrong. Please try again.')
         }
     }
 
     return (
         <div className="min-h-screen flex">
-            {/* Left image */}
-            <div
-                className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
-                style={{ backgroundImage: `url(${forgotBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-            >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary-800/80 to-primary-600/60" />
-                <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-                    <Link to="/" className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                        <span className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-lg font-black">V</span>
-                        VOXELLA
-                    </Link>
-                    <div>
-                        <h2 className="text-3xl font-bold mb-3">Forgot your password?</h2>
-                        <p className="opacity-80 text-sm leading-relaxed">
-                            No worries — it happens to the best of us. Enter your email and we'll send you a reset link right away.
-                        </p>
-                    </div>
+            <AuthImagePanel backgroundImage={forgotBg}>
+                <div>
+                    <h2 className="text-3xl font-bold mb-3">Forgot your password?</h2>
+                    <p className="opacity-80 text-sm leading-relaxed">
+                        No worries — it happens to the best of us. Enter your email and we'll send you a reset link right away.
+                    </p>
                 </div>
-            </div>
+            </AuthImagePanel>
 
             {/* Right form */}
             <div className="flex-1 flex flex-col justify-center px-6 sm:px-10 lg:px-14 xl:px-20 py-12 bg-white">
-                <Link to={`/auth/login?type=${type}`} className="inline-flex items-center gap-1.5 text-sm text-base-100 hover:text-base-200 mb-8 transition-colors">
+                <Link
+                    to={`/auth/login?type=${type}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-base-100 hover:text-base-200 mb-8 transition-colors"
+                >
                     <IconArrowLeft size={16} stroke={1.5} />
                     Back to login
                 </Link>
@@ -66,8 +70,10 @@ export default function ForgotPasswordPage() {
                         Enter your registered email and we'll send you a link to reset your password.
                     </p>
 
-                    {error && (
-                        <div className="mb-5 px-4 py-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">{error}</div>
+                    {apiError && (
+                        <div className="mb-5 px-4 py-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm">
+                            {apiError}
+                        </div>
                     )}
 
                     {submitted ? (
@@ -77,24 +83,36 @@ export default function ForgotPasswordPage() {
                             </div>
                             <p className="font-medium text-green-700">Check your inbox!</p>
                             <p className="text-green-600 text-sm mt-1">
-                                If <strong>{email}</strong> is registered, you'll receive a reset link shortly.
+                                If <strong>{getValues('email')}</strong> is registered, you'll receive a reset link shortly.
                             </p>
-                            <Link to={`/auth/login?type=${type}`} className="mt-4 inline-block text-sm text-primary-600 hover:underline font-medium">
+                            <Link
+                                to={`/auth/login?type=${type}`}
+                                className="mt-4 inline-block text-sm text-primary-600 hover:underline font-medium"
+                            >
                                 Back to login
                             </Link>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
                             <div>
                                 <label className="block text-sm font-medium text-base-200 mb-1.5">Email address</label>
                                 <input
-                                    type="email" required autoComplete="email"
-                                    value={email} onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@example.com" className="input"
+                                    type="email"
+                                    autoComplete="email"
+                                    placeholder="you@example.com"
+                                    className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
+                                    {...register('email', {
+                                        required: 'Email is required',
+                                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email' },
+                                    })}
                                 />
+                                {errors.email && (
+                                    <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
+                                )}
                             </div>
                             <button
-                                type="submit" disabled={isLoading}
+                                type="submit"
+                                disabled={isLoading}
                                 className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 {isLoading ? 'Sending…' : 'Send reset link'}
