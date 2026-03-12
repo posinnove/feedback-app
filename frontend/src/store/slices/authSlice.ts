@@ -19,7 +19,6 @@ interface AuthState {
     entity: AuthUser | null
     type: AuthEntityType | null
     accessToken: string | null
-    refreshToken: string | null
     isAuthenticated: boolean
 }
 
@@ -40,7 +39,6 @@ const initialState: AuthState = {
     entity: persisted.entity ?? null,
     type: persisted.type ?? null,
     accessToken: persisted.accessToken ?? null,
-    refreshToken: persisted.refreshToken ?? null,
     isAuthenticated: !!persisted.accessToken,
 }
 
@@ -54,19 +52,17 @@ const authSlice = createSlice({
                 entity: AuthUser
                 type: AuthEntityType
                 accessToken: string
-                refreshToken: string
             }>,
         ) {
-            const { entity, type, accessToken, refreshToken } = action.payload
+            const { entity, type, accessToken } = action.payload
             state.entity = entity
             state.type = type
             state.accessToken = accessToken
-            state.refreshToken = refreshToken
             state.isAuthenticated = true
 
             localStorage.setItem(
                 'auth',
-                JSON.stringify({ entity, type, accessToken, refreshToken }),
+                JSON.stringify({ entity, type, accessToken }),
             )
         },
 
@@ -74,7 +70,6 @@ const authSlice = createSlice({
             state.entity = null
             state.type = null
             state.accessToken = null
-            state.refreshToken = null
             state.isAuthenticated = false
             localStorage.removeItem('auth')
         },

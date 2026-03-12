@@ -1,20 +1,13 @@
 import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { IconEye, IconEyeOff, IconCheck, IconX } from '@tabler/icons-react'
-import { useRegisterCompanyMutation } from '../../store/api/authApi'
-import { getPasswordStrength } from '../../utils/passwordStrength'
+import { useRegisterCompanyMutation } from '../../store/api/companyAuthApi'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { companyRegisterSchema, type CompanyRegisterInput } from '../../schemas/auth.schema'
 import PasswordStrengthBar from './PasswordStrengthBar'
 import LocationAutocompleteInput from './LocationAutocompleteInput'
 
-interface CompanyFormValues {
-    name: string
-    email: string
-    password: string
-    confirmPassword: string
-    location?: string
-    website?: string
-    description?: string
-}
+// Types moved to schemas/auth.schema.ts
 
 interface Props {
     onSuccess: (message: string) => void
@@ -33,7 +26,8 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
         watch,
         control,
         formState: { errors, isSubmitting },
-    } = useForm<CompanyFormValues>({
+    } = useForm<CompanyRegisterInput>({
+        resolver: zodResolver(companyRegisterSchema),
         defaultValues: {
             name: '', email: '', password: '', confirmPassword: '',
             location: '', website: '', description: '',
@@ -44,13 +38,14 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
     const confirmPassword = watch('confirmPassword', '')
     const busy = isSubmitting || isLoading
 
-    async function onSubmit(values: CompanyFormValues) {
+    async function onSubmit(values: CompanyRegisterInput) {
         onApiError('')
         try {
             const { confirmPassword: _, ...rest } = values
+            // filter out empty strings for optional fields
             const payload = Object.fromEntries(
                 Object.entries(rest).filter(([, v]) => v !== '' && v !== undefined)
-            ) as Omit<CompanyFormValues, 'confirmPassword'>
+            ) as Omit<CompanyRegisterInput, 'confirmPassword'>
             await registerCompany(payload).unwrap()
             onSuccess('Business account created! Please check your email to verify your account.')
         } catch (err: unknown) {
@@ -67,7 +62,7 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
                 <input
                     placeholder="Acme Inc."
                     className={`input ${errors.name ? 'border-red-400 focus:ring-red-400' : ''}`}
-                    {...register('name', { required: 'Company name is required' })}
+                    {...register('name')}
                 />
                 {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
             </div>
@@ -79,10 +74,7 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
                     type="email"
                     placeholder="contact@acme.com"
                     className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
-                    {...register('email', {
-                        required: 'Email is required',
-                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email' },
-                    })}
+                    {...register('email')}
                 />
                 {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
             </div>
@@ -116,9 +108,7 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
                     type="url"
                     placeholder="https://acme.com"
                     className={`input ${errors.website ? 'border-red-400 focus:ring-red-400' : ''}`}
-                    {...register('website', {
-                        pattern: { value: /^https?:\/\/.+/, message: 'Must start with http:// or https://' },
-                    })}
+                    {...register('website')}
                 />
                 {errors.website && <p className="mt-1 text-xs text-red-500">{errors.website.message}</p>}
             </div>
@@ -132,10 +122,7 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
                         autoComplete="new-password"
                         placeholder="••••••••"
                         className="input pr-10"
-                        {...register('password', {
-                            required: 'Password is required',
-                            validate: (v) => getPasswordStrength(v) > 0 || 'Please choose a stronger password',
-                        })}
+                        {...register('password')}
                     />
                     <button
                         type="button"
@@ -157,10 +144,7 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
                         autoComplete="new-password"
                         placeholder="••••••••"
                         className={`input pr-10 ${errors.confirmPassword ? 'border-red-400 focus:ring-red-400' : ''}`}
-                        {...register('confirmPassword', {
-                            required: 'Please confirm your password',
-                            validate: (v) => v === password || "Passwords don't match",
-                        })}
+                        {...register('confirmPassword')}
                     />
                     <div className="absolute inset-y-0 right-3 flex items-center gap-1.5">
                         {confirmPassword && (
