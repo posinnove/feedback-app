@@ -8,13 +8,12 @@ import {
     useLoginMutation,
     extractEntityFromUnifiedResponse,
 } from '../../store/api/authApi'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { loginSchema, type LoginInput } from '../../schemas/auth.schema'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
 import signupBg from '../../assets/auth - signup - 1.jpg'
 
-interface LoginFormValues {
-    email: string
-    password: string
-}
+// Types moved to schemas/auth.schema.ts
 
 export default function LoginPage() {
     const dispatch = useAppDispatch()
@@ -28,7 +27,10 @@ export default function LoginPage() {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
-    } = useForm<LoginFormValues>({ defaultValues: { email: '', password: '' } })
+    } = useForm<LoginInput>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: { email: '', password: '' },
+    })
 
     const [login, { isLoading }] = useLoginMutation()
     const isBusy = isSubmitting || isLoading
@@ -37,7 +39,7 @@ export default function LoginPage() {
         if (isAuthenticated) navigate('/', { replace: true })
     }, [isAuthenticated, navigate])
 
-    async function onSubmit(values: LoginFormValues) {
+    async function onSubmit(values: LoginInput) {
         setApiError(null)
         try {
             const response = await login(values).unwrap()
@@ -47,7 +49,6 @@ export default function LoginPage() {
                     entity,
                     type: response.type,
                     accessToken: response.accessToken,
-                    refreshToken: response.refreshToken,
                 }),
             )
             navigate('/', { replace: true })
@@ -113,10 +114,7 @@ export default function LoginPage() {
                                 autoComplete="email"
                                 placeholder="you@example.com"
                                 className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
-                                {...register('email', {
-                                    required: 'Email is required',
-                                    pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email' },
-                                })}
+                                {...register('email')}
                             />
                             {errors.email && (
                                 <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
@@ -132,7 +130,7 @@ export default function LoginPage() {
                                     autoComplete="current-password"
                                     placeholder="••••••••"
                                     className={`input pr-10 ${errors.password ? 'border-red-400 focus:ring-red-400' : ''}`}
-                                    {...register('password', { required: 'Password is required' })}
+                                    {...register('password')}
                                 />
                                 <button
                                     type="button"

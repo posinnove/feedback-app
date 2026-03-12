@@ -1,19 +1,12 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { IconEye, IconEyeOff, IconCheck, IconX } from '@tabler/icons-react'
-import { useRegisterUserMutation } from '../../store/api/authApi'
-import { getPasswordStrength } from '../../utils/passwordStrength'
+import { useRegisterUserMutation } from '../../store/api/userAuthApi'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { userRegisterSchema, type UserRegisterInput } from '../../schemas/auth.schema'
 import PasswordStrengthBar from './PasswordStrengthBar'
 
-interface UserFormValues {
-    username: string
-    firstName: string
-    lastName: string
-    email: string
-    password: string
-    confirmPassword: string
-    phoneNumber?: string
-}
+// Types moved to schemas/auth.schema.ts
 
 interface Props {
     onSuccess: (message: string) => void
@@ -31,7 +24,8 @@ export default function UserRegisterForm({ onSuccess, onApiError }: Props) {
         handleSubmit,
         watch,
         formState: { errors, isSubmitting },
-    } = useForm<UserFormValues>({
+    } = useForm<UserRegisterInput>({
+        resolver: zodResolver(userRegisterSchema),
         defaultValues: {
             username: '', firstName: '', lastName: '',
             email: '', password: '', confirmPassword: '', phoneNumber: '',
@@ -42,7 +36,7 @@ export default function UserRegisterForm({ onSuccess, onApiError }: Props) {
     const confirmPassword = watch('confirmPassword', '')
     const busy = isSubmitting || isLoading
 
-    async function onSubmit(values: UserFormValues) {
+    async function onSubmit(values: UserRegisterInput) {
         onApiError('')
         try {
             const { confirmPassword: _, phoneNumber, ...rest } = values
@@ -70,7 +64,7 @@ export default function UserRegisterForm({ onSuccess, onApiError }: Props) {
                         <input
                             placeholder={placeholder}
                             className={`input ${errors[name] ? 'border-red-400 focus:ring-red-400' : ''}`}
-                            {...register(name, { required: 'Required' })}
+                            {...register(name)}
                         />
                         {errors[name] && (
                             <p className="mt-1 text-xs text-red-500">{errors[name]?.message}</p>
@@ -85,11 +79,7 @@ export default function UserRegisterForm({ onSuccess, onApiError }: Props) {
                 <input
                     placeholder="johndoe"
                     className={`input ${errors.username ? 'border-red-400 focus:ring-red-400' : ''}`}
-                    {...register('username', {
-                        required: 'Username is required',
-                        validate: (v) => v.trim().length > 0 || 'Username cannot be blank or whitespace',
-                        pattern: { value: /^\S+$/, message: 'Username cannot contain spaces or tabs' },
-                    })}
+                    {...register('username')}
                 />
                 {errors.username && (
                     <p className="mt-1 text-xs text-red-500">{errors.username.message}</p>
@@ -103,10 +93,7 @@ export default function UserRegisterForm({ onSuccess, onApiError }: Props) {
                     type="email"
                     placeholder="you@example.com"
                     className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
-                    {...register('email', {
-                        required: 'Email is required',
-                        pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email' },
-                    })}
+                    {...register('email')}
                 />
                 {errors.email && (
                     <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
@@ -134,10 +121,7 @@ export default function UserRegisterForm({ onSuccess, onApiError }: Props) {
                         autoComplete="new-password"
                         placeholder="••••••••"
                         className="input pr-10"
-                        {...register('password', {
-                            required: 'Password is required',
-                            validate: (v) => getPasswordStrength(v) > 0 || 'Please choose a stronger password',
-                        })}
+                        {...register('password')}
                     />
                     <button
                         type="button"
@@ -159,10 +143,7 @@ export default function UserRegisterForm({ onSuccess, onApiError }: Props) {
                         autoComplete="new-password"
                         placeholder="••••••••"
                         className={`input pr-10 ${errors.confirmPassword ? 'border-red-400 focus:ring-red-400' : ''}`}
-                        {...register('confirmPassword', {
-                            required: 'Please confirm your password',
-                            validate: (v) => v === password || "Passwords don't match",
-                        })}
+                        {...register('confirmPassword')}
                     />
                     <div className="absolute inset-y-0 right-3 flex items-center gap-1.5">
                         {confirmPassword && (

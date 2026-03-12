@@ -10,15 +10,22 @@ import {
     getMe,
 } from '../controllers/company.auth.controller.ts';
 import { authenticate, requireType } from '../middleware/auth.middleware.ts';
+import { validate } from '../middleware/validation.middleware.ts';
+import {
+    companyRegisterSchema,
+    loginSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+} from '../schemas/auth.schema.ts';
 
 const router = Router();
 
-router.post('/register', register);
+router.post('/register', validate(companyRegisterSchema), register);
 router.get('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerification);
-router.post('/login', login);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/login', validate(loginSchema), login);
+router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
+router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
 router.post('/refresh-token', refreshToken);
 
 // Protected
