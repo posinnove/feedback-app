@@ -9,7 +9,7 @@ interface VoteButtonsProps {
 
 export default function VoteButtons({ count, onUpvote, onDownvote, userVote }: VoteButtonsProps) {
     return (
-        <div className="flex items-center gap-1 text-xs text-base-100 bg-gray-100 rounded-md px-1.5 py-1">
+        <div className="flex items-center gap-1 text-xs text-base-100 bg-border/50 rounded-md px-1.5 py-1">
             <button
                 onClick={onUpvote}
                 className={`p-0.5 rounded hover:bg-blue-100 hover:text-blue-600 transition-colors ${userVote === 'up' ? 'text-primary-600' : ''

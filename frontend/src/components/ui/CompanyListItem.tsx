@@ -19,7 +19,7 @@ export default function CompanyListItem({
     const initial = name.charAt(0).toUpperCase()
 
     return (
-        <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors group">
+        <div className="flex items-center gap-3 px-3 py-1.5 rounded-lg hover:bg-border/50 transition-colors group">
             <Link to={`/company/${slug}`} className="flex items-center gap-3 flex-1 min-w-0">
                 {logo ? (
                     <img src={logo} alt={name} className="w-6 h-6 rounded-full object-cover" />

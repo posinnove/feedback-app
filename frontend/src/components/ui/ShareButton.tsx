@@ -55,7 +55,7 @@ export default function ShareButton({
     const baseStyles =
         variant === 'primary'
             ? 'btn btn-primary flex items-center gap-2 w-full justify-center text-sm'
-            : 'flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors text-xs text-base-100'
+            : 'flex items-center gap-1 px-2 py-1 rounded-md bg-border/50 hover:bg-border transition-colors text-xs text-base-100'
 
     return (
         <button

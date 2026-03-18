@@ -63,7 +63,7 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
               <Avatar key={user.id} name={user.name} avatar={user.avatar} />
             ))}
             {feedback.reachedTo.length > 5 && (
-              <div className="w-6 h-6 rounded-full bg-gray-500 text-white text-xs flex items-center justify-center font-medium border-2 border-white">
+              <div className="w-6 h-6 rounded-full bg-base-100 text-white text-xs flex items-center justify-center font-medium border-2 border-card-bg">
                 +{feedback.reachedTo.length - 5}
               </div>
             )}
