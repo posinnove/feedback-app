@@ -142,7 +142,6 @@ export default function Header({
         {isAuthenticated && entity ? (
           /* Authenticated: Profile dropdown */
           <>
-            /* Authenticated: Profile dropdown */
             <div
               className="relative flex items-center gap-2 lg:gap-3 pl-2 lg:pl-3 border-l border-border"
               ref={dropdownRef}
