@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import {
   IconSearch,
   IconBell,
@@ -8,14 +7,10 @@ import {
   IconX,
   IconSun,
   IconMoon,
-  IconDeviceDesktop,
+  IconDeviceDesktop,IconLogout, IconUser, IconSettings,
 } from '@tabler/icons-react'
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {
-  IconSearch, IconBell, IconHelpCircle, IconChevronDown,
-  IconMenu2, IconX, IconLogout, IconUser, IconSettings,
-} from '@tabler/icons-react'
 import Avatar from './ui/Avatar'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { clearCredentials } from '../store/slices/authSlice'
@@ -29,8 +24,35 @@ interface HeaderProps {
   onThemeModeChange: (mode: ThemeMode) => void
 }
 
-export default function Header({ onMenuToggle, sidebarOpen = false }: HeaderProps) {
-  const dispatch = useAppDispatch()
+
+export default function Header({
+  onMenuToggle,
+  sidebarOpen,
+  themeMode,
+  onThemeModeChange,
+}: HeaderProps) {
+  const iconButtonClass =
+    'p-2 cursor-pointer rounded-lg text-base-100 hover:text-base-200 hover:bg-border/50 transition-colors'
+
+  const handleThemeCycle = () => {
+    const nextMode: Record<ThemeMode, ThemeMode> = {
+      system: 'light',
+      light: 'dark',
+      dark: 'system',
+    }
+    onThemeModeChange(nextMode[themeMode])
+  }
+
+  const themeLabel: Record<ThemeMode, string> = {
+    system: 'Theme: System',
+    light: 'Theme: Light',
+    dark: 'Theme: Dark',
+  }
+
+  const ThemeIcon =
+    themeMode === 'system' ? IconDeviceDesktop : themeMode === 'light' ? IconSun : IconMoon
+
+      const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { entity, type, isAuthenticated } = useAppSelector((s) => s.auth)
 
@@ -61,33 +83,6 @@ export default function Header({ onMenuToggle, sidebarOpen = false }: HeaderProp
       : `${entity.firstName ?? ''} ${entity.lastName ?? ''}`.trim() || entity.username || entity.email || 'User'
     : ''
 
-export default function Header({
-  onMenuToggle,
-  sidebarOpen,
-  themeMode,
-  onThemeModeChange,
-}: HeaderProps) {
-  const iconButtonClass =
-    'p-2 cursor-pointer rounded-lg text-base-100 hover:text-base-200 hover:bg-border/50 transition-colors'
-
-  const handleThemeCycle = () => {
-    const nextMode: Record<ThemeMode, ThemeMode> = {
-      system: 'light',
-      light: 'dark',
-      dark: 'system',
-    }
-    onThemeModeChange(nextMode[themeMode])
-  }
-
-  const themeLabel: Record<ThemeMode, string> = {
-    system: 'Theme: System',
-    light: 'Theme: Light',
-    dark: 'Theme: Dark',
-  }
-
-  const ThemeIcon =
-    themeMode === 'system' ? IconDeviceDesktop : themeMode === 'light' ? IconSun : IconMoon
-
   return (
     <header className="bg-card-bg border-b border-border px-4 lg:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-30">
       {/* Mobile menu button */}
@@ -113,7 +108,6 @@ export default function Header({
             <IconSearch size={18} stroke={1.5} className="text-base-100" />
           </div>
           <input type="text" placeholder="Search..." className="input pl-10" />
-          <input type="text" placeholder="Search..." className="input pl-10" />
         </div>
       </div>
 
@@ -130,18 +124,15 @@ export default function Header({
             <IconBell size={20} stroke={1.5} />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-status-rejected rounded-full" />
           </button>
-
-        {/* Theme Mode: System -> Light -> Dark */}
-        <button
-          onClick={handleThemeCycle}
-          className={`relative ${iconButtonClass}`}
-          aria-label={themeLabel[themeMode]}
-          title={`${themeLabel[themeMode]} (click to change)`}
-        >
-          <ThemeIcon size={20} stroke={1.5} />
-        </button>
         )}
-
+<button
+            onClick={handleThemeCycle}
+            className={`relative ${iconButtonClass}`}
+            aria-label={themeLabel[themeMode]}
+            title={`${themeLabel[themeMode]} (click to change)`}
+          >
+              <ThemeIcon size={20} stroke={1.5} />
+            </button>
         {/* Help — hidden on mobile */}
         <button className={`hidden sm:block relative ${iconButtonClass}`} aria-label="Help">
           <IconHelpCircle size={20} stroke={1.5} />
@@ -150,67 +141,66 @@ export default function Header({
         {/* Auth state conditional */}
         {isAuthenticated && entity ? (
           /* Authenticated: Profile dropdown */
-          <div
-            className="relative flex items-center gap-2 lg:gap-3 pl-2 lg:pl-3 border-l border-border"
-            ref={dropdownRef}
-          >
-            <button
-              onClick={() => setDropdownOpen((p) => !p)}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          <>
+            /* Authenticated: Profile dropdown */
+            <div
+              className="relative flex items-center gap-2 lg:gap-3 pl-2 lg:pl-3 border-l border-border"
+              ref={dropdownRef}
+            >
+              <button
+                onClick={() => setDropdownOpen((p) => !p)}
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                aria-label="User menu"
+              >
+                <Avatar name={displayName} size="lg" />
+                <div className="hidden md:flex flex-col items-start">
+                  <span className="text-sm font-medium text-base-200 leading-tight">{displayName}</span>
+                  <span className="text-xs text-base-100 capitalize">{type}</span>
+                </div>
+                <IconChevronDown
+                  size={16}
+                  stroke={1.5}
+                  className={`hidden md:block text-base-100 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown menu */}
+              {dropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-border rounded-xl shadow-lg py-1 z-50">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-sm font-medium text-base-200 truncate">{displayName}</p>
+                    <p className="text-xs text-base-100 truncate mt-0.5">{entity.email}</p>
+                  </div>
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-gray-50 transition-colors"
+                    onClick={() => { setDropdownOpen(false); navigate(type === 'company' ? '/dashboard' : '/profile') } }
+                  >
+                    <IconUser size={16} stroke={1.5} className="text-base-100" />
+                    {type === 'company' ? 'Dashboard' : 'Profile'}
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-gray-50 transition-colors"
+                    onClick={() => { setDropdownOpen(false) } }
+                  >
+                    <IconSettings size={16} stroke={1.5} className="text-base-100" />
+                    Settings
+                  </button>
+                  <div className="border-t border-border mt-1">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <IconLogout size={16} stroke={1.5} />
+                      Log out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div><button
+              className="hidden md:block p-1.5 cursor-pointer rounded-md text-base-100 hover:text-base-200 hover:bg-border/50 transition-colors"
               aria-label="User menu"
             >
-              <Avatar name={displayName} size="lg" />
-              <div className="hidden md:flex flex-col items-start">
-                <span className="text-sm font-medium text-base-200 leading-tight">{displayName}</span>
-                <span className="text-xs text-base-100 capitalize">{type}</span>
-              </div>
-              <IconChevronDown
-                size={16}
-                stroke={1.5}
-                className={`hidden md:block text-base-100 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            {/* Dropdown menu */}
-            {dropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-border rounded-xl shadow-lg py-1 z-50">
-                <div className="px-4 py-3 border-b border-border">
-                  <p className="text-sm font-medium text-base-200 truncate">{displayName}</p>
-                  <p className="text-xs text-base-100 truncate mt-0.5">{entity.email}</p>
-                </div>
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-gray-50 transition-colors"
-                  onClick={() => { setDropdownOpen(false); navigate(type === 'company' ? '/dashboard' : '/profile') }}
-                >
-                  <IconUser size={16} stroke={1.5} className="text-base-100" />
-                  {type === 'company' ? 'Dashboard' : 'Profile'}
-                </button>
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-gray-50 transition-colors"
-                  onClick={() => { setDropdownOpen(false) }}
-                >
-                  <IconSettings size={16} stroke={1.5} className="text-base-100" />
-                  Settings
-                </button>
-                <div className="border-t border-border mt-1">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <IconLogout size={16} stroke={1.5} />
-                    Log out
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-          <button
-            className="hidden md:block p-1.5 cursor-pointer rounded-md text-base-100 hover:text-base-200 hover:bg-border/50 transition-colors"
-            aria-label="User menu"
-          >
-            <IconChevronDown size={16} stroke={1.5} />
-          </button>
-        </div>
+              <IconChevronDown size={16} stroke={1.5} />
+            </button></>
         ) : (
           /* Unauthenticated: Login + Signup buttons */
           <div className="flex items-center gap-2 pl-2 lg:pl-3 border-l border-border">
