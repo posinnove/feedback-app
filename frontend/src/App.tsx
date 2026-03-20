@@ -5,6 +5,11 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import CompanyBoardPage from './pages/CompanyBoardPage'
 import RequestDetailPage from './pages/RequestDetailPage'
+import LoginPage from './pages/auth/LoginPage'
+import RegisterPage from './pages/auth/RegisterPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
+import VerifyEmailPage from './pages/auth/VerifyEmailPage'
 import { mockFeedbacks } from './data/mockFeedback'
 
 type ThemeMode = 'system' | 'light' | 'dark'
@@ -96,6 +101,14 @@ function AppLayout() {
 function App() {
   return (
     <Routes>
+      {/* Auth pages — full-screen, no sidebar/header shell */}
+      <Route path="/auth/login" element={<LoginPage />} />
+      <Route path="/auth/register" element={<RegisterPage />} />
+      <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+
+      {/* Main app shell */}
       <Route element={<AppLayout />}>
         <Route path="/" element={<PublicFeedbackBoard feedbacks={mockFeedbacks} />} />
         <Route path="/company/:slug" element={<CompanyBoardPage />} />

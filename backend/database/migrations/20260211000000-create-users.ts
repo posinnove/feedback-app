@@ -8,6 +8,11 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
             primaryKey: true,
             allowNull: false,
         },
+        username: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
+        },
         first_name: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -27,13 +32,29 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
         },
         phone_number: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true,
             unique: true,
         },
-        role: {
-            type: DataTypes.ENUM('admin', 'company', 'user'),
+        is_email_verified: {
+            type: DataTypes.BOOLEAN,
             allowNull: false,
-            defaultValue: 'user',
+            defaultValue: false,
+        },
+        email_verification_token: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        email_verification_expires: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        password_reset_token: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        password_reset_expires: {
+            type: DataTypes.DATE,
+            allowNull: true,
         },
         created_at: {
             type: DataTypes.DATE,

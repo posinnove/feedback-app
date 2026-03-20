@@ -6,6 +6,12 @@ const config = {
         url: process.env.DATABASE_URL,
         dialect: 'postgres' as const,
         logging: (sql: string) => logger.debug(sql),
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false,
+            },
+        },
     },
     test: {
         url: process.env.DATABASE_URL,
