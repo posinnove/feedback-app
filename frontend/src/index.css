@@ -90,7 +90,7 @@
   }
 
   .btn {
-    @apply px-[15px] py-1 rounded-full cursor-pointer capitalize transition-all hover:opacity-80 shadow-xl;
+    @apply px-3.75 py-1 rounded-full cursor-pointer capitalize transition-all hover:opacity-80 shadow-xl;
   }
 
   .btn-primary {
@@ -119,6 +119,28 @@
 
   .input {
     @apply w-full px-3 py-2 bg-sidebar-bg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent text-base-200 placeholder:text-base-100;
+  }
+
+  .ql-toolbar.ql-snow {
+    border: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    background: var(--sidebar-bg);
+  }
+
+  .ql-container.ql-snow {
+    border: 0 !important;
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--base-200);
+    background: var(--background);
+  }
+
+  .ql-editor {
+    min-height: 180px;
+  }
+
+  .ql-editor.ql-blank::before {
+    color: var(--base-100);
+    font-style: normal;
   }
 }
 

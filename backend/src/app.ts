@@ -4,6 +4,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { rateLimit } from 'express-rate-limit';
 import companyRoutes from './routes/company.routes.ts';
+import feedbackRoutes from './routes/feedback.routes.ts';
+import searchRoutes from './routes/search.routes.ts';
+import notificationRoutes from './routes/notification.routes.ts';
 import userAuthRoutes from './routes/user.auth.routes.ts';
 import companyAuthRoutes from './routes/company.auth.routes.ts';
 import authRoutes from './routes/auth.routes.ts';
@@ -16,16 +19,19 @@ const authLimiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: {
     success: false,
-    message: 'Too many requests from this IP, please try again after 15 minutes',
+    message:
+      'Too many requests from this IP, please try again after 15 minutes',
   },
 });
 
 const app: Application = express();
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -42,6 +48,11 @@ app.use('/api/auth/companies', authLimiter, companyAuthRoutes);
 
 // Public company board routes
 app.use('/api/companies', companyRoutes);
+app.use('/api/feedbacks', feedbackRoutes);
+app.use('/api/search', searchRoutes);
+
+// Notifications
+app.use('/api/notifications', notificationRoutes);
 
 // Error handling - MUST BE LAST
 app.use(errorHandler);

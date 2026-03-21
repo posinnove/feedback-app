@@ -13,7 +13,8 @@
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
     "db:seed:all": "sequelize-cli db:seed:all",
-    "db:seed:undo:all": "sequelize-cli db:seed:undo:all"
+    "db:seed:undo:all": "sequelize-cli db:seed:undo:all",
+    "db:drop": "sequelize-cli db:drop"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

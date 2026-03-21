@@ -1,36 +1,55 @@
-import { useState, useCallback, useEffect } from 'react'
-import { Routes, Route, Outlet } from 'react-router-dom'
-import PublicFeedbackBoard from './components/PublicFeedbackBoard'
+import { lazy, Suspense, useState, useCallback, useEffect, useRef } from 'react'
+import { Routes, Route, Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
-import CompanyBoardPage from './pages/CompanyBoardPage'
-import RequestDetailPage from './pages/RequestDetailPage'
-import LoginPage from './pages/auth/LoginPage'
-import RegisterPage from './pages/auth/RegisterPage'
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
-import ResetPasswordPage from './pages/auth/ResetPasswordPage'
-import VerifyEmailPage from './pages/auth/VerifyEmailPage'
-import { mockFeedbacks } from './data/mockFeedback'
+import LoadingSpinner from './components/LoadingSpinner'
+import { useAppSelector, useAppDispatch } from './store/hooks'
+import { clearCredentials, setAuthError } from './store/slices/authSlice'
+import { useLogoutMutation } from './store/api/authApi'
+
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000
+
+const AuthModal = lazy(() => import('./components/auth/AuthModal'))
+const CompanyBoardPage = lazy(() => import('./pages/CompanyBoardPage'))
+const RequestDetailPage = lazy(() => import('./pages/RequestDetailPage'))
+const PopularPage = lazy(() => import('./pages/PopularPage'))
+const ExplorePage = lazy(() => import('./pages/ExplorePage'))
+const AllPage = lazy(() => import('./pages/AllPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const RequestFeedbackPage = lazy(() => import('./pages/RequestFeedbackPage'))
+const SearchPage = lazy(() => import('./pages/SearchPage'))
+const PublicFeedPage = lazy(() => import('./pages/PublicFeedPage'))
+const CompanyPortalPage = lazy(() => import('./pages/CompanyPortalPage'))
+const LandingPage = lazy(() => import('./pages/LandingPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
+const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'))
 
 type ThemeMode = 'system' | 'light' | 'dark'
 
+function FeedEntryPage() {
+  const authType = useAppSelector((state) => state.auth.type)
+
+  if (authType === 'company') {
+    return <CompanyPortalPage />
+  }
+
+  return <PublicFeedPage sort="trending" />
+}
+
 function AppLayout() {
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
+  const authThemeMode = useAppSelector((state) => state.auth.entity?.themeMode)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
     return saved === 'true'
   })
-  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem('theme-mode')
-    if (saved === 'light' || saved === 'dark' || saved === 'system') {
-      return saved
-    }
-    return 'system'
-  })
-
-  useEffect(() => {
-    localStorage.setItem('theme-mode', themeMode)
-  }, [themeMode])
+  const [logout] = useLogoutMutation()
+  const inactivityTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', String(sidebarCollapsed))
@@ -39,6 +58,7 @@ function AppLayout() {
   useEffect(() => {
     const root = document.documentElement
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const themeMode: ThemeMode = authThemeMode ?? 'system'
 
     const applyTheme = () => {
       if (themeMode === 'system') {
@@ -59,7 +79,52 @@ function AppLayout() {
     }
 
     return undefined
-  }, [themeMode])
+  }, [authThemeMode])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      if (inactivityTimeoutRef.current !== null) {
+        window.clearTimeout(inactivityTimeoutRef.current)
+      }
+      return
+    }
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimeoutRef.current !== null) {
+        window.clearTimeout(inactivityTimeoutRef.current)
+      }
+
+      inactivityTimeoutRef.current = window.setTimeout(() => {
+        void logout()
+        dispatch(clearCredentials())
+        navigate('/auth/login?reason=session-timeout', { replace: true })
+      }, INACTIVITY_TIMEOUT_MS)
+    }
+
+    const events: Array<keyof WindowEventMap> = [
+      'mousemove',
+      'mousedown',
+      'keydown',
+      'scroll',
+      'touchstart',
+    ]
+
+    events.forEach((eventName) => {
+      window.addEventListener(eventName, resetInactivityTimer)
+    })
+
+    resetInactivityTimer()
+
+    return () => {
+      events.forEach((eventName) => {
+        window.removeEventListener(eventName, resetInactivityTimer)
+      })
+
+      if (inactivityTimeoutRef.current !== null) {
+        window.clearTimeout(inactivityTimeoutRef.current)
+      }
+    }
+  }, [dispatch, isAuthenticated, logout, navigate])
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev)
@@ -75,12 +140,7 @@ function AppLayout() {
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
-      <Header
-        onMenuToggle={toggleSidebar}
-        sidebarOpen={sidebarOpen}
-        themeMode={themeMode}
-        onThemeModeChange={setThemeMode}
-      />
+      <Header onMenuToggle={toggleSidebar} sidebarOpen={sidebarOpen} />
       <div className="flex flex-1 min-h-0 relative">
         <Sidebar
           open={sidebarOpen}
@@ -88,9 +148,7 @@ function AppLayout() {
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
         />
-        <main
-          className={`flex-1 min-h-0 w-full overflow-y-auto custom-scroll`}
-        >
+        <main className={`flex-1 min-h-0 w-full overflow-y-auto custom-scroll`}>
           <Outlet />
         </main>
       </div>
@@ -99,22 +157,48 @@ function AppLayout() {
 }
 
 function App() {
-  return (
-    <Routes>
-      {/* Auth pages — full-screen, no sidebar/header shell */}
-      <Route path="/auth/login" element={<LoginPage />} />
-      <Route path="/auth/register" element={<RegisterPage />} />
-      <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+  const dispatch = useAppDispatch()
+  const hasAuthError = useAppSelector((state) => state.auth.hasAuthError)
 
-      {/* Main app shell */}
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<PublicFeedbackBoard feedbacks={mockFeedbacks} />} />
-        <Route path="/company/:slug" element={<CompanyBoardPage />} />
-        <Route path="/request/:id" element={<RequestDetailPage />} />
-      </Route>
-    </Routes>
+  function handleCloseAuthModal() {
+    dispatch(setAuthError(false))
+  }
+
+  return (
+    <>
+      {hasAuthError && (
+        <Suspense fallback={null}>
+          <AuthModal open={hasAuthError} mode="login" onClose={handleCloseAuthModal} />
+        </Suspense>
+      )}
+      <Suspense fallback={<LoadingSpinner />}>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+
+          {/* Auth modal routes on top of landing */}
+          <Route path="/auth/login" element={<LandingPage />} />
+          <Route path="/auth/register" element={<LandingPage />} />
+          <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
+
+          {/* Main app shell */}
+          <Route element={<AppLayout />}>
+            <Route path="/feed" element={<FeedEntryPage />} />
+            <Route path="/popular" element={<PopularPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/all" element={<AllPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/request-feedback" element={<RequestFeedbackPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/portal-kanban" element={<CompanyPortalPage />} />
+            <Route path="/company/:slug" element={<CompanyBoardPage />} />
+            <Route path="/request/:id" element={<RequestDetailPage />} />
+          </Route>
+        </Routes>
+      </Suspense>
+    </>
   )
 }
 

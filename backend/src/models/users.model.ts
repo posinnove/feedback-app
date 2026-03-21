@@ -11,17 +11,21 @@ export class Users extends Model<
   InferCreationAttributes<Users>
 > {
   declare id: CreationOptional<number>;
-  declare username: string;
   declare firstName: string;
   declare lastName: string;
   declare email: string;
   declare password: string;
+  declare avatarUrl: CreationOptional<string | null>;
   declare phoneNumber: CreationOptional<string | null>;
   declare isEmailVerified: CreationOptional<boolean>;
   declare emailVerificationToken: CreationOptional<string | null>;
   declare emailVerificationExpires: CreationOptional<Date | null>;
   declare passwordResetToken: CreationOptional<string | null>;
   declare passwordResetExpires: CreationOptional<Date | null>;
+  declare emailNotifications: CreationOptional<boolean>;
+  declare weeklyDigest: CreationOptional<boolean>;
+  declare publicProfile: CreationOptional<boolean>;
+  declare themeMode: CreationOptional<'system' | 'light' | 'dark'>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -32,11 +36,6 @@ Users.init(
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
     },
     firstName: {
       type: DataTypes.STRING,
@@ -57,6 +56,11 @@ Users.init(
     password: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    avatarUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: 'avatar_url',
     },
     phoneNumber: {
       type: DataTypes.STRING,
@@ -89,6 +93,30 @@ Users.init(
       type: DataTypes.DATE,
       allowNull: true,
       field: 'password_reset_expires',
+    },
+    emailNotifications: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      field: 'email_notifications',
+    },
+    weeklyDigest: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      field: 'weekly_digest',
+    },
+    publicProfile: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      field: 'public_profile',
+    },
+    themeMode: {
+      type: DataTypes.ENUM('system', 'light', 'dark'),
+      allowNull: false,
+      defaultValue: 'system',
+      field: 'theme_mode',
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

@@ -1,28 +1,30 @@
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
-if (!CLOUD_NAME || !UPLOAD_PRESET) {
-  throw new Error('Cloudinary environment variables are not defined')
-}
-
 export type CloudinaryUploadResult = {
   url: string
   public_id: string
 }
 
 export const uploadFileToCloudinary = async (
-  file: File
+  file: File,
+  folder = 'feedback-uploads'
 ): Promise<CloudinaryUploadResult | null> => {
+  if (!CLOUD_NAME || !UPLOAD_PRESET) {
+    console.error('Cloudinary environment variables are not defined')
+    return null
+  }
+
   const formData = new FormData()
   formData.append('file', file)
   formData.append('upload_preset', UPLOAD_PRESET)
-  formData.append('folder', 'feedback-uploads')
+  formData.append('folder', folder)
 
   try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`,
-      { method: 'POST', body: formData },
-    )
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {
+      method: 'POST',
+      body: formData,
+    })
 
     if (!response.ok) {
       throw new Error(`Upload failed with status ${response.status}`)

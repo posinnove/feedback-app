@@ -7,6 +7,7 @@ import {
 } from '@tabler/icons-react'
 import type { Feedback } from '../types/feedback'
 import Avatar from './ui/Avatar'
+import SafeHtml from './SafeHtml'
 import { formatDate } from '../utils/formatDate'
 
 interface FeedbackBoardProps {
@@ -50,7 +51,7 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
       {/* Description */}
       {feedback.description && (
         <div className="px-4 pt-4 pb-2">
-          <p className="text-sm text-base-100 leading-relaxed">{feedback.description}</p>
+          <SafeHtml html={feedback.description} className="text-sm text-base-100 leading-relaxed" />
         </div>
       )}
 

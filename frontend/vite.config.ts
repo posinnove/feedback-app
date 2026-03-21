@@ -11,6 +11,20 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    build: {
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            router: ['react-router-dom'],
+            redux: ['@reduxjs/toolkit', 'react-redux'],
+            forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+            editor: ['quill', 'react-quill-new'],
+            ui: ['@tabler/icons-react', 'sonner'],
+          },
+        },
+      },
+    },
     server: {
       proxy: {
         '/api': {
