@@ -1,6 +1,7 @@
 import { QueryInterface, DataTypes } from 'sequelize';
 
 export async function up(queryInterface: QueryInterface): Promise<void> {
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_feedbacks_status CASCADE;');
     await queryInterface.createTable('feedbacks', {
         id: {
             type: DataTypes.INTEGER.UNSIGNED,
@@ -28,14 +29,23 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
         },
         status: {
             type: DataTypes.ENUM(
-                'planned',
-                'in-progress',
-                'completed',
-                'under-review',
-                'rejected',
+                'OPEN',
+                'PLANNED',
+                'IN_PROGRESS',
+                'COMPLETED'
             ),
             allowNull: false,
-            defaultValue: 'planned',
+            defaultValue: 'OPEN',
+        },
+        created_by: {
+            type: DataTypes.INTEGER.UNSIGNED,
+            allowNull: false,
+            references: {
+                model: 'users',
+                key: 'id',
+            },
+            onUpdate: 'CASCADE',
+            onDelete: 'CASCADE',
         },
         upvotes: {
             type: DataTypes.INTEGER,

@@ -43,6 +43,12 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
         },
     ]);
 
+    // Find the dev_user
+    const [users] = await queryInterface.sequelize.query(
+        `SELECT id FROM users WHERE username = 'dev_user' LIMIT 1;`,
+    );
+    const userId = (users as { id: number }[])[0].id;
+
     // Find the Posinnove company
     const [companies] = await queryInterface.sequelize.query(
         `SELECT id FROM companies WHERE slug = 'posinnove' LIMIT 1;`,
@@ -53,30 +59,33 @@ export async function up(queryInterface: QueryInterface): Promise<void> {
     await queryInterface.bulkInsert('feedbacks', [
         {
             company_id: companyId,
+            created_by: userId,
             title: 'Using pocketbase as the backend for sheetwa surprised me in a good way',
             description:
                 'While building sheetwa, I wanted a backend that stayed out of the way. I did not want to manage heavy infrastructure or spend time wiring things I barely needed. That is when I tried pocketbase. What worked well for my use case.',
-            status: 'completed',
+            status: 'COMPLETED',
             upvotes: 3,
             created_at: new Date(),
             updated_at: new Date(),
         },
         {
             company_id: companyId,
+            created_by: userId,
             title: 'Deploying cloud solutions for scalability and continuous integrity',
             description:
                 'Super fast setup. I had auth, database, and file handling running almost immediately. Local first development felt simple and predictable.',
-            status: 'in-progress',
+            status: 'IN_PROGRESS',
             upvotes: 12,
             created_at: new Date(),
             updated_at: new Date(),
         },
         {
             company_id: companyId,
+            created_by: userId,
             title: 'Integrating AI for data analysis and insights',
             description:
                 'It handled small but important things like user management and permissions without extra layers. Exploring machine learning capabilities to enhance our data processing pipeline.',
-            status: 'planned',
+            status: 'PLANNED',
             upvotes: 7,
             created_at: new Date(),
             updated_at: new Date(),

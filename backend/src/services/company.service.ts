@@ -20,6 +20,7 @@ export async function findCompanyBySlug(slug: string) {
                     "title",
                     "description",
                     "status",
+                    "createdBy",
                     "upvotes",
                     "createdAt",
                 ],

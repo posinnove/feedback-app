@@ -8,12 +8,13 @@ import type {
 import { sequelize } from "../config/db.ts";
 import { Company } from "./company.model.ts";
 
+import { Users } from "./users.model.ts";
+
 export type FeedbackStatus =
-    | "planned"
-    | "in-progress"
-    | "completed"
-    | "under-review"
-    | "rejected";
+    | "OPEN"
+    | "PLANNED"
+    | "IN_PROGRESS"
+    | "COMPLETED";
 
 export class Feedback extends Model<
     InferAttributes<Feedback>,
@@ -21,6 +22,7 @@ export class Feedback extends Model<
 > {
     declare id: CreationOptional<number>;
     declare companyId: ForeignKey<Company["id"]>;
+    declare createdBy: ForeignKey<Users["id"]>;
     declare title: string;
     declare description: CreationOptional<string | null>;
     declare status: CreationOptional<FeedbackStatus>;
@@ -41,6 +43,11 @@ Feedback.init(
             allowNull: false,
             field: "company_id",
         },
+        createdBy: {
+            type: DataTypes.INTEGER.UNSIGNED,
+            allowNull: false,
+            field: "created_by",
+        },
         title: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -51,14 +58,13 @@ Feedback.init(
         },
         status: {
             type: DataTypes.ENUM(
-                "planned",
-                "in-progress",
-                "completed",
-                "under-review",
-                "rejected"
+                "OPEN",
+                "PLANNED",
+                "IN_PROGRESS",
+                "COMPLETED"
             ),
             allowNull: false,
-            defaultValue: "planned",
+            defaultValue: "OPEN",
         },
         upvotes: {
             type: DataTypes.INTEGER,
@@ -79,3 +85,6 @@ Feedback.init(
 // Associations
 Feedback.belongsTo(Company, { foreignKey: "companyId", as: "company" });
 Company.hasMany(Feedback, { foreignKey: "companyId", as: "feedbacks" });
+
+Feedback.belongsTo(Users, { foreignKey: "createdBy", as: "author" });
+Users.hasMany(Feedback, { foreignKey: "createdBy", as: "feedbacks" });

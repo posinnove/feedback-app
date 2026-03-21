@@ -10,6 +10,7 @@ import { sequelize } from '../config/db.ts';
 interface FeedbackShape {
     id: number;
     companyId: number;
+    createdBy: number;
     title: string;
     description: string | null;
     status: string;
