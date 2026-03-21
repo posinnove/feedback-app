@@ -9,6 +9,15 @@ import {
   useRequestCompanyFeedbackMutation,
 } from '../store/api/companyApi'
 import { useAppSelector } from '../store/hooks'
+import { Input } from '../components/ui/input'
+import { Button } from '../components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select'
 
 export default function RequestFeedbackPage() {
   const navigate = useNavigate()
@@ -40,6 +49,7 @@ export default function RequestFeedbackPage() {
 
   const selectedCompanySlug = companySlug || initialCompanySlug
   const selectedFeedbackTypeId = feedbackTypeId ?? feedbackTypes[0]?.id ?? null
+  const selectedFeedbackTypeValue = selectedFeedbackTypeId ? String(selectedFeedbackTypeId) : ''
   const selectedCompanyName =
     companies.find((company) => company.slug === selectedCompanySlug)?.name ?? ''
   const companyInputValue = companyQuery || selectedCompanyName
@@ -149,7 +159,7 @@ export default function RequestFeedbackPage() {
           <div>
             <label className="block text-xs text-base-100 mb-1.5">Company</label>
             <div className="relative">
-              <input
+              <Input
                 value={companyInputValue}
                 onChange={(event) => {
                   setCompanyQuery(event.target.value)
@@ -160,7 +170,6 @@ export default function RequestFeedbackPage() {
                 onBlur={() => {
                   setTimeout(() => setShowCompanyOptions(false), 120)
                 }}
-                className="input"
                 placeholder={isLoadingCompanies ? 'Loading companies...' : 'Search company by name'}
                 disabled={isLoadingCompanies || companies.length === 0}
               />
@@ -168,18 +177,20 @@ export default function RequestFeedbackPage() {
               {showCompanyOptions && !isLoadingCompanies && filteredCompanies.length > 0 ? (
                 <div className="absolute z-20 mt-1 w-full bg-card-bg border border-border rounded-lg shadow-lg max-h-56 overflow-auto">
                   {filteredCompanies.map((company) => (
-                    <button
+                    <Button
                       key={company.slug}
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => {
                         setCompanySlug(company.slug)
                         setCompanyQuery(company.name)
                         setShowCompanyOptions(false)
                       }}
-                      className="w-full text-left px-3 py-2 text-sm text-base-200 hover:bg-border/50 transition-colors"
+                      className="h-auto w-full justify-start px-3 py-2 text-left text-sm font-normal text-base-200 transition-colors hover:bg-border/50"
                     >
                       {company.name}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               ) : null}
@@ -194,27 +205,39 @@ export default function RequestFeedbackPage() {
 
           <div>
             <label className="block text-xs text-base-100 mb-1.5">Feedback Type</label>
-            <select
-              value={selectedFeedbackTypeId ?? ''}
-              onChange={(event) => setFeedbackTypeId(Number.parseInt(event.target.value, 10))}
-              className="input"
+            <Select
+              value={selectedFeedbackTypeValue}
+              onValueChange={(value) => setFeedbackTypeId(Number.parseInt(value, 10))}
               disabled={isLoadingFeedbackTypes || feedbackTypes.length === 0}
             >
-              {!feedbackTypes.length ? <option value="">No feedback types available</option> : null}
-              {feedbackTypes.map((feedbackType) => (
-                <option key={feedbackType.id} value={feedbackType.id}>
-                  {feedbackType.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    isLoadingFeedbackTypes ? 'Loading feedback types...' : 'Select a feedback type'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {feedbackTypes.map((feedbackType) => (
+                  <SelectItem key={feedbackType.id} value={String(feedbackType.id)}>
+                    {feedbackType.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!isLoadingFeedbackTypes && feedbackTypes.length === 0 ? (
+              <p className="text-xs text-base-100 mt-1">No feedback types available.</p>
+            ) : null}
           </div>
 
           <div>
             <label className="block text-xs text-base-100 mb-1.5">Visibility</label>
             <p className="text-xs text-base-100 mb-2">Choose how your name appears on feedback.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => setVisibility('anonymous')}
                 className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
                   visibility === 'anonymous'
@@ -224,9 +247,11 @@ export default function RequestFeedbackPage() {
               >
                 Anonymous
                 <div className="text-xs text-base-100 mt-1">Your name will be hidden</div>
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() => setVisibility('public')}
                 className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
                   visibility === 'public'
@@ -236,16 +261,15 @@ export default function RequestFeedbackPage() {
               >
                 Public
                 <div className="text-xs text-base-100 mt-1">Your name will be visible</div>
-              </button>
+              </Button>
             </div>
           </div>
 
           <div>
             <label className="block text-xs text-base-100 mb-1.5">Title</label>
-            <input
+            <Input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="input"
               placeholder="What should this company build or improve?"
               required
               minLength={5}
@@ -278,7 +302,7 @@ export default function RequestFeedbackPage() {
             <span className="text-xs text-base-100">
               Rich text formatting is supported for your request details.
             </span>
-            <button
+            <Button
               type="submit"
               disabled={
                 isSubmitting ||
@@ -287,10 +311,10 @@ export default function RequestFeedbackPage() {
                 !visibility ||
                 title.trim().length < 5
               }
-              className="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              className="px-4"
             >
               {isSubmitting ? 'Submitting...' : 'Submit request'}
-            </button>
+            </Button>
           </div>
 
           {successMessage ? <p className="text-sm text-green-600">{successMessage}</p> : null}

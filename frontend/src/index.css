@@ -89,38 +89,6 @@
     @apply bg-background text-base-200;
   }
 
-  .btn {
-    @apply px-3.75 py-1 rounded-full cursor-pointer capitalize transition-all hover:opacity-80 shadow-xl;
-  }
-
-  .btn-primary {
-    @apply bg-primary-800 text-white;
-  }
-
-  .btn-success {
-    @apply bg-status-completed text-white;
-  }
-
-  .btn-warning {
-    @apply bg-status-in-progress text-white;
-  }
-
-  .btn-danger {
-    @apply bg-status-rejected text-white;
-  }
-
-  .card {
-    @apply bg-card-bg border border-border px-4 py-2 rounded-[7px] shadow-md shadow-black/5;
-  }
-
-  .badge {
-    @apply inline-block px-2 py-0.5 rounded-full text-xs font-medium capitalize;
-  }
-
-  .input {
-    @apply w-full px-3 py-2 bg-sidebar-bg border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent text-base-200 placeholder:text-base-100;
-  }
-
   .ql-toolbar.ql-snow {
     border: 0 !important;
     border-bottom: 1px solid var(--border) !important;

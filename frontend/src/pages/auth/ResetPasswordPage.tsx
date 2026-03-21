@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router-dom'
 import { IconArrowLeft, IconCheck, IconAlertCircle, IconEye, IconEyeOff } from '@tabler/icons-react'
 import { useResetPasswordMutation } from '../../store/api/authApi'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
+import { Input } from '../../components/ui/input'
+import { Button } from '../../components/ui/button'
 import forgotBg from '../../assets/auth - signup - 4.jpg'
 
 interface ResetFormValues {
@@ -22,13 +24,13 @@ export default function ResetPasswordPage() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ResetFormValues>({ defaultValues: { password: '', confirm: '' } })
 
   const [resetPassword, { isLoading }] = useResetPasswordMutation()
   const isBusy = isSubmitting || isLoading
-  const watchedPassword = watch('password')
+  const watchedPassword = useWatch({ control, name: 'password', defaultValue: '' })
 
   async function onSubmit(values: ResetFormValues) {
     setApiError(null)
@@ -92,11 +94,8 @@ export default function ResetPasswordPage() {
               <p className="text-base-100 text-sm mt-1">
                 You can now log in with your new password.
               </p>
-              <Link
-                to="/auth/login"
-                className="mt-4 inline-block px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-800 transition-colors"
-              >
-                Sign in
+              <Link to="/auth/login" className="mt-4 inline-flex">
+                <Button className="px-6">Sign in</Button>
               </Link>
             </div>
           ) : (
@@ -107,24 +106,26 @@ export default function ResetPasswordPage() {
                   New password
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="new-password"
                     placeholder="Min. 8 characters"
-                    className={`input pr-10 ${errors.password ? 'border-red-400 focus:ring-red-400' : ''}`}
+                    className={`pr-10 ${errors.password ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
                     {...register('password', {
                       required: 'Password is required',
                       minLength: { value: 8, message: 'Must be at least 8 characters' },
                     })}
                   />
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-base-100 hover:text-base-200 transition-colors"
+                    className="absolute right-3 top-1/2 h-auto w-auto -translate-y-1/2 px-0 py-0 text-base-100 transition-colors hover:bg-transparent hover:text-base-200"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
-                  </button>
+                  </Button>
                 </div>
                 {errors.password && (
                   <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
@@ -136,11 +137,11 @@ export default function ResetPasswordPage() {
                 <label className="block text-sm font-medium text-base-200 mb-1.5">
                   Confirm password
                 </label>
-                <input
+                <Input
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="Repeat your password"
-                  className={`input ${errors.confirm ? 'border-red-400 focus:ring-red-400' : ''}`}
+                  className={errors.confirm ? 'border-red-400 focus-visible:ring-red-400' : ''}
                   {...register('confirm', {
                     required: 'Please confirm your password',
                     validate: (val) => val === watchedPassword || "Passwords don't match",
@@ -151,13 +152,9 @@ export default function ResetPasswordPage() {
                 )}
               </div>
 
-              <button
-                type="submit"
-                disabled={isBusy || !token}
-                className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
+              <Button type="submit" disabled={isBusy || !token} className="w-full">
                 {isBusy ? 'Resetting…' : 'Reset password'}
-              </button>
+              </Button>
             </form>
           )}
         </div>

@@ -3,6 +3,8 @@ import {
   getFeedbackTypes,
   getReplies,
   postReply,
+  patchReply,
+  patchFeedback,
   voteReply,
   getPublicFeedback,
   getPublicFeedbacks,
@@ -18,7 +20,9 @@ router.get('/types', getFeedbackTypes);
 router.get('/', optionalAuthenticate, getPublicFeedbacks);
 router.get('/:id/replies', optionalAuthenticate, getReplies);
 router.post('/:id/replies', authenticate, postReply);
+router.patch('/:id/replies/:replyId', authenticate, patchReply);
 router.post('/:id/replies/:replyId/vote', authenticate, voteReply);
+router.patch('/:id', authenticate, patchFeedback);
 router.get('/:id', optionalAuthenticate, getPublicFeedback);
 
 export default router;

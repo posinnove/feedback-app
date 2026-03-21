@@ -2,6 +2,8 @@ import { IconArrowUp, IconArrowDown } from '@tabler/icons-react'
 import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '../../store/hooks'
 import type { MouseEvent } from 'react'
+import { Button } from './button'
+import { cn } from '../../lib/utils'
 
 interface VoteButtonsProps {
   upvotes: number
@@ -34,23 +36,33 @@ export default function VoteButtons({
 
   return (
     <div className="flex items-center gap-1 text-xs text-base-100 bg-border/50 rounded-md px-1.5 py-1">
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={(event) => handleVote(event, onUpvote)}
-        className={`p-0.5 rounded hover:bg-blue-100 hover:cursor-pointer hover:text-blue-600 transition-colors ${userVote === 'up' ? 'text-primary-600' : ''}`}
+        className={cn(
+          'h-6 w-6 rounded p-0 text-base-100 hover:bg-blue-100 hover:text-blue-600',
+          userVote === 'up' ? 'text-primary-600' : ''
+        )}
         aria-label="Upvote"
       >
         <IconArrowUp size={14} stroke={1.5} />
-      </button>
+      </Button>
       <span className="font-medium min-w-[2ch] text-center">{upvotes}</span>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
         onClick={(event) => handleVote(event, onDownvote)}
-        className={`p-0.5 rounded hover:bg-red-100 hover:cursor-pointer hover:text-red-600 transition-colors ${userVote === 'down' ? 'text-status-rejected' : ''}`}
+        className={cn(
+          'h-6 w-6 rounded p-0 text-base-100 hover:bg-red-100 hover:text-red-600',
+          userVote === 'down' ? 'text-status-rejected' : ''
+        )}
         aria-label="Downvote"
       >
         <IconArrowDown size={14} stroke={1.5} />
-      </button>
+      </Button>
       <span className="font-medium min-w-[2ch] text-center">{downvotes}</span>
     </div>
   )

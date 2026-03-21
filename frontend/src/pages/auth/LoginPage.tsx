@@ -8,6 +8,8 @@ import { useLoginMutation, extractEntityFromUnifiedResponse } from '../../store/
 import { zodResolver } from '@hookform/resolvers/zod'
 import { loginSchema, type LoginInput } from '../../schemas/auth.schema'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
+import { Input } from '../../components/ui/input'
+import { Button } from '../../components/ui/button'
 import signupBg from '../../assets/auth - signup - 1.jpg'
 
 // Types moved to schemas/auth.schema.ts
@@ -111,11 +113,11 @@ export default function LoginPage() {
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-base-200 mb-1.5">Email</label>
-              <input
+              <Input
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
-                className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
+                className={errors.email ? 'border-red-400 focus-visible:ring-red-400' : ''}
                 {...register('email')}
               />
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
@@ -125,24 +127,26 @@ export default function LoginPage() {
             <div>
               <label className="block text-sm font-medium text-base-200 mb-1.5">Password</label>
               <div className="relative">
-                <input
+                <Input
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className={`input pr-10 ${errors.password ? 'border-red-400 focus:ring-red-400' : ''}`}
+                  className={`pr-10 ${errors.password ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
                   {...register('password')}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowPassword((p) => !p)}
-                  className="absolute inset-y-0 right-3 flex items-center text-base-100 hover:text-base-200"
+                  className="absolute inset-y-0 right-3 h-auto w-auto px-0 py-0 text-base-100 hover:bg-transparent hover:text-base-200"
                 >
                   {showPassword ? (
                     <IconEyeOff size={17} stroke={1.5} />
                   ) : (
                     <IconEye size={17} stroke={1.5} />
                   )}
-                </button>
+                </Button>
               </div>
               {errors.password && (
                 <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
@@ -157,14 +161,9 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isBusy}
-              className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm
-                                       hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" disabled={isBusy} className="w-full">
               {isBusy ? 'Signing in…' : 'Sign in'}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

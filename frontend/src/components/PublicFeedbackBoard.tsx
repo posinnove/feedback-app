@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppSelector } from '../store/hooks'
 import { useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
+import { Button } from './ui/button'
 
 function getOptimisticVoteOutcome(
   upvotes: number,
@@ -221,36 +222,45 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
         <main className="min-w-0">
           <div className="mb-6">
             <div className="flex items-center gap-2 border border-border bg-card-bg px-2 py-2 rounded-xl mb-6 overflow-x-auto shadow-none">
-              <button
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('new')}
-                className={`cursor-pointer flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-colors shrink-0 ${
+                className={`h-auto flex items-center gap-1.5 px-4 py-2 text-sm transition-colors shrink-0 ${
                   activeTab === 'new'
                     ? 'bg-border text-base-200 font-semibold'
                     : 'hover:bg-sidebar-bg text-base-100 hover:text-base-200 font-medium'
                 }`}
               >
                 <IconClock size={18} stroke={2} className="text-blue-600" /> New
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('top')}
-                className={`cursor-pointer flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-colors shrink-0 ${
+                className={`h-auto flex items-center gap-1.5 px-4 py-2 text-sm transition-colors shrink-0 ${
                   activeTab === 'top'
                     ? 'bg-border text-base-200 font-semibold'
                     : 'hover:bg-sidebar-bg text-base-100 hover:text-base-200 font-medium'
                 }`}
               >
                 <IconTrendingUp size={18} stroke={2} className="text-green-600" /> Top
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => setActiveTab('trending')}
-                className={`cursor-pointer flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-colors shrink-0 ${
+                className={`h-auto flex items-center gap-1.5 px-4 py-2 text-sm transition-colors shrink-0 ${
                   activeTab === 'trending'
                     ? 'bg-border text-base-200 font-semibold'
                     : 'hover:bg-sidebar-bg text-base-100 hover:text-base-200 font-medium'
                 }`}
               >
                 <IconFlame size={18} stroke={2} className="text-orange-600" /> Trending
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -317,12 +327,9 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                 <div className="text-xs text-base-100">Total Downvotes</div>
               </div>
             </div>
-            <button
-              onClick={handleRequestFeature}
-              className="cursor-pointer w-full btn btn-primary py-2 font-semibold"
-            >
+            <Button type="button" onClick={handleRequestFeature} className="w-full">
               Request a Feature
-            </button>
+            </Button>
           </div>
 
           <div className="bg-card-bg border border-border rounded-xl p-5 shadow-none">

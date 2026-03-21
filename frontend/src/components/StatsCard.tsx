@@ -1,5 +1,6 @@
 import type { CompanyData } from '../types/company'
 import ShareButton from './ui/ShareButton'
+import { Card } from './ui/card'
 
 interface StatsCardProps {
   company: CompanyData
@@ -11,7 +12,7 @@ export default function StatsCard({ company }: StatsCardProps) {
   const followerCount = company.followerCount ?? 0
 
   return (
-    <div className="card p-4 sticky top-6">
+    <Card className="sticky top-6 p-4">
       <ShareButton variant="primary" size={14} className="mb-3 h-9" />
       <div className="text-sm text-base-100 mb-2">{followerCount.toLocaleString()} followers</div>
       <p className="text-xs text-base-100 mb-3 leading-relaxed">
@@ -31,6 +32,6 @@ export default function StatsCard({ company }: StatsCardProps) {
           <div className="text-xs text-base-100">Downvotes</div>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }

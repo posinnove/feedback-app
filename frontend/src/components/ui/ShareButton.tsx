@@ -1,18 +1,30 @@
 import { useState } from 'react'
-import { IconShare } from '@tabler/icons-react'
+import {
+  IconShare3,
+  IconCopy,
+  IconBrandWhatsapp,
+  IconBrandInstagram,
+  IconBrandX,
+  IconBrandLinkedin,
+} from '@tabler/icons-react'
 import { toast } from 'sonner'
 import type { MouseEvent } from 'react'
+import { Button } from './button'
+import { cn } from '../../lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './dropdown-menu'
 
 interface ShareButtonProps {
-  /** URL to share. Defaults to the current page URL. */
   url?: string
-  /** Label text shown next to icon. Defaults to "Share". */
   label?: string
-  /** Additional CSS classes for the button. */
   className?: string
-  /** Icon size in pixels. */
   size?: number
-  /** Visual variant. */
   variant?: 'default' | 'primary'
 }
 
@@ -23,56 +35,107 @@ export default function ShareButton({
   size = 16,
   variant = 'default',
 }: ShareButtonProps) {
-  const [sharing, setSharing] = useState(false)
+  const [copying, setCopying] = useState(false)
 
-  const handleShare = async (event: MouseEvent<HTMLButtonElement>) => {
-    // Share button is often rendered inside clickable cards/links.
-    // Stop bubbling so the parent navigation does not swallow the share action.
+  const shareUrl = url ?? window.location.href
+
+  const handleTriggerClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.stopPropagation()
+  }
 
-    const shareUrl = url ?? window.location.href
-
-    // Try native share API first (mobile)
-    if (navigator.share) {
-      try {
-        setSharing(true)
-        await navigator.share({ url: shareUrl })
-      } catch (err) {
-        // User cancelled — ignore AbortError
-        if (err instanceof Error && err.name !== 'AbortError') {
-          console.error('Share failed:', err)
-        }
-      } finally {
-        setSharing(false)
-      }
-      return
-    }
-
-    // Fallback: copy to clipboard
+  const copyLink = async () => {
     try {
+      setCopying(true)
       await navigator.clipboard.writeText(shareUrl)
       toast.success('Link copied to clipboard!')
     } catch {
       toast.error('Failed to copy link')
+    } finally {
+      setCopying(false)
     }
   }
 
-  const baseStyles =
-    variant === 'primary'
-      ? 'btn btn-primary flex items-center gap-2 w-full justify-center text-sm'
-      : 'flex items-center gap-1 px-2 py-1 rounded-md bg-border/50 hover:bg-border transition-colors text-xs text-base-100'
+  const openShareWindow = (destination: 'whatsapp' | 'instagram' | 'x' | 'linkedin') => {
+    const encodedUrl = encodeURIComponent(shareUrl)
+    const encodedText = encodeURIComponent('Check this out')
+
+    if (destination === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodedText}%20${encodedUrl}`, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    if (destination === 'x') {
+      window.open(
+        `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+        '_blank',
+        'noopener,noreferrer'
+      )
+      return
+    }
+
+    if (destination === 'linkedin') {
+      window.open(
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+        '_blank',
+        'noopener,noreferrer'
+      )
+      return
+    }
+
+    void copyLink()
+    window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer')
+    toast.message('Instagram opened. Paste your copied link in a post or DM.')
+  }
+
+  const isPrimary = variant === 'primary'
 
   return (
-    <button
-      type="button"
-      onClick={handleShare}
-      disabled={sharing}
-      className={`${baseStyles} ${className}`}
-      aria-label="Share"
-    >
-      <IconShare size={size} stroke={1.5} />
-      {label && <span>{label}</span>}
-    </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant={isPrimary ? 'default' : 'secondary'}
+          size="sm"
+          onClick={handleTriggerClick}
+          disabled={copying}
+          className={cn(
+            isPrimary
+              ? 'w-full justify-center gap-2 text-sm'
+              : 'h-7 gap-1 bg-border/50 px-2 py-1 text-xs font-medium text-base-100 hover:bg-border',
+            className
+          )}
+          aria-label="Share"
+        >
+          <IconShare3 size={size} stroke={1.5} />
+          {label && <span>{label}</span>}
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuLabel>Share Options</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => void copyLink()}>
+          <IconCopy size={16} stroke={1.5} />
+          Copy link
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => openShareWindow('whatsapp')}>
+          <IconBrandWhatsapp size={16} stroke={1.5} />
+          Share to WhatsApp
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => openShareWindow('instagram')}>
+          <IconBrandInstagram size={16} stroke={1.5} />
+          Share to Instagram
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => openShareWindow('x')}>
+          <IconBrandX size={16} stroke={1.5} />
+          Share to X
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => openShareWindow('linkedin')}>
+          <IconBrandLinkedin size={16} stroke={1.5} />
+          Share to LinkedIn
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

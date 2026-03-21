@@ -6,6 +6,10 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react'
 import AuthModal from '../components/auth/AuthModal'
+import { Button } from '../components/ui/button'
+import { Card, CardContent, CardDescription, CardTitle } from '../components/ui/card'
+import { Badge } from '../components/ui/badge'
+import { Separator } from '../components/ui/separator'
 
 export default function LandingPage() {
   const location = useLocation()
@@ -45,28 +49,18 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => openAuth('login')}
-              className="px-3 py-1.5 text-sm font-medium text-base-200 hover:text-primary-600 transition-colors"
-            >
+            <Button variant="ghost" size="sm" onClick={() => openAuth('login')} className="px-3">
               Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => openAuth('register')}
-              className="px-4 py-1.5 text-sm font-medium bg-primary-600 text-white rounded-full hover:bg-primary-800 transition-colors"
-            >
+            </Button>
+            <Button onClick={() => openAuth('register')} size="sm" className="rounded-full px-4">
               Sign up
-            </button>
+            </Button>
           </div>
         </div>
       </header>
 
       <section className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-14 sm:py-20">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card-bg px-3 py-1 text-xs font-semibold uppercase tracking-wide text-base-100">
-          Product Feedback Platform
-        </div>
+        <Badge>Product Feedback Platform</Badge>
 
         <h1 className="mt-5 text-4xl sm:text-5xl font-extrabold leading-tight text-base-200">
           Voxella helps teams turn customer feedback into clear product decisions.
@@ -79,48 +73,53 @@ export default function LandingPage() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            to="/feed"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white hover:bg-primary-800 transition-colors"
-          >
-            View Public Feed
-            <IconArrowRight size={16} stroke={2} />
+          <Link to="/feed" className="inline-flex items-center">
+            <Button className="px-5 py-3 h-auto">
+              View Public Feed
+              <IconArrowRight size={16} stroke={2} />
+            </Button>
           </Link>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={() => openAuth('register')}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card-bg px-5 py-3 text-sm font-semibold text-base-200 hover:bg-border/50 transition-colors"
+            className="px-5 py-3 h-auto"
           >
             Create Account
-          </button>
+          </Button>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-14 sm:pb-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-xl border border-border bg-card-bg p-5">
-            <IconMessageCircle size={20} stroke={1.8} className="text-primary-600" />
-            <h2 className="mt-3 text-base font-bold text-base-200">Collect Feedback</h2>
-            <p className="mt-1 text-sm text-base-100">
-              Users submit product ideas and discuss them transparently.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-5">
+              <IconMessageCircle size={20} stroke={1.8} className="text-primary-600" />
+              <CardTitle className="mt-3">Collect Feedback</CardTitle>
+              <CardDescription className="mt-1">
+                Users submit product ideas and discuss them transparently.
+              </CardDescription>
+            </CardContent>
+          </Card>
 
-          <div className="rounded-xl border border-border bg-card-bg p-5">
-            <IconTrendingUp size={20} stroke={1.8} className="text-primary-600" />
-            <h2 className="mt-3 text-base font-bold text-base-200">Prioritize by Votes</h2>
-            <p className="mt-1 text-sm text-base-100">
-              Upvotes and downvotes help surface what is most important now.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-5">
+              <IconTrendingUp size={20} stroke={1.8} className="text-primary-600" />
+              <CardTitle className="mt-3">Prioritize by Votes</CardTitle>
+              <CardDescription className="mt-1">
+                Upvotes and downvotes help surface what is most important now.
+              </CardDescription>
+            </CardContent>
+          </Card>
 
-          <div className="rounded-xl border border-border bg-card-bg p-5">
-            <IconBuilding size={20} stroke={1.8} className="text-primary-600" />
-            <h2 className="mt-3 text-base font-bold text-base-200">Work with Companies</h2>
-            <p className="mt-1 text-sm text-base-100">
-              Each request is tied to a company board so teams can respond and deliver.
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-5">
+              <IconBuilding size={20} stroke={1.8} className="text-primary-600" />
+              <CardTitle className="mt-3">Work with Companies</CardTitle>
+              <CardDescription className="mt-1">
+                Each request is tied to a company board so teams can respond and deliver.
+              </CardDescription>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -208,8 +207,9 @@ export default function LandingPage() {
                 className="rounded-xl border border-border bg-background p-4"
               >
                 <p className="text-sm text-base-200 leading-relaxed">"{item.quote}"</p>
-                <div className="mt-4 pt-3 border-t border-border">
-                  <p className="text-sm font-semibold text-base-200">{item.name}</p>
+                <div className="mt-4 pt-3">
+                  <Separator />
+                  <p className="text-sm font-semibold text-base-200 mt-3">{item.name}</p>
                   <p className="text-xs text-base-100 mt-0.5">{item.role}</p>
                 </div>
               </article>

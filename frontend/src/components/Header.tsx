@@ -12,9 +12,22 @@ import {
   IconUser,
   IconSettings,
 } from '@tabler/icons-react'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Avatar from './ui/Avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { PopoverHeader } from './ui/popover-header'
+import { Input } from './ui/input'
+import { Button } from './ui/button'
+import { InteractiveRow } from './ui/interactive-row'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { clearCredentials } from '../store/slices/authSlice'
 import { useLogoutMutation } from '../store/api/authApi'
@@ -40,7 +53,7 @@ export default function Header({
   // onThemeModeChange,
 }: HeaderProps) {
   const iconButtonClass =
-    'p-2 cursor-pointer rounded-lg text-base-100 hover:text-base-200 hover:bg-border/50 transition-colors'
+    'h-9 w-9 rounded-lg p-0 text-base-100 hover:text-base-200 hover:bg-border/50'
 
   // const handleThemeCycle = () => {
   //   const nextMode: Record<ThemeMode, ThemeMode> = {
@@ -65,14 +78,10 @@ export default function Header({
   const [searchParams] = useSearchParams()
   const { entity, type, isAuthenticated } = useAppSelector((s) => s.auth)
 
-  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '')
   const [debouncedSearch, setDebouncedSearch] = useState((searchParams.get('q') ?? '').trim())
-  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false)
+  const [searchPopoverOpen, setSearchPopoverOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const searchDropdownRef = useRef<HTMLDivElement>(null)
-  const notificationsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
@@ -105,33 +114,11 @@ export default function Header({
   const notificationItems = latestFeed?.notifications ?? []
   const unreadCount = notificationItems.filter((item) => !item.isRead).length
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
-      }
-      if (searchDropdownRef.current && !searchDropdownRef.current.contains(e.target as Node)) {
-        setSearchDropdownOpen(false)
-      }
-      if (notificationsRef.current && !notificationsRef.current.contains(e.target as Node)) {
-        setNotificationsOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
   function handleLogout() {
     void logout()
     dispatch(clearCredentials())
-    setDropdownOpen(false)
     setNotificationsOpen(false)
     navigate('/')
-  }
-
-  function openNotifications() {
-    setNotificationsOpen((prev) => !prev)
   }
 
   async function handleNotificationClick(
@@ -160,7 +147,7 @@ export default function Header({
     if (query.length < 2) {
       return
     }
-    setSearchDropdownOpen(false)
+    setSearchPopoverOpen(false)
     navigate(`/search?q=${encodeURIComponent(query)}`)
   }
 
@@ -178,13 +165,16 @@ export default function Header({
   return (
     <header className="bg-card-bg border-b border-border px-4 lg:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-30">
       {/* Mobile menu button */}
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
         onClick={onMenuToggle}
-        className="lg:hidden p-2 cursor-pointer rounded-lg text-base-100 hover:text-base-200 hover:bg-border/50 transition-colors"
+        className={`lg:hidden ${iconButtonClass}`}
         aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
       >
         {sidebarOpen ? <IconX size={22} stroke={1.5} /> : <IconMenu2 size={22} stroke={1.5} />}
-      </button>
+      </Button>
 
       {/* Brand */}
       <div className="shrink-0 w-[13%]">
@@ -195,31 +185,36 @@ export default function Header({
 
       {/* Search Bar */}
       <div className="hidden md:block flex-1 min-w-0 max-w-xl ml-11">
-        <div className="relative" ref={searchDropdownRef}>
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <IconSearch size={18} stroke={1.5} className="text-base-100" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search companies, feedback, replies..."
-              className="input pl-10"
-              value={searchInput}
-              onFocus={() => {
-                if (searchInput.trim().length >= 2) {
-                  setSearchDropdownOpen(true)
-                }
-              }}
-              onChange={(event) => {
-                const value = event.target.value
-                setSearchInput(value)
-                setSearchDropdownOpen(value.trim().length >= 2)
-              }}
-            />
-          </form>
+        <Popover open={searchPopoverOpen} onOpenChange={setSearchPopoverOpen}>
+          <PopoverTrigger asChild>
+            <form onSubmit={handleSearchSubmit} className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <IconSearch size={18} stroke={1.5} className="text-base-100" />
+              </div>
+              <Input
+                type="text"
+                placeholder="Search companies, feedback, replies..."
+                className="pl-10"
+                value={searchInput}
+                onFocus={() => {
+                  if (searchInput.trim().length >= 2) {
+                    setSearchPopoverOpen(true)
+                  }
+                }}
+                onChange={(event) => {
+                  const value = event.target.value
+                  setSearchInput(value)
+                  setSearchPopoverOpen(value.trim().length >= 2)
+                }}
+              />
+            </form>
+          </PopoverTrigger>
 
-          {searchDropdownOpen && debouncedSearch.length >= 2 && (
-            <div className="absolute top-full mt-2 w-full bg-card-bg border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+          {searchPopoverOpen && debouncedSearch.length >= 2 && (
+            <PopoverContent
+              align="start"
+              className="w-(--radix-popover-trigger-width) max-w-none overflow-hidden p-0"
+            >
               {isSearching ? (
                 <p className="px-4 py-3 text-sm text-base-100">Searching...</p>
               ) : !hasSearchResults ? (
@@ -232,12 +227,11 @@ export default function Header({
                         Companies
                       </p>
                       {searchResults?.companies.slice(0, 4).map((company) => (
-                        <button
+                        <InteractiveRow
                           key={`company-${company.id}`}
-                          type="button"
-                          className="w-full text-left px-2 py-2 rounded-lg hover:bg-border/40 transition-colors"
+                          className="px-2 py-2"
                           onClick={() => {
-                            setSearchDropdownOpen(false)
+                            setSearchPopoverOpen(false)
                             navigate(`/company/${company.slug}`)
                           }}
                         >
@@ -245,7 +239,7 @@ export default function Header({
                           <p className="text-xs text-base-100 line-clamp-1">
                             {company.description?.replace(/<[^>]*>/g, ' ') || 'No description'}
                           </p>
-                        </button>
+                        </InteractiveRow>
                       ))}
                     </div>
                   )}
@@ -256,12 +250,11 @@ export default function Header({
                         Feedback requests
                       </p>
                       {searchResults?.feedbacks.slice(0, 4).map((feedback) => (
-                        <button
+                        <InteractiveRow
                           key={`feedback-${feedback.id}`}
-                          type="button"
-                          className="w-full text-left px-2 py-2 rounded-lg hover:bg-border/40 transition-colors"
+                          className="px-2 py-2"
                           onClick={() => {
-                            setSearchDropdownOpen(false)
+                            setSearchPopoverOpen(false)
                             navigate(`/request/${feedback.id}`)
                           }}
                         >
@@ -271,7 +264,7 @@ export default function Header({
                           <p className="text-xs text-base-100 line-clamp-1">
                             {feedback.company.name}
                           </p>
-                        </button>
+                        </InteractiveRow>
                       ))}
                     </div>
                   )}
@@ -282,12 +275,11 @@ export default function Header({
                         Replies
                       </p>
                       {searchResults?.replies.slice(0, 4).map((reply) => (
-                        <button
+                        <InteractiveRow
                           key={`reply-${reply.id}`}
-                          type="button"
-                          className="w-full text-left px-2 py-2 rounded-lg hover:bg-border/40 transition-colors"
+                          className="px-2 py-2"
                           onClick={() => {
-                            setSearchDropdownOpen(false)
+                            setSearchPopoverOpen(false)
                             navigate(`/request/${reply.feedbackId}`)
                           }}
                         >
@@ -297,36 +289,41 @@ export default function Header({
                           <p className="text-xs text-base-100 line-clamp-1">
                             {reply.content.replace(/<[^>]*>/g, ' ')}
                           </p>
-                        </button>
+                        </InteractiveRow>
                       ))}
                     </div>
                   )}
 
-                  <button
+                  <Button
                     type="button"
-                    className="w-full border-t border-border text-sm font-medium text-primary-600 px-4 py-2.5 hover:bg-primary-100/30 transition-colors"
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto w-full justify-start rounded-none border-t border-border px-4 py-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-100/30"
                     onClick={() => {
                       const query = searchInput.trim()
                       if (query.length < 2) {
                         return
                       }
-                      setSearchDropdownOpen(false)
+                      setSearchPopoverOpen(false)
                       navigate(`/search?q=${encodeURIComponent(query)}`)
                     }}
                   >
                     View all results for "{searchInput.trim()}"
-                  </button>
+                  </Button>
                 </div>
               )}
-            </div>
+            </PopoverContent>
           )}
-        </div>
+        </Popover>
       </div>
 
       {/* Right side */}
       <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 ml-auto">
         {/* Mobile search */}
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
           className={`sm:hidden ${iconButtonClass}`}
           aria-label="Search"
           onClick={() => {
@@ -335,75 +332,72 @@ export default function Header({
           }}
         >
           <IconSearch size={20} stroke={1.5} />
-        </button>
+        </Button>
 
         {/* Notification Bell — only when authenticated */}
         {isAuthenticated && (
-          <div className="relative" ref={notificationsRef}>
-            <button
-              className={`relative ${iconButtonClass}`}
-              aria-label="Notifications"
-              onClick={openNotifications}
-            >
-              <IconBell size={20} stroke={1.5} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-status-rejected text-white text-[10px] leading-none flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {notificationsOpen && (
-              <div className="absolute right-0 top-full mt-2 w-88 max-w-[85vw] bg-card-bg border border-border rounded-xl shadow-lg z-50 overflow-hidden">
-                <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-base-200">Notifications</p>
-                  <span className="text-xs text-base-100">{unreadCount} unread</span>
-                </div>
-
-                {isFetchingNotifications ? (
-                  <p className="px-4 py-3 text-sm text-base-100">Loading notifications...</p>
-                ) : notificationItems.length === 0 ? (
-                  <p className="px-4 py-3 text-sm text-base-100">No new notifications yet.</p>
-                ) : (
-                  <div className="max-h-96 overflow-y-auto">
-                    {notificationItems.map((item) => {
-                      return (
-                        <button
-                          key={`notification-${item.id}`}
-                          type="button"
-                          className="w-full text-left px-4 py-3 border-b border-border last:border-b-0 hover:bg-border/30 transition-colors"
-                          onClick={() =>
-                            void handleNotificationClick(item.id, item.feedbackId, item.isRead)
-                          }
-                        >
-                          <div className="flex items-start gap-2">
-                            {!item.isRead ? (
-                              <span className="mt-1.5 h-2 w-2 rounded-full bg-primary-600 shrink-0" />
-                            ) : (
-                              <span className="mt-1.5 h-2 w-2 rounded-full bg-border shrink-0" />
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-base-200 line-clamp-2">
-                                {item.title}
-                              </p>
-                              <p className="text-xs text-base-100 mt-1 line-clamp-1">
-                                {item.feedback?.company?.name ?? 'Unknown company'}
-                              </p>
-                              {item.message && (
-                                <p className="text-xs text-base-100 mt-0.5 line-clamp-1">
-                                  {item.message}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
+          <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={`relative ${iconButtonClass}`}
+                aria-label="Notifications"
+              >
+                <IconBell size={20} stroke={1.5} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-status-rejected text-white text-[10px] leading-none flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
                 )}
-              </div>
-            )}
-          </div>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-88 max-w-[85vw] overflow-hidden p-0">
+              <PopoverHeader title="Notifications" meta={`${unreadCount} unread`} />
+
+              {isFetchingNotifications ? (
+                <p className="px-4 py-3 text-sm text-base-100">Loading notifications...</p>
+              ) : notificationItems.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-base-100">No new notifications yet.</p>
+              ) : (
+                <div className="max-h-96 overflow-y-auto">
+                  {notificationItems.map((item) => {
+                    return (
+                      <InteractiveRow
+                        key={`notification-${item.id}`}
+                        className="rounded-none border-b border-border px-4 py-3 last:border-b-0 hover:bg-border/30"
+                        onClick={() =>
+                          void handleNotificationClick(item.id, item.feedbackId, item.isRead)
+                        }
+                      >
+                        <div className="flex items-start gap-2">
+                          {!item.isRead ? (
+                            <span className="mt-1.5 h-2 w-2 rounded-full bg-primary-600 shrink-0" />
+                          ) : (
+                            <span className="mt-1.5 h-2 w-2 rounded-full bg-border shrink-0" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-base-200 line-clamp-2">
+                              {item.title}
+                            </p>
+                            <p className="text-xs text-base-100 mt-1 line-clamp-1">
+                              {item.feedback?.company?.name ?? 'Unknown company'}
+                            </p>
+                            {item.message && (
+                              <p className="text-xs text-base-100 mt-0.5 line-clamp-1">
+                                {item.message}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </InteractiveRow>
+                    )
+                  })}
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         )}
         {/* <button
           onClick={handleThemeCycle}
@@ -414,95 +408,86 @@ export default function Header({
           <ThemeIcon size={20} stroke={1.5} />
         </button> */}
         {/* Help — hidden on mobile */}
-        <button className={`hidden sm:block relative ${iconButtonClass}`} aria-label="Help">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className={`hidden sm:inline-flex relative ${iconButtonClass}`}
+          aria-label="Help"
+        >
           <IconHelpCircle size={20} stroke={1.5} />
-        </button>
+        </Button>
 
         {/* Auth state conditional */}
         {isAuthenticated && entity ? (
           /* Authenticated: Profile dropdown */
-          <div
-            className="relative flex items-center gap-2 lg:gap-3 pl-2 lg:pl-3 border-l border-border"
-            ref={dropdownRef}
-          >
-            <button
-              onClick={() => setDropdownOpen((p) => !p)}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity hover:cursor-pointer"
-              aria-label="User menu"
-            >
-              <Avatar
-                name={displayName}
-                avatar={entity.avatarUrl ?? entity.logoUrl ?? undefined}
-                size="lg"
-              />
-              {/* <div className="hidden md:flex flex-col items-start">
-                <span className="text-sm font-medium text-base-200 leading-tight">
-                  {displayName}
-                </span>
-                <span className="text-xs text-base-100" title={emailValue}>
-                  {truncatedEmail}
-                </span>
-              </div> */}
-              <IconChevronDown
-                size={16}
-                stroke={1.5}
-                className={`hidden md:block text-base-100 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
-
-            {/* Dropdown menu */}
-            {dropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-card-bg border border-border rounded-xl shadow-lg py-1 z-50">
-                <div className="px-4 py-3 border-b border-border">
+          <div className="relative flex items-center gap-2 lg:gap-3 pl-2 lg:pl-3 border-l border-border">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-2 px-1.5 hover:opacity-80"
+                  aria-label="User menu"
+                >
+                  <Avatar
+                    name={displayName}
+                    avatar={entity.avatarUrl ?? entity.logoUrl ?? undefined}
+                    size="lg"
+                  />
+                  <IconChevronDown
+                    size={16}
+                    stroke={1.5}
+                    className="hidden md:block text-base-100"
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>
                   <p className="text-sm font-medium text-base-200 truncate">{displayName}</p>
                   <p className="text-xs text-base-100 mt-0.5">{emailValue}</p>
-                </div>
-                <button
-                  className="w-full flex hover:cursor-pointer items-center gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-border/40 transition-colors"
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
                   onClick={() => {
-                    setDropdownOpen(false)
                     navigate('/profile')
                   }}
                 >
                   <IconUser size={16} stroke={1.5} className="text-base-100" />
                   Profile
-                </button>
-                <button
-                  className="w-full flex items-center hover:cursor-pointer gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-border/40 transition-colors"
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => {
-                    setDropdownOpen(false)
                     navigate('/settings')
                   }}
                 >
                   <IconSettings size={16} stroke={1.5} className="text-base-100" />
                   Settings
-                </button>
-                <div className="border-t border-border mt-1">
-                  <button
-                    onClick={handleLogout}
-                    className="w-full hover:cursor-pointer flex items-center gap-3 px-4 py-2.5 text-sm text-status-rejected hover:bg-status-rejected/10 transition-colors"
-                  >
-                    <IconLogout size={16} stroke={1.5} />
-                    Log out
-                  </button>
-                </div>
-              </div>
-            )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-status-rejected focus:bg-status-rejected/10"
+                >
+                  <IconLogout size={16} stroke={1.5} />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ) : (
           /* Unauthenticated: Login + Signup buttons */
           <div className="flex items-center gap-2 pl-2 lg:pl-3 border-l border-border">
-            <Link
-              to="/auth/login"
-              className="px-3 py-1.5 text-sm font-medium text-base-200 hover:text-primary-600 transition-colors"
-            >
-              Sign in
+            <Link to="/auth/login" className="inline-flex items-center">
+              <Button variant="ghost" size="sm" className="px-3">
+                Sign in
+              </Button>
             </Link>
-            <Link
-              to="/auth/register"
-              className="px-4 py-1.5 text-sm font-medium bg-primary-600 text-white rounded-full hover:bg-primary-800 transition-colors"
-            >
-              Sign up
+            <Link to="/auth/register" className="inline-flex items-center">
+              <Button size="sm" className="rounded-full px-4">
+                Sign up
+              </Button>
             </Link>
           </div>
         )}

@@ -7,6 +7,7 @@ import {
   useUnfollowCompanyMutation,
 } from '../store/api/companyApi'
 import { useAppSelector } from '../store/hooks'
+import { Button } from '../components/ui/button'
 
 export default function ExplorePage() {
   const { data: companies, isLoading } = useGetCompaniesQuery()
@@ -83,18 +84,20 @@ export default function ExplorePage() {
                           {company.description ?? 'No description yet.'}
                         </p>
                       </div>
-                      <button
+                      <Button
                         type="button"
+                        variant={followed ? 'secondary' : 'default'}
+                        size="sm"
                         disabled={followLoading || unfollowLoading}
                         onClick={() => void handleFollowToggle(company.slug, followed)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer shrink-0 ${
+                        className={`h-auto shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                           followed
                             ? 'bg-primary-100 text-primary-600 hover:bg-primary-100/70 border border-primary-600/30'
                             : 'bg-primary-600 text-white hover:bg-primary-800'
                         } disabled:opacity-60 disabled:cursor-not-allowed`}
                       >
                         {followed ? 'Unfollow' : 'Follow'}
-                      </button>
+                      </Button>
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
@@ -115,13 +118,14 @@ export default function ExplorePage() {
                     </div>
 
                     <div className="mt-3 flex items-center justify-end">
-                      <button
+                      <Button
                         type="button"
+                        size="sm"
                         onClick={() => handleOpenRequestForm(company.slug)}
-                        className="px-3 py-1.5 hover:cursor-pointer rounded-lg text-xs font-semibold bg-primary-600 text-white hover:bg-primary-800 transition-colors"
+                        className="h-auto rounded-lg px-3 py-1.5 text-xs font-semibold"
                       >
                         Provide feedback
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )

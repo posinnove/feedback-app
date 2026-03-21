@@ -8,6 +8,9 @@ import type { AuthUser } from '../store/slices/authSlice'
 import { useUpdateMeUserProfileMutation } from '../store/api/userAuthApi'
 import { useUpdateMeCompanyProfileMutation } from '../store/api/companyAuthApi'
 import { uploadFileToCloudinary } from '../utils/cloudinaryUpload'
+import { Input } from '../components/ui/input'
+import { Textarea } from '../components/ui/textarea'
+import { Button } from '../components/ui/button'
 
 export default function ProfilePage() {
   const dispatch = useAppDispatch()
@@ -155,55 +158,52 @@ export default function ProfilePage() {
                 avatar={imagePreviewUrl ?? undefined}
                 size="lg"
               />
-              <input
+              <Input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="input py-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-primary-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary-700"
+                className="py-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-primary-100 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary-700"
               />
             </div>
           </div>
 
           <div>
             <label className="block text-xs text-base-100 mb-1.5">Email</label>
-            <input value={entity.email} disabled className="input opacity-70 cursor-not-allowed" />
+            <Input value={entity.email} disabled className="opacity-70 cursor-not-allowed" />
           </div>
 
           {currentType === 'company' ? (
             <>
               <div>
                 <label className="block text-xs text-base-100 mb-1.5">Company Name</label>
-                <input
+                <Input
                   value={form.name}
                   onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  className="input"
                   required
                 />
               </div>
               <div>
                 <label className="block text-xs text-base-100 mb-1.5">Location</label>
-                <input
+                <Input
                   value={form.location}
                   onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
-                  className="input"
                   placeholder="City, Country"
                 />
               </div>
               <div>
                 <label className="block text-xs text-base-100 mb-1.5">Website</label>
-                <input
+                <Input
                   value={form.website}
                   onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
-                  className="input"
                   placeholder="https://company.com"
                 />
               </div>
               <div>
                 <label className="block text-xs text-base-100 mb-1.5">Description</label>
-                <textarea
+                <Textarea
                   value={form.description}
                   onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                  className="input min-h-24"
+                  className="min-h-24"
                   placeholder="Tell users about your company"
                 />
               </div>
@@ -213,29 +213,26 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs text-base-100 mb-1.5">First Name</label>
-                  <input
+                  <Input
                     value={form.firstName}
                     onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))}
-                    className="input"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-xs text-base-100 mb-1.5">Last Name</label>
-                  <input
+                  <Input
                     value={form.lastName}
                     onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))}
-                    className="input"
                     required
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-xs text-base-100 mb-1.5">Phone Number</label>
-                <input
+                <Input
                   value={form.phoneNumber}
                   onChange={(e) => setForm((p) => ({ ...p, phoneNumber: e.target.value }))}
-                  className="input"
                   placeholder="+1 555 000 0000"
                 />
               </div>
@@ -243,13 +240,9 @@ export default function ProfilePage() {
           )}
 
           <div className="flex items-center justify-between pt-2">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" disabled={isSaving} className="px-4">
               Save profile
-            </button>
+            </Button>
           </div>
           {error ? <p className="text-sm text-red-500">{error}</p> : null}
         </form>

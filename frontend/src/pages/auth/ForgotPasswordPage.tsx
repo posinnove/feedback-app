@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { IconArrowLeft, IconCheck } from '@tabler/icons-react'
 import { useForgotPasswordMutation } from '../../store/api/authApi'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
+import { Input } from '../../components/ui/input'
+import { Button } from '../../components/ui/button'
 import forgotBg from '../../assets/auth - signup - 4.jpg'
 
 interface ForgotFormValues {
@@ -92,11 +94,11 @@ export default function ForgotPasswordPage() {
                 <label className="block text-sm font-medium text-base-200 mb-1.5">
                   Email address
                 </label>
-                <input
+                <Input
                   type="email"
                   autoComplete="email"
                   placeholder="you@example.com"
-                  className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
+                  className={errors.email ? 'border-red-400 focus-visible:ring-red-400' : ''}
                   {...register('email', {
                     required: 'Email is required',
                     pattern: {
@@ -109,13 +111,9 @@ export default function ForgotPasswordPage() {
                   <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>
                 )}
               </div>
-              <button
-                type="submit"
-                disabled={isBusy}
-                className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
+              <Button type="submit" disabled={isBusy} className="w-full">
                 {isBusy ? 'Sending…' : 'Send reset link'}
-              </button>
+              </Button>
             </form>
           )}
         </div>

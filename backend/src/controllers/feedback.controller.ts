@@ -7,6 +7,8 @@ import {
   type PublicFeedbackSort,
   getAllFeedbackTypes,
   voteOnReply,
+  updateFeedbackReply,
+  updateFeedbackRequest,
 } from '../services/feedback.service.ts';
 
 const allowedSorts: PublicFeedbackSort[] = ['trending', 'new', 'top', 'all'];
@@ -180,5 +182,114 @@ export async function voteReply(req: Request, res: Response) {
       upvotes: voted.reply.upvotes,
       downvotes: voted.reply.downvotes,
     },
+  });
+}
+
+export async function patchFeedback(req: Request, res: Response) {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = Number.parseInt(rawId, 10);
+  if (!Number.isFinite(id) || id <= 0) {
+    return res.status(400).json({ message: 'Invalid feedback id' });
+  }
+
+  if (!req.auth) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const title =
+    typeof req.body?.title === 'string' ? req.body.title.trim() : '';
+  const description =
+    typeof req.body?.description === 'string' ? req.body.description : '';
+
+  if (title.length < 5) {
+    return res
+      .status(400)
+      .json({ message: 'Title must be at least 5 characters long' });
+  }
+
+  if (description.length > 1000) {
+    return res
+      .status(400)
+      .json({ message: 'Description must be at most 1000 characters long' });
+  }
+
+  const result = await updateFeedbackRequest(id, req.auth, {
+    title,
+    description,
+  });
+
+  if (result.kind === 'not_found') {
+    return res.status(404).json({ message: 'Feedback not found' });
+  }
+
+  if (result.kind === 'forbidden') {
+    return res
+      .status(403)
+      .json({ message: 'You can only edit your own feedback request' });
+  }
+
+  return res.status(200).json({
+    message: 'Feedback updated',
+    feedback: result.feedback,
+  });
+}
+
+export async function patchReply(req: Request, res: Response) {
+  const rawFeedbackId = Array.isArray(req.params.id)
+    ? req.params.id[0]
+    : req.params.id;
+  const feedbackId = Number.parseInt(rawFeedbackId, 10);
+  const rawReplyId = Array.isArray(req.params.replyId)
+    ? req.params.replyId[0]
+    : req.params.replyId;
+  const replyId = Number.parseInt(rawReplyId, 10);
+
+  if (
+    !Number.isFinite(feedbackId) ||
+    feedbackId <= 0 ||
+    !Number.isFinite(replyId) ||
+    replyId <= 0
+  ) {
+    return res.status(400).json({ message: 'Invalid feedback or reply id' });
+  }
+
+  if (!req.auth) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const content =
+    typeof req.body?.content === 'string' ? req.body.content.trim() : '';
+
+  if (content.length < 2) {
+    return res
+      .status(400)
+      .json({ message: 'Reply must be at least 2 characters long' });
+  }
+  if (content.length > 1000) {
+    return res
+      .status(400)
+      .json({ message: 'Reply must be at most 1000 characters long' });
+  }
+
+  const result = await updateFeedbackReply(
+    feedbackId,
+    replyId,
+    req.auth,
+    content,
+  );
+
+  if (result.kind === 'not_found') {
+    return res.status(404).json({ message: 'Reply not found' });
+  }
+
+  if (result.kind === 'forbidden') {
+    return res
+      .status(403)
+      .json({ message: 'You can only edit your own reply' });
+  }
+
+  return res.status(200).json({
+    message: 'Reply updated',
+    reply: result.reply,
   });
 }

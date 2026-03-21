@@ -5,6 +5,8 @@ import { useRegisterCompanyMutation } from '../../store/api/companyAuthApi'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { companyRegisterSchema, type CompanyRegisterInput } from '../../schemas/auth.schema'
 import PasswordStrengthBar from './PasswordStrengthBar'
+import { Input } from '../ui/input'
+import { Button } from '../ui/button'
 
 // Types moved to schemas/auth.schema.ts
 
@@ -59,9 +61,9 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
       {/* Company name */}
       <div>
         <label className="block text-sm font-medium text-base-200 mb-1.5">Company name</label>
-        <input
+        <Input
           placeholder="Acme Inc."
-          className={`input ${errors.name ? 'border-red-400 focus:ring-red-400' : ''}`}
+          className={errors.name ? 'border-red-400 focus-visible:ring-red-400' : ''}
           {...register('name')}
         />
         {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>}
@@ -70,10 +72,10 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
       {/* Business email */}
       <div>
         <label className="block text-sm font-medium text-base-200 mb-1.5">Business email</label>
-        <input
+        <Input
           type="email"
           placeholder="contact@acme.com"
-          className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
+          className={errors.email ? 'border-red-400 focus-visible:ring-red-400' : ''}
           {...register('email')}
         />
         {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
@@ -83,24 +85,26 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
       <div>
         <label className="block text-sm font-medium text-base-200 mb-1.5">Password</label>
         <div className="relative">
-          <input
+          <Input
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             placeholder="••••••••"
-            className="input pr-10"
+            className="pr-10"
             {...register('password')}
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={() => setShowPassword((p) => !p)}
-            className="absolute inset-y-0 right-3 flex items-center text-base-100 hover:text-base-200"
+            className="absolute inset-y-0 right-3 h-auto w-auto px-0 py-0 text-base-100 hover:bg-transparent hover:text-base-200"
           >
             {showPassword ? (
               <IconEyeOff size={17} stroke={1.5} />
             ) : (
               <IconEye size={17} stroke={1.5} />
             )}
-          </button>
+          </Button>
         </div>
         <PasswordStrengthBar password={password} errorMessage={errors.password?.message} />
       </div>
@@ -109,11 +113,11 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
       <div>
         <label className="block text-sm font-medium text-base-200 mb-1.5">Confirm password</label>
         <div className="relative">
-          <input
+          <Input
             type={showConfirm ? 'text' : 'password'}
             autoComplete="new-password"
             placeholder="••••••••"
-            className={`input pr-10 ${errors.confirmPassword ? 'border-red-400 focus:ring-red-400' : ''}`}
+            className={`pr-10 ${errors.confirmPassword ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
             {...register('confirmPassword')}
           />
           <div className="absolute inset-y-0 right-3 flex items-center gap-1.5">
@@ -123,17 +127,19 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
               ) : (
                 <IconCheck size={15} className="text-green-500" />
               ))}
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setShowConfirm((p) => !p)}
-              className="text-base-100 hover:text-base-200"
+              className="h-auto w-auto px-0 py-0 text-base-100 hover:bg-transparent hover:text-base-200"
             >
               {showConfirm ? (
                 <IconEyeOff size={17} stroke={1.5} />
               ) : (
                 <IconEye size={17} stroke={1.5} />
               )}
-            </button>
+            </Button>
           </div>
         </div>
         {errors.confirmPassword && (
@@ -141,14 +147,9 @@ export default function CompanyRegisterForm({ onSuccess, onApiError }: Props) {
         )}
       </div>
 
-      <button
-        type="submit"
-        disabled={busy}
-        className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm
-                           hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2"
-      >
+      <Button type="submit" disabled={busy} className="mt-2 w-full">
         {busy ? 'Creating account…' : 'Create Company Account'}
-      </button>
+      </Button>
 
       {/* <p className="text-center text-xs text-base-100 pt-1">
         By signing up you agree to our{' '}

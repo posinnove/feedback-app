@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { IconBuilding, IconUser, IconX, IconEye, IconEyeOff } from '@tabler/icons-react'
+import { IconBuilding, IconUser, IconEye, IconEyeOff } from '@tabler/icons-react'
 import { useAppDispatch } from '../../store/hooks'
 import { setCredentials } from '../../store/slices/authSlice'
 import {
@@ -14,6 +14,9 @@ import {
 import { loginSchema, type LoginInput } from '../../schemas/auth.schema'
 import UserRegisterForm from './UserRegisterForm'
 import CompanyRegisterForm from './CompanyRegisterForm'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog'
+import { Input } from '../ui/input'
+import { Button } from '../ui/button'
 
 type Mode = 'login' | 'register'
 type RegisterType = 'user' | 'company'
@@ -29,15 +32,7 @@ interface GoogleIdApi {
     client_id: string
     callback: (response: { credential?: string }) => void
   }) => void
-  renderButton: (
-    parent: HTMLElement,
-    options: {
-      theme: 'outline' | 'filled_blue' | 'filled_black'
-      size: 'large' | 'medium' | 'small'
-      width?: number
-      text?: string
-    }
-  ) => void
+  prompt: () => void
 }
 
 interface GoogleApiWindow extends Window {
@@ -64,7 +59,7 @@ export default function AuthModal({ open, mode, onClose }: Props) {
   const [showPassword, setShowPassword] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
   const [signupSuccess, setSignupSuccess] = useState<string | null>(null)
-  const googleButtonRef = useRef<HTMLDivElement | null>(null)
+  const [isGoogleApiReady, setIsGoogleApiReady] = useState(false)
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
 
   const reason = searchParams.get('reason')
@@ -136,7 +131,7 @@ export default function AuthModal({ open, mode, onClose }: Props) {
   }
 
   useEffect(() => {
-    if (!open || !googleClientId || !googleButtonRef.current) return
+    if (!open || !googleClientId) return
 
     const existingScript = document.querySelector(
       'script[src="https://accounts.google.com/gsi/client"]'
@@ -144,7 +139,7 @@ export default function AuthModal({ open, mode, onClose }: Props) {
 
     const initializeGoogle = () => {
       const googleApi = (window as GoogleApiWindow).google?.accounts?.id
-      if (!googleApi || !googleButtonRef.current) return
+      if (!googleApi) return
 
       googleApi.initialize({
         client_id: googleClientId,
@@ -167,14 +162,7 @@ export default function AuthModal({ open, mode, onClose }: Props) {
           }
         },
       })
-
-      googleButtonRef.current.innerHTML = ''
-      googleApi.renderButton(googleButtonRef.current, {
-        theme: 'outline',
-        size: 'large',
-        width: 360,
-        text: 'continue_with',
-      })
+      setIsGoogleApiReady(true)
     }
 
     if (existingScript) {
@@ -194,6 +182,17 @@ export default function AuthModal({ open, mode, onClose }: Props) {
     document.head.appendChild(script)
   }, [open, mode, registerType, googleClientId, googleLogin, handleUnifiedSuccess])
 
+  function handleGoogleButtonClick() {
+    const googleApi = (window as GoogleApiWindow).google?.accounts?.id
+    if (!googleApi) {
+      setApiError('Google sign in is still loading. Please try again.')
+      return
+    }
+
+    setApiError(null)
+    googleApi.prompt()
+  }
+
   function goToMode(next: Mode) {
     setApiError(null)
     setSignupSuccess(null)
@@ -201,31 +200,22 @@ export default function AuthModal({ open, mode, onClose }: Props) {
     navigate(`/auth/${next}${search ? `?${search}` : ''}`)
   }
 
-  if (!open) return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
-      <button
-        type="button"
-        aria-label="Close auth modal"
-        onClick={onClose}
-        className="absolute inset-0 bg-black/45"
-      />
-
-      <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl border border-border bg-card-bg p-5 sm:p-6 shadow-xl custom-scroll">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-3 top-3 p-1.5 rounded-md text-base-100 hover:text-base-200 hover:bg-sidebar-bg"
-          aria-label="Close"
-        >
-          <IconX size={18} stroke={1.7} />
-        </button>
-
-        <h2 className="text-2xl font-bold text-base-200">Welcome to Voxella</h2>
-        <p className="mt-1 text-sm text-base-100">
-          {reasonMessage ?? 'Join the conversation around product feedback.'}
-        </p>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          onClose()
+        }
+      }}
+    >
+      <DialogContent className="max-h-[92vh] overflow-y-auto custom-scroll">
+        <DialogHeader>
+          <DialogTitle>Welcome to Voxella</DialogTitle>
+          <DialogDescription>
+            {reasonMessage ?? 'Join the conversation around product feedback.'}
+          </DialogDescription>
+        </DialogHeader>
 
         {apiError && (
           <div className="mt-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -237,11 +227,11 @@ export default function AuthModal({ open, mode, onClose }: Props) {
           <form onSubmit={handleSubmit(onLoginSubmit)} className="mt-5 space-y-4" noValidate>
             <div>
               <label className="block text-sm font-medium text-base-200 mb-1.5">Email</label>
-              <input
+              <Input
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
-                className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
+                className={errors.email ? 'border-red-400 focus-visible:ring-red-400' : ''}
                 {...register('email')}
               />
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
@@ -250,37 +240,44 @@ export default function AuthModal({ open, mode, onClose }: Props) {
             <div>
               <label className="block text-sm font-medium text-base-200 mb-1.5">Password</label>
               <div className="relative">
-                <input
+                <Input
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className={`input pr-10 ${errors.password ? 'border-red-400 focus:ring-red-400' : ''}`}
+                  className={`pr-10 ${errors.password ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
                   {...register('password')}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-3 flex items-center text-base-100 hover:text-base-200"
+                  className="absolute inset-y-0 right-3 h-auto w-auto px-0 py-0 text-base-100 hover:bg-transparent hover:text-base-200"
                 >
                   {showPassword ? (
                     <IconEyeOff size={17} stroke={1.5} />
                   ) : (
                     <IconEye size={17} stroke={1.5} />
                   )}
-                </button>
+                </Button>
               </div>
               {errors.password && (
                 <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
               )}
+              <div className="mt-2 text-right">
+                <Link
+                  to="/auth/forgot-password"
+                  className="text-xs text-primary-600 hover:underline"
+                  onClick={() => onClose()}
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoginBusy}
-              className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" disabled={isLoginBusy} className="w-full">
               {isLoginBusy ? 'Signing in…' : 'Sign in'}
-            </button>
+            </Button>
 
             <div className="flex items-center gap-3">
               <div className="h-px bg-border flex-1" />
@@ -288,26 +285,29 @@ export default function AuthModal({ open, mode, onClose }: Props) {
               <div className="h-px bg-border flex-1" />
             </div>
 
-            {googleClientId ? (
-              <div className="flex justify-center">
-                <div
-                  ref={googleButtonRef}
-                  className={`min-h-10 ${isGoogleLoading ? 'opacity-70 pointer-events-none' : ''}`}
-                />
-              </div>
-            ) : (
-              <p className="text-xs text-base-100 text-center">Google sign in is not configured.</p>
+            {googleClientId && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={handleGoogleButtonClick}
+                disabled={isGoogleLoading || !isGoogleApiReady}
+              >
+                {isGoogleLoading ? 'Signing in…' : 'Continue with Google'}
+              </Button>
             )}
 
             <p className="text-xs text-base-100 text-center">
               Don&apos;t have an account?{' '}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => goToMode('register')}
-                className="text-primary-600 hover:underline"
+                className="h-auto px-0 py-0 text-primary-600 hover:bg-transparent hover:underline"
               >
                 Sign up
-              </button>
+              </Button>
             </p>
           </form>
         )}
@@ -318,15 +318,17 @@ export default function AuthModal({ open, mode, onClose }: Props) {
               <label className="block text-xs text-base-100 mb-1.5">Account Type</label>
               <div className="flex gap-1 bg-sidebar-bg border border-border rounded-xl p-1">
                 {(['user', 'company'] as RegisterType[]).map((type) => (
-                  <button
+                  <Button
                     key={type}
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => {
                       setRegisterType(type)
                       setApiError(null)
                       setSignupSuccess(null)
                     }}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`h-auto flex-1 py-2 text-sm font-medium transition-colors ${
                       registerType === type
                         ? 'bg-card-bg text-primary-600 shadow-sm'
                         : 'text-base-100 hover:text-base-200'
@@ -338,7 +340,7 @@ export default function AuthModal({ open, mode, onClose }: Props) {
                       <IconBuilding size={16} stroke={1.5} />
                     )}
                     {type === 'user' ? 'Personal' : 'Business'}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -371,46 +373,43 @@ export default function AuthModal({ open, mode, onClose }: Props) {
                   <div className="h-px bg-border flex-1" />
                 </div>
 
-                {googleClientId ? (
-                  <div className="flex justify-center mt-3">
-                    <div
-                      ref={googleButtonRef}
-                      className={`min-h-10 ${isGoogleLoading ? 'opacity-70 pointer-events-none' : ''}`}
-                    />
-                  </div>
-                ) : (
-                  <p className="text-xs text-base-100 text-center mt-3">
-                    Google sign in is not configured.
-                  </p>
+                {googleClientId && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="mt-3 w-full"
+                    onClick={handleGoogleButtonClick}
+                    disabled={isGoogleLoading || !isGoogleApiReady}
+                  >
+                    {isGoogleLoading ? 'Signing in…' : 'Continue with Google'}
+                  </Button>
                 )}
               </>
             )}
 
             {signupSuccess && (
-              <button
-                type="button"
-                onClick={() => goToMode('login')}
-                className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-800 transition-colors"
-              >
+              <Button type="button" onClick={() => goToMode('login')} className="w-full">
                 Continue to sign in ({registerTypeLabel})
-              </button>
+              </Button>
             )}
 
             {!signupSuccess && (
               <p className="text-xs text-base-100 text-center mt-3">
                 Already have an account?{' '}
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => goToMode('login')}
-                  className="text-primary-600 hover:underline"
+                  className="h-auto px-0 py-0 text-primary-600 hover:bg-transparent hover:underline"
                 >
                   Sign in
-                </button>
+                </Button>
               </p>
             )}
           </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -8,6 +8,7 @@ import {
   IconLayoutSidebarLeftExpand,
 } from '@tabler/icons-react'
 import CompanyListItem from './ui/CompanyListItem'
+import { Button } from './ui/button'
 import { useGetFollowedCompaniesQuery } from '../store/api/companyApi'
 import { useAppSelector } from '../store/hooks'
 import { NAV_ITEMS, KANBAN_NAV_ITEM } from '../utils/navItems'
@@ -49,9 +50,12 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
   const renderSidebarContent = (isCollapsed: boolean, isDesktop: boolean) => (
     <>
       {isDesktop && (
-        <button
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
           onClick={onToggleCollapse}
-          className="absolute top-4 -right-3 z-20 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border border-border bg-card-bg text-base-100 hover:text-base-200 hover:bg-border/50 transition-colors"
+          className="absolute top-4 -right-3 z-20 h-6 w-6 rounded-full border border-border bg-card-bg p-0 text-base-100 hover:bg-border/50 hover:text-base-200"
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
@@ -60,7 +64,7 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
           ) : (
             <IconLayoutSidebarLeftCollapse size={14} stroke={1.8} />
           )}
-        </button>
+        </Button>
       )}
 
       {/* Navigation Header - Fixed */}

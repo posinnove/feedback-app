@@ -11,6 +11,9 @@ import {
   useUpdateMeCompanyPasswordMutation,
   useUpdateMeCompanySettingsMutation,
 } from '../store/api/companyAuthApi'
+import { Input } from '../components/ui/input'
+import { Button } from '../components/ui/button'
+import { Switch } from '../components/ui/switch'
 
 interface AppSettings {
   emailNotifications: boolean
@@ -249,7 +252,6 @@ export default function SettingsPage() {
                 <p className="text-xs text-base-100 mt-0.5">{item.hint}</p>
               </div>
               <input
-                type="checkbox"
                 checked={settings[item.key]}
                 onChange={(e) =>
                   setSettings({
@@ -257,7 +259,16 @@ export default function SettingsPage() {
                     [item.key]: e.target.checked,
                   })
                 }
-                className="h-4 w-4 accent-primary-600"
+                className="hidden"
+              />
+              <Switch
+                checked={settings[item.key]}
+                onCheckedChange={(checked) =>
+                  setSettings({
+                    ...settings,
+                    [item.key]: checked,
+                  })
+                }
               />
             </label>
           ))}
@@ -280,18 +291,20 @@ export default function SettingsPage() {
                   {(['system', 'light', 'dark'] as ThemeMode[]).map((mode) => {
                     const active = themeMode === mode
                     return (
-                      <button
+                      <Button
                         key={mode}
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => handleThemeChange(mode)}
-                        className={`rounded-lg border px-3 py-2 text-sm font-medium capitalize transition-colors ${
+                        className={`h-auto rounded-lg border px-3 py-2 text-sm font-medium capitalize transition-colors ${
                           active
                             ? 'border-primary-600 bg-primary-100 text-primary-800'
                             : 'border-border text-base-200 hover:border-primary-600'
                         }`}
                       >
                         {mode}
-                      </button>
+                      </Button>
                     )
                   })}
                 </div>
@@ -300,14 +313,13 @@ export default function SettingsPage() {
           </div>
 
           <div className="flex items-center justify-between pt-1">
-            <button
-              type="button"
+            <Button
               onClick={() => void handleSave()}
               disabled={!hasChanges || isSaving}
-              className="px-4 py-2 hover:cursor-pointer rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+              className="px-4"
             >
               Save settings
-            </button>
+            </Button>
           </div>
           {error ? <p className="text-sm text-red-500">{error}</p> : null}
         </div>
@@ -324,7 +336,7 @@ export default function SettingsPage() {
           </div>
 
           <form onSubmit={(e) => void handlePasswordSubmit(e)} className="space-y-3">
-            <input
+            <Input
               type="password"
               value={passwordForm.currentPassword}
               onChange={(e) =>
@@ -333,11 +345,10 @@ export default function SettingsPage() {
                   currentPassword: e.target.value,
                 }))
               }
-              className="input"
               placeholder="Current password"
               autoComplete="current-password"
             />
-            <input
+            <Input
               type="password"
               value={passwordForm.newPassword}
               onChange={(e) =>
@@ -346,11 +357,10 @@ export default function SettingsPage() {
                   newPassword: e.target.value,
                 }))
               }
-              className="input"
               placeholder="New password"
               autoComplete="new-password"
             />
-            <input
+            <Input
               type="password"
               value={passwordForm.confirmPassword}
               onChange={(e) =>
@@ -359,17 +369,12 @@ export default function SettingsPage() {
                   confirmPassword: e.target.value,
                 }))
               }
-              className="input"
               placeholder="Confirm new password"
               autoComplete="new-password"
             />
-            <button
-              type="submit"
-              disabled={isUpdatingPassword}
-              className="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" disabled={isUpdatingPassword} className="px-4">
               {isUpdatingPassword ? 'Updating...' : 'Update password'}
-            </button>
+            </Button>
           </form>
 
           {passwordError ? <p className="text-sm text-red-500">{passwordError}</p> : null}

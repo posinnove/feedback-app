@@ -5,6 +5,7 @@ import { useAppSelector } from '../../store/hooks'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
 import UserRegisterForm from '../../components/auth/UserRegisterForm'
 import CompanyRegisterForm from '../../components/auth/CompanyRegisterForm'
+import { Button } from '../../components/ui/button'
 import signupBg from '../../assets/auth - signup - 1.jpg'
 
 type Tab = 'user' | 'company'
@@ -86,11 +87,13 @@ export default function RegisterPage() {
           {/* Tab Toggle */}
           <div className="flex gap-1 bg-sidebar-bg border border-border rounded-xl p-1 mb-6">
             {(['user', 'company'] as Tab[]).map((t) => (
-              <button
+              <Button
                 key={t}
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => handleTabChange(t)}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                className={`h-auto flex-1 py-2.5 text-sm font-medium transition-all ${
                   tab === t
                     ? 'bg-card-bg text-primary-600 shadow-sm'
                     : 'text-base-100 hover:text-base-200'
@@ -102,7 +105,7 @@ export default function RegisterPage() {
                   <IconBuilding size={16} stroke={1.5} />
                 )}
                 {t === 'user' ? 'Personal' : 'Business'}
-              </button>
+              </Button>
             ))}
           </div>
 

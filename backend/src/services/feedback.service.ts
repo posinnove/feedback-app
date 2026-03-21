@@ -46,7 +46,9 @@ export async function getPublicFeedbackFeed(
       'downvotes',
       'viewCount',
       'isAnonymous',
+      'requesterUserId',
       'createdAt',
+      'updatedAt',
       [
         literal(
           '(SELECT COUNT(*) FROM feedback_replies fr WHERE fr.feedback_id = "Feedback"."id")',
@@ -101,6 +103,11 @@ export async function getPublicFeedbackFeed(
     viewCount: feedback.viewCount,
     replyCount: Number(feedback.get('replyCount') ?? 0),
     createdAt: feedback.createdAt,
+    updatedAt: feedback.updatedAt,
+    canEdit:
+      viewer?.type === 'user' &&
+      typeof feedback.requesterUserId === 'number' &&
+      viewer.id === feedback.requesterUserId,
     company: {
       id: feedback.company?.id,
       name: feedback.company?.name,
@@ -143,7 +150,9 @@ export async function getPublicFeedbackById(
       'downvotes',
       'viewCount',
       'isAnonymous',
+      'requesterUserId',
       'createdAt',
+      'updatedAt',
       [
         literal(
           '(SELECT COUNT(*) FROM feedback_replies fr WHERE fr.feedback_id = "Feedback"."id")',
@@ -198,6 +207,11 @@ export async function getPublicFeedbackById(
     viewCount: feedback.viewCount,
     replyCount: Number(feedback.get('replyCount') ?? 0),
     createdAt: feedback.createdAt,
+    updatedAt: feedback.updatedAt,
+    canEdit:
+      viewer?.type === 'user' &&
+      typeof feedback.requesterUserId === 'number' &&
+      viewer.id === feedback.requesterUserId,
     company: {
       id: feedback.company?.id,
       name: feedback.company?.name,
@@ -253,6 +267,7 @@ export async function getFeedbackReplies(
       'isAnonymous',
       'content',
       'createdAt',
+      'updatedAt',
       'upvotes',
       'downvotes',
     ],
@@ -323,6 +338,11 @@ export async function getFeedbackReplies(
     upvotes: reply.upvotes,
     downvotes: reply.downvotes,
     createdAt: reply.createdAt,
+    updatedAt: reply.updatedAt,
+    canEdit:
+      !!viewer &&
+      viewer.id === reply.authorId &&
+      viewer.type === reply.authorType,
     visibility: reply.isAnonymous ? 'anonymous' : 'public',
     author: reply.isAnonymous
       ? null
@@ -441,6 +461,90 @@ export async function createFeedbackReply(
     downvotes: reply.downvotes,
     visibility: reply.isAnonymous ? 'anonymous' : 'public',
     createdAt: reply.createdAt,
+    updatedAt: reply.updatedAt,
+    canEdit: true,
+  };
+}
+
+export async function updateFeedbackRequest(
+  feedbackId: number,
+  actor: { id: number; type: AuthEntityType },
+  payload: { title: string; description?: string },
+) {
+  if (actor.type !== 'user') {
+    return { kind: 'forbidden' as const };
+  }
+
+  const feedback = await Feedback.findByPk(feedbackId, {
+    attributes: ['id', 'requesterUserId', 'title', 'description', 'updatedAt'],
+  });
+
+  if (!feedback) {
+    return { kind: 'not_found' as const };
+  }
+
+  if (feedback.requesterUserId !== actor.id) {
+    return { kind: 'forbidden' as const };
+  }
+
+  feedback.title = payload.title.trim();
+  feedback.description = payload.description?.trim()
+    ? payload.description.trim()
+    : null;
+  await feedback.save();
+
+  return {
+    kind: 'ok' as const,
+    feedback: {
+      id: feedback.id,
+      title: feedback.title,
+      description: feedback.description,
+      updatedAt: feedback.updatedAt,
+    },
+  };
+}
+
+export async function updateFeedbackReply(
+  feedbackId: number,
+  replyId: number,
+  actor: { id: number; type: AuthEntityType },
+  content: string,
+) {
+  const reply = await FeedbackReply.findOne({
+    where: {
+      id: replyId,
+      feedbackId,
+    },
+    attributes: [
+      'id',
+      'feedbackId',
+      'parentReplyId',
+      'authorId',
+      'authorType',
+      'content',
+      'updatedAt',
+    ],
+  });
+
+  if (!reply) {
+    return { kind: 'not_found' as const };
+  }
+
+  if (reply.authorId !== actor.id || reply.authorType !== actor.type) {
+    return { kind: 'forbidden' as const };
+  }
+
+  reply.content = content.trim();
+  await reply.save();
+
+  return {
+    kind: 'ok' as const,
+    reply: {
+      id: reply.id,
+      parentReplyId: reply.parentReplyId,
+      content: reply.content,
+      updatedAt: reply.updatedAt,
+    },
   };
 }
 

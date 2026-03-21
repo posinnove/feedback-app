@@ -9,6 +9,14 @@ import type { Feedback } from '../types/feedback'
 import Avatar from './ui/Avatar'
 import SafeHtml from './SafeHtml'
 import { formatDate } from '../utils/formatDate'
+import { Button } from './ui/button'
+import { Card } from './ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
 interface FeedbackBoardProps {
   feedbacks: Feedback[]
@@ -16,26 +24,40 @@ interface FeedbackBoardProps {
 
 function FeedbackCard({ feedback }: { feedback: Feedback }) {
   return (
-    <div className="card flex flex-col p-0 overflow-hidden">
+    <Card className="flex flex-col p-0 overflow-hidden">
       {/* Header */}
       <div className="flex items-start justify-between gap-2 p-4 pb-3">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-base-200 truncate">{feedback.title}</h3>
           <p className="text-xs text-base-100 mt-1">#{feedback.postId}</p>
         </div>
-        <button className="text-base-100 hover:text-base-200 p-1">
-          <IconDotsVertical size={20} stroke={1.5} />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto rounded-md p-1 text-base-100 transition-colors hover:bg-border/40 hover:text-base-200"
+              aria-label="Feedback actions"
+            >
+              <IconDotsVertical size={20} stroke={1.5} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuItem>Open</DropdownMenuItem>
+            <DropdownMenuItem>Copy link</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Image */}
       {feedback.image && (
-        <div className="w-full h-48 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 overflow-hidden">
+        <div className="w-full h-48 bg-linear-to-br from-blue-400 via-purple-500 to-pink-500 overflow-hidden">
           <img src={feedback.image} alt={feedback.title} className="w-full h-full object-cover" />
         </div>
       )}
       {!feedback.image && (
-        <div className="w-full h-48 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 relative overflow-hidden">
+        <div className="w-full h-48 bg-linear-to-br from-blue-500 via-indigo-600 to-purple-600 relative overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-40 h-40 rounded-full bg-blue-400/30 blur-3xl -translate-x-8"></div>
           </div>
@@ -90,7 +112,7 @@ function FeedbackCard({ feedback }: { feedback: Feedback }) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -110,16 +132,16 @@ export default function FeedbackBoard({ feedbacks }: FeedbackBoardProps) {
         {/* Header with Title and Button */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-base-200">Feedback Posts</h1>
-          <button className="btn btn-primary flex items-center gap-2">
+          <Button className="flex items-center gap-2">
             <IconPlus size={20} stroke={2} />
-            Feed back post
-          </button>
+            Feedback post
+          </Button>
         </div>
 
         {feedbacks.length === 0 ? (
-          <div className="card p-8 text-center">
+          <Card className="p-8 text-center">
             <p className="text-base-100">No feedback available at this time.</p>
-          </div>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {feedbacks.map((feedback) => (

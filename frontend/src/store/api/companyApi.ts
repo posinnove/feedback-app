@@ -83,6 +83,8 @@ interface PublicFeedbackItem {
     slug: string
   } | null
   createdAt: string
+  updatedAt: string
+  canEdit: boolean
   userVote: 'up' | 'down' | null
   company: {
     id?: number
@@ -111,6 +113,8 @@ interface FeedbackReplyItem {
   upvotes: number
   downvotes: number
   createdAt: string
+  updatedAt: string
+  canEdit: boolean
   visibility: 'public' | 'anonymous'
   userVote: 'up' | 'down' | null
   author: {
@@ -142,6 +146,40 @@ interface CreateFeedbackReplyResponse {
     downvotes: number
     visibility: 'public' | 'anonymous'
     createdAt: string
+    updatedAt: string
+    canEdit: boolean
+  }
+}
+
+interface UpdateFeedbackRequestArgs {
+  feedbackId: number
+  title: string
+  description?: string
+}
+
+interface UpdateFeedbackRequestResponse {
+  message: string
+  feedback: {
+    id: number
+    title: string
+    description: string | null
+    updatedAt: string
+  }
+}
+
+interface UpdateFeedbackReplyArgs {
+  feedbackId: number
+  replyId: number
+  content: string
+}
+
+interface UpdateFeedbackReplyResponse {
+  message: string
+  reply: {
+    id: number
+    parentReplyId: number | null
+    content: string
+    updatedAt: string
   }
 }
 
@@ -302,6 +340,23 @@ const companyApi = apiSlice.injectEndpoints({
         body: { content, visibility, parentReplyId },
       }),
     }),
+    updateFeedbackRequest: builder.mutation<
+      UpdateFeedbackRequestResponse,
+      UpdateFeedbackRequestArgs
+    >({
+      query: ({ feedbackId, title, description }) => ({
+        url: `/feedbacks/${feedbackId}`,
+        method: 'PATCH',
+        body: { title, description },
+      }),
+    }),
+    updateFeedbackReply: builder.mutation<UpdateFeedbackReplyResponse, UpdateFeedbackReplyArgs>({
+      query: ({ feedbackId, replyId, content }) => ({
+        url: `/feedbacks/${feedbackId}/replies/${replyId}`,
+        method: 'PATCH',
+        body: { content },
+      }),
+    }),
     voteFeedbackReply: builder.mutation<VoteReplyResponse, VoteReplyArgs>({
       query: ({ feedbackId, replyId, direction }) => ({
         url: `/feedbacks/${feedbackId}/replies/${replyId}/vote`,
@@ -376,6 +431,8 @@ export const {
   useGetPublicFeedbackByIdQuery,
   useGetFeedbackRepliesQuery,
   useCreateFeedbackReplyMutation,
+  useUpdateFeedbackRequestMutation,
+  useUpdateFeedbackReplyMutation,
   useVoteFeedbackReplyMutation,
   useAdvancedSearchQuery,
   useGetNotificationsQuery,
