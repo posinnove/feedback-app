@@ -28,6 +28,7 @@ import { PopoverHeader } from './ui/popover-header'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { InteractiveRow } from './ui/interactive-row'
+import { Dialog, DialogContent, DialogTrigger } from './ui/dialog'
 import { useAppDispatch, useAppSelector } from '../store/hooks'
 import { clearCredentials } from '../store/slices/authSlice'
 import { useLogoutMutation } from '../store/api/authApi'
@@ -81,6 +82,7 @@ export default function Header({
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '')
   const [debouncedSearch, setDebouncedSearch] = useState((searchParams.get('q') ?? '').trim())
   const [searchPopoverOpen, setSearchPopoverOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   useEffect(() => {
@@ -178,7 +180,7 @@ export default function Header({
 
       {/* Brand */}
       <div className="shrink-0 w-[13%]">
-        <Link to="/" className="text-2xl font-bold text-primary-600 tracking-tight">
+        <Link to="/" className="text-2xl font-bold tracking-tight">
           VOXELLA
         </Link>
       </div>
@@ -319,20 +321,162 @@ export default function Header({
 
       {/* Right side */}
       <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 ml-auto">
-        {/* Mobile search */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className={`sm:hidden ${iconButtonClass}`}
-          aria-label="Search"
-          onClick={() => {
-            const query = searchInput.trim()
-            navigate(`/search${query.length >= 2 ? `?q=${encodeURIComponent(query)}` : ''}`)
-          }}
-        >
-          <IconSearch size={20} stroke={1.5} />
-        </Button>
+        {/* Mobile search dialog */}
+        <Dialog open={mobileSearchOpen} onOpenChange={setMobileSearchOpen}>
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={`sm:hidden ${iconButtonClass}`}
+              aria-label="Search"
+            >
+              <IconSearch size={20} stroke={1.5} />
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="w-[calc(100vw-1.5rem)] h-[60vh] max-w-none flex flex-col p-4 sm:p-6 pt-14 sm:pt-10">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                const query = searchInput.trim()
+                if (query.length < 2) {
+                  return
+                }
+                setMobileSearchOpen(false)
+                navigate(`/search?q=${encodeURIComponent(query)}`)
+              }}
+              className="flex flex-col h-full"
+            >
+              <div className="relative mb-4">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <IconSearch size={18} stroke={1.5} className="text-base-100" />
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Search companies, feedback, replies..."
+                  className="pl-10 text-base"
+                  value={searchInput}
+                  autoFocus
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+              </div>
+
+              {debouncedSearch.length < 2 ? (
+                <div className="flex-1 flex items-center justify-center text-base-100">
+                  <p className="text-sm">Type at least 2 characters to search</p>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto space-y-3">
+                  {isSearching && (
+                    <div className="text-center py-4 text-base-100">
+                      <p className="text-sm">Searching...</p>
+                    </div>
+                  )}
+
+                  {hasSearchResults && !isSearching && (
+                    <>
+                      {(searchResults?.companies.length ?? 0) > 0 && (
+                        <div>
+                          <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-base-100">
+                            Companies
+                          </p>
+                          {searchResults?.companies.slice(0, 5).map((company) => (
+                            <InteractiveRow
+                              key={`company-${company.slug}`}
+                              className="px-2 py-2"
+                              onClick={() => {
+                                setMobileSearchOpen(false)
+                                navigate(`/company/${company.slug}`)
+                              }}
+                            >
+                              <p className="text-sm font-medium text-base-200 line-clamp-1">
+                                {company.name}
+                              </p>
+                            </InteractiveRow>
+                          ))}
+                        </div>
+                      )}
+
+                      {(searchResults?.feedbacks.length ?? 0) > 0 && (
+                        <div>
+                          <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-base-100">
+                            Feedback requests
+                          </p>
+                          {searchResults?.feedbacks.slice(0, 5).map((feedback) => (
+                            <InteractiveRow
+                              key={`feedback-${feedback.id}`}
+                              className="px-2 py-2"
+                              onClick={() => {
+                                setMobileSearchOpen(false)
+                                navigate(`/request/${feedback.id}`)
+                              }}
+                            >
+                              <p className="text-sm font-medium text-base-200 line-clamp-1">
+                                {feedback.title}
+                              </p>
+                              <p className="text-xs text-base-100 line-clamp-1">
+                                {feedback.company.name}
+                              </p>
+                            </InteractiveRow>
+                          ))}
+                        </div>
+                      )}
+
+                      {(searchResults?.replies.length ?? 0) > 0 && (
+                        <div>
+                          <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-base-100">
+                            Replies
+                          </p>
+                          {searchResults?.replies.slice(0, 5).map((reply) => (
+                            <InteractiveRow
+                              key={`reply-${reply.id}`}
+                              className="px-2 py-2"
+                              onClick={() => {
+                                setMobileSearchOpen(false)
+                                navigate(`/request/${reply.feedbackId}`)
+                              }}
+                            >
+                              <p className="text-sm font-medium text-base-200 line-clamp-1">
+                                {reply.feedbackTitle}
+                              </p>
+                              <p className="text-xs text-base-100 line-clamp-1">
+                                {reply.content.replace(/<[^>]*>/g, ' ')}
+                              </p>
+                            </InteractiveRow>
+                          ))}
+                        </div>
+                      )}
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto w-full justify-start rounded-none border-t border-border px-4 py-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-100/30"
+                        onClick={() => {
+                          const query = searchInput.trim()
+                          if (query.length < 2) {
+                            return
+                          }
+                          setMobileSearchOpen(false)
+                          navigate(`/search?q=${encodeURIComponent(query)}`)
+                        }}
+                      >
+                        View all results for "{searchInput.trim()}"
+                      </Button>
+                    </>
+                  )}
+
+                  {!hasSearchResults && !isSearching && debouncedSearch.length >= 2 && (
+                    <div className="text-center py-4 text-base-100">
+                      <p className="text-sm">No results found</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </form>
+          </DialogContent>
+        </Dialog>
 
         {/* Notification Bell — only when authenticated */}
         {isAuthenticated && (

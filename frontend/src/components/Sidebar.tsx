@@ -78,8 +78,8 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
                 to={item.path}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isCollapsed ? 'justify-center px-2' : ''} ${
                   isActive
-                    ? 'bg-primary-100 text-primary-600 font-medium'
-                    : 'text-base-200 hover:bg-border/50'
+                    ? 'bg-active font-medium'
+                    : 'hover:bg-border/50'
                 }`}
                 title={isCollapsed ? item.label : undefined}
               >
@@ -95,8 +95,8 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
               to={KANBAN_NAV_ITEM.path}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isCollapsed ? 'justify-center px-2' : ''} ${
                 location.pathname === KANBAN_NAV_ITEM.path
-                  ? 'bg-primary-100 text-primary-600 font-medium'
-                  : 'text-base-200 hover:bg-border/50'
+                  ? 'bg-active font-medium'
+                  : 'hover:bg-border/50'
               }`}
               title={isCollapsed ? KANBAN_NAV_ITEM.label : undefined}
             >

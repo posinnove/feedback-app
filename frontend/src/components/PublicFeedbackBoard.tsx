@@ -233,7 +233,7 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                     : 'hover:bg-sidebar-bg text-base-100 hover:text-base-200 font-medium'
                 }`}
               >
-                <IconClock size={18} stroke={2} className="text-blue-600" /> New
+                <IconClock size={18} stroke={3} /> New
               </Button>
               <Button
                 type="button"
@@ -246,7 +246,7 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                     : 'hover:bg-sidebar-bg text-base-100 hover:text-base-200 font-medium'
                 }`}
               >
-                <IconTrendingUp size={18} stroke={2} className="text-green-600" /> Top
+                <IconTrendingUp size={18} stroke={3} /> Top
               </Button>
               <Button
                 type="button"
@@ -259,7 +259,7 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                     : 'hover:bg-sidebar-bg text-base-100 hover:text-base-200 font-medium'
                 }`}
               >
-                <IconFlame size={18} stroke={2} className="text-orange-600" /> Trending
+                <IconFlame size={18} stroke={3} /> Trending
               </Button>
             </div>
           </div>

@@ -10,10 +10,12 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
 import { Separator } from '../components/ui/separator'
+import { useAppSelector } from '../store/hooks'
 
 export default function LandingPage() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { isAuthenticated } = useAppSelector((s) => s.auth)
   const showcaseImage = '/images/Screenshot%202026-03-21%20140050.png'
   const isAuthModalOpen =
     location.pathname === '/auth/login' || location.pathname === '/auth/register'
@@ -32,7 +34,7 @@ export default function LandingPage() {
     <div className="h-screen overflow-y-auto custom-scroll bg-background">
       <header className="border-b border-border bg-card-bg/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-3 flex items-center justify-between gap-4">
-          <Link to="/" className="text-2xl font-bold text-primary-600 tracking-tight">
+          <Link to="/" className="text-2xl font-bold logo-adaptive tracking-tight">
             VOXELLA
           </Link>
 
@@ -49,12 +51,33 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => openAuth('login')} className="px-3">
-              Sign in
-            </Button>
-            <Button onClick={() => openAuth('register')} size="sm" className="rounded-full px-4">
-              Sign up
-            </Button>
+            {!isAuthenticated? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openAuth('login')}
+                  className="px-3"
+                >
+                  Sign in
+                </Button>
+                <Button
+                  onClick={() => openAuth('register')}
+                  size="sm"
+                  className="rounded-full px-4"
+                >
+                  Sign up
+                </Button>
+              </>
+            ):(
+                <Button                  onClick={() => navigate('/feed')}
+                  size="sm"
+                  className="rounded-full px-4"
+                >
+                  View Feed
+                </Button>
+
+            )}
           </div>
         </div>
       </header>
@@ -79,13 +102,15 @@ export default function LandingPage() {
               <IconArrowRight size={16} stroke={2} />
             </Button>
           </Link>
-          <Button
-            variant="secondary"
-            onClick={() => openAuth('register')}
-            className="px-5 py-3 h-auto"
-          >
-            Create Account
-          </Button>
+          {!isAuthenticated && (
+            <Button
+              variant="secondary"
+              onClick={() => openAuth('register')}
+              className="px-5 py-3 h-auto"
+            >
+              Create Account
+            </Button>
+          )}
         </div>
       </section>
 
@@ -93,7 +118,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-5">
-              <IconMessageCircle size={20} stroke={1.8} className="text-primary-600" />
+              <IconMessageCircle size={20} stroke={1.8} className="icon-adaptive" />
               <CardTitle className="mt-3">Collect Feedback</CardTitle>
               <CardDescription className="mt-1">
                 Users submit product ideas and discuss them transparently.
@@ -103,7 +128,7 @@ export default function LandingPage() {
 
           <Card>
             <CardContent className="p-5">
-              <IconTrendingUp size={20} stroke={1.8} className="text-primary-600" />
+              <IconTrendingUp size={20} stroke={1.8} className="icon-adaptive" />
               <CardTitle className="mt-3">Prioritize by Votes</CardTitle>
               <CardDescription className="mt-1">
                 Upvotes and downvotes help surface what is most important now.
@@ -113,7 +138,7 @@ export default function LandingPage() {
 
           <Card>
             <CardContent className="p-5">
-              <IconBuilding size={20} stroke={1.8} className="text-primary-600" />
+              <IconBuilding size={20} stroke={1.8} className="icon-adaptive" />
               <CardTitle className="mt-3">Work with Companies</CardTitle>
               <CardDescription className="mt-1">
                 Each request is tied to a company board so teams can respond and deliver.
@@ -222,7 +247,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-8 sm:py-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="col-span-2 md:col-span-1">
-              <div className="text-lg font-extrabold tracking-tight text-primary-600">VOXELLA</div>
+              <div className="text-lg font-extrabold tracking-tight">VOXELLA</div>
               <p className="mt-2 text-xs text-base-100 max-w-[220px] leading-relaxed">
                 Product feedback infrastructure for transparent decisions and faster delivery.
               </p>

@@ -33,7 +33,7 @@ export default function VerifyEmailPage() {
         {isLoading && (
           <>
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <IconLoader2 size={32} className="text-primary-600 animate-spin" />
+              <IconLoader2 size={32} className="icon-adaptive animate-spin" />
             </div>
             <h1 className="text-xl font-semibold text-base-200 mb-2">Verifying your email…</h1>
             <p className="text-base-100 text-sm">Please wait a moment.</p>

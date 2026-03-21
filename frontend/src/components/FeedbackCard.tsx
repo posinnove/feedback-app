@@ -113,12 +113,20 @@ export default function FeedbackCard({
       {detailHref ? (
         <Link
           to={detailHref}
-          className="flex-1 p-3 sm:p-4 lg:p-5 flex flex-col min-w-0 bg-transparent hover:bg-border/20 transition-colors cursor-pointer"
+          className={`flex-1 flex flex-col min-w-0 bg-transparent hover:bg-border/20 transition-colors cursor-pointer ${
+            showStatus && feedback.status ? 'p-3 sm:p-4 lg:p-5 pt-10 sm:pt-6' : 'p-3 sm:p-4 lg:p-5'
+          }`}
         >
           {content}
         </Link>
       ) : (
-        <div className="flex-1 p-3 sm:p-4 lg:p-5 flex flex-col min-w-0">{content}</div>
+        <div
+          className={`flex-1 flex flex-col min-w-0 ${
+            showStatus && feedback.status ? 'p-3 sm:p-4 lg:p-5 pt-10 sm:pt-6' : 'p-3 sm:p-4 lg:p-5'
+          }`}
+        >
+          {content}
+        </div>
       )}
 
       {showStatus && feedback.status && (

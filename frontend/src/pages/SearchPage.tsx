@@ -42,8 +42,8 @@ export default function SearchPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         <div className="bg-card-bg border border-border rounded-xl p-5 mb-5">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center shrink-0">
-              <IconSearch size={20} stroke={1.7} />
+            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
+              <IconSearch size={20} stroke={1.7} className="icon-adaptive" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-base-200">Search results</h1>
@@ -79,7 +79,7 @@ export default function SearchPage() {
           <div className="space-y-5">
             <section className="bg-card-bg border border-border rounded-xl p-5">
               <div className="flex items-center gap-2 mb-3">
-                <IconBuilding size={18} className="text-primary-600" />
+                <IconBuilding size={18} className="icon-adaptive" />
                 <h2 className="text-base font-semibold text-base-200">Companies</h2>
                 <span className="text-xs text-base-100">({data?.companies.length ?? 0})</span>
               </div>
@@ -105,7 +105,7 @@ export default function SearchPage() {
 
             <section className="bg-card-bg border border-border rounded-xl p-5">
               <div className="flex items-center gap-2 mb-3">
-                <IconMessageCircle size={18} className="text-primary-600" />
+                <IconMessageCircle size={18} className="icon-adaptive" />
                 <h2 className="text-base font-semibold text-base-200">Feedback requests</h2>
                 <span className="text-xs text-base-100">({data?.feedbacks.length ?? 0})</span>
               </div>
@@ -134,7 +134,7 @@ export default function SearchPage() {
 
             <section className="bg-card-bg border border-border rounded-xl p-5">
               <div className="flex items-center gap-2 mb-3">
-                <IconMessageCircle2 size={18} className="text-primary-600" />
+                <IconMessageCircle2 size={18} className="icon-adaptive" />
                 <h2 className="text-base font-semibold text-base-200">Replies</h2>
                 <span className="text-xs text-base-100">({data?.replies.length ?? 0})</span>
               </div>
