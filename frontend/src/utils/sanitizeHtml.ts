@@ -24,10 +24,12 @@ const ALLOWED_TAGS = {
   h4: 'h4',
   h5: 'h5',
   h6: 'h6',
+  img: 'img',
 }
 
 const ALLOWED_ATTRIBUTES: Record<string, string[]> = {
   a: ['href', 'title'],
+  img: ['src', 'alt', 'title'],
 }
 
 /**
@@ -83,6 +85,17 @@ export function sanitizeHtml(html: string | null | undefined): string {
         // Links are kept as-is
       } else {
         elem.removeAttribute('href')
+      }
+    }
+
+    // Sanitize src in images
+    if (tagName === 'img' && elem.hasAttribute('src')) {
+      const src = (elem.getAttribute('src') || '').trim().toLowerCase()
+      const isSafeSrc =
+        src.startsWith('https://') || src.startsWith('http://') || src.startsWith('//')
+
+      if (!isSafeSrc) {
+        elem.removeAttribute('src')
       }
     }
 

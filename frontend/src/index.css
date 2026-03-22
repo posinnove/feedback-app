@@ -128,6 +128,28 @@
     color: var(--base-100);
     font-style: normal;
   }
+
+  .request-feedback-editor .ql-editor.ql-blank::before,
+  .request-feedback-editor .ql-snow .ql-editor.ql-blank::before {
+    color: var(--base-100) !important;
+    opacity: 1;
+  }
+
+  .safe-html-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .feedback-card-html img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+  }
 }
 
 @layer utilities {
@@ -218,5 +240,20 @@
   :root[data-theme='dark'] .avatar-bg {
     background-color: #2a2a2a;
     color: #f7f7f7;
+  }
+
+  @keyframes mobileSearchDialogIn {
+    0% {
+      opacity: 0;
+      filter: blur(2px);
+    }
+    100% {
+      opacity: 1;
+      filter: blur(0);
+    }
+  }
+
+  .mobile-search-dialog[data-state='open'] {
+    animation: mobileSearchDialogIn 180ms ease-out;
   }
 }

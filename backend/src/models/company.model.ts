@@ -88,7 +88,7 @@ Company.init(
       allowNull: true,
     },
     logoUrl: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: true,
       field: 'logo_url',
     },

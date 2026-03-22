@@ -1,11 +1,14 @@
 import { lazy, Suspense, useState, useCallback, useEffect, useRef } from 'react'
-import { Routes, Route, Outlet, useNavigate } from 'react-router-dom'
+import { Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import LoadingSpinner from './components/LoadingSpinner'
 import { useAppSelector, useAppDispatch } from './store/hooks'
 import { clearCredentials, setAuthError } from './store/slices/authSlice'
 import { useLogoutMutation } from './store/api/authApi'
+import { useGsapStagger } from './utils/gsapMotion'
+import { motionProfile } from './utils/motionProfile'
+import { useGoogleSilentLogin } from './hooks/useGoogleSilentLogin'
 
 const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000
 
@@ -19,6 +22,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const RequestFeedbackPage = lazy(() => import('./pages/RequestFeedbackPage'))
 const SearchPage = lazy(() => import('./pages/SearchPage'))
+const HelpPage = lazy(() => import('./pages/HelpPage'))
 const PublicFeedPage = lazy(() => import('./pages/PublicFeedPage'))
 const CompanyPortalPage = lazy(() => import('./pages/CompanyPortalPage'))
 const LandingPage = lazy(() => import('./pages/LandingPage'))
@@ -29,17 +33,12 @@ const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'))
 type ThemeMode = 'system' | 'light' | 'dark'
 
 function FeedEntryPage() {
-  const authType = useAppSelector((state) => state.auth.type)
-
-  if (authType === 'company') {
-    return <CompanyPortalPage />
-  }
-
   return <PublicFeedPage sort="trending" />
 }
 
 function AppLayout() {
   const dispatch = useAppDispatch()
+  const location = useLocation()
   const navigate = useNavigate()
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
   const authThemeMode = useAppSelector((state) => state.auth.entity?.themeMode)
@@ -50,6 +49,13 @@ function AppLayout() {
   })
   const [logout] = useLogoutMutation()
   const inactivityTimeoutRef = useRef<number | null>(null)
+  const mainRef = useRef<HTMLElement | null>(null)
+
+  useGsapStagger(mainRef, '[data-gsap-page]', [location.pathname], {
+    y: motionProfile.route.y,
+    duration: motionProfile.route.duration,
+    stagger: motionProfile.route.stagger,
+  })
 
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', String(sidebarCollapsed))
@@ -148,7 +154,7 @@ function AppLayout() {
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
         />
-        <main className={`flex-1 min-h-0 w-full overflow-y-auto custom-scroll`}>
+        <main ref={mainRef} className={`flex-1 min-h-0 w-full overflow-y-auto custom-scroll`}>
           <Outlet />
         </main>
       </div>
@@ -159,6 +165,9 @@ function AppLayout() {
 function App() {
   const dispatch = useAppDispatch()
   const hasAuthError = useAppSelector((state) => state.auth.hasAuthError)
+
+  // Initialize silent Google login at app level
+  useGoogleSilentLogin()
 
   function handleCloseAuthModal() {
     dispatch(setAuthError(false))
@@ -192,6 +201,7 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/request-feedback" element={<RequestFeedbackPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/help" element={<HelpPage />} />
             <Route path="/portal-kanban" element={<CompanyPortalPage />} />
             <Route path="/company/:slug" element={<CompanyBoardPage />} />
             <Route path="/request/:id" element={<RequestDetailPage />} />

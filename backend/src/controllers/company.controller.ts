@@ -174,8 +174,18 @@ export async function createFeedbackRequest(req: Request, res: Response) {
       return;
     }
 
-    if (!auth) {
-      res.status(401).json({ message: 'Unauthorized' });
+    if (auth?.type === 'company') {
+      res
+        .status(403)
+        .json({ message: 'Company accounts cannot submit feedback requests' });
+      return;
+    }
+
+    if (!auth && visibility !== 'anonymous') {
+      res.status(400).json({
+        message:
+          'Please choose anonymous visibility when submitting without an account',
+      });
       return;
     }
 
@@ -202,8 +212,8 @@ export async function createFeedbackRequest(req: Request, res: Response) {
       title,
       description,
       feedbackTypeId,
-      requesterUserId: auth.id,
-      isAnonymous: visibility === 'anonymous',
+      requesterUserId: auth?.type === 'user' ? auth.id : null,
+      isAnonymous: !auth || visibility === 'anonymous',
     });
 
     res.status(201).json({

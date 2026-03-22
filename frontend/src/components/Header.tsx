@@ -12,7 +12,7 @@ import {
   IconUser,
   IconSettings,
 } from '@tabler/icons-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Avatar from './ui/Avatar'
 import {
@@ -37,6 +37,8 @@ import {
   useGetNotificationsQuery,
   useMarkNotificationsAsReadMutation,
 } from '../store/api/companyApi'
+import { useGsapStagger } from '../utils/gsapMotion'
+import { motionProfile } from '../utils/motionProfile'
 
 // type ThemeMode = 'system' | 'light' | 'dark'
 
@@ -84,6 +86,13 @@ export default function Header({
   const [searchPopoverOpen, setSearchPopoverOpen] = useState(false)
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const headerRef = useRef<HTMLElement | null>(null)
+
+  useGsapStagger(headerRef, '[data-gsap-header-item]', [], {
+    y: motionProfile.header.actions.y,
+    duration: motionProfile.header.actions.duration,
+    stagger: motionProfile.header.actions.stagger,
+  })
 
   useEffect(() => {
     const timer: ReturnType<typeof setTimeout> = setTimeout(() => {
@@ -165,21 +174,12 @@ export default function Header({
   //   emailValue.length > 18 ? `${emailValue.slice(0, 6)}...${emailValue.slice(-9)}` : emailValue
 
   return (
-    <header className="bg-card-bg border-b border-border px-4 lg:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-30">
-      {/* Mobile menu button */}
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={onMenuToggle}
-        className={`lg:hidden ${iconButtonClass}`}
-        aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
-      >
-        {sidebarOpen ? <IconX size={22} stroke={1.5} /> : <IconMenu2 size={22} stroke={1.5} />}
-      </Button>
-
+    <header
+      ref={headerRef}
+      className="bg-card-bg border-b border-border px-4 lg:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-30"
+    >
       {/* Brand */}
-      <div className="shrink-0 w-[13%]">
+      <div className="shrink-0 w-auto lg:w-[13%]">
         <Link to="/" className="text-2xl font-bold tracking-tight">
           VOXELLA
         </Link>
@@ -300,7 +300,7 @@ export default function Header({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-auto w-full justify-start rounded-none border-t border-border px-4 py-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-100/30"
+                    className="h-auto w-full justify-start rounded-none border-t border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-primary-100/30"
                     onClick={() => {
                       const query = searchInput.trim()
                       if (query.length < 2) {
@@ -320,7 +320,7 @@ export default function Header({
       </div>
 
       {/* Right side */}
-      <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 ml-auto">
+      <div data-gsap-header-item className="flex items-center gap-1 sm:gap-2 lg:gap-3 ml-auto">
         {/* Mobile search dialog */}
         <Dialog open={mobileSearchOpen} onOpenChange={setMobileSearchOpen}>
           <DialogTrigger asChild>
@@ -328,14 +328,14 @@ export default function Header({
               type="button"
               variant="ghost"
               size="sm"
-              className={`sm:hidden ${iconButtonClass}`}
+              className={`sm:hidden ${iconButtonClass} transition-transform duration-150 active:scale-95`}
               aria-label="Search"
             >
               <IconSearch size={20} stroke={1.5} />
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="w-[calc(100vw-1.5rem)] h-[60vh] max-w-none flex flex-col p-4 sm:p-6 pt-14 sm:pt-10">
+          <DialogContent className="mobile-search-dialog w-[calc(100vw-1.5rem)] h-[60vh] max-w-none flex flex-col p-4 sm:p-6 pt-14 sm:pt-10">
             <form
               onSubmit={(e) => {
                 e.preventDefault()
@@ -452,7 +452,7 @@ export default function Header({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-auto w-full justify-start rounded-none border-t border-border px-4 py-2.5 text-sm font-medium text-primary-600 transition-colors hover:bg-primary-100/30"
+                        className="h-auto w-full justify-start rounded-none border-t border-border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-primary-100/30"
                         onClick={() => {
                           const query = searchInput.trim()
                           if (query.length < 2) {
@@ -556,6 +556,7 @@ export default function Header({
           type="button"
           variant="ghost"
           size="sm"
+          onClick={() => navigate('/help')}
           className={`hidden sm:inline-flex relative ${iconButtonClass}`}
           aria-label="Help"
         >
@@ -622,7 +623,7 @@ export default function Header({
           </div>
         ) : (
           /* Unauthenticated: Login + Signup buttons */
-          <div className="flex items-center gap-2 pl-2 lg:pl-3 border-l border-border">
+          <div className="hidden sm:flex items-center gap-2 pl-2 lg:pl-3 border-l border-border">
             <Link to="/auth/login" className="inline-flex items-center">
               <Button variant="ghost" size="sm" className="px-3">
                 Sign in
@@ -635,6 +636,22 @@ export default function Header({
             </Link>
           </div>
         )}
+
+        {/* Mobile menu button */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={onMenuToggle}
+          className={`lg:hidden ${iconButtonClass}`}
+          aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+        >
+          <span
+            className={`transition-transform duration-200 ${sidebarOpen ? 'rotate-90' : 'rotate-0'}`}
+          >
+            {sidebarOpen ? <IconX size={22} stroke={1.5} /> : <IconMenu2 size={22} stroke={1.5} />}
+          </span>
+        </Button>
       </div>
     </header>
   )

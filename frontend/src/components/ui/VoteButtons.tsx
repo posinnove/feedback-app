@@ -1,6 +1,6 @@
 import { IconArrowUp, IconArrowDown } from '@tabler/icons-react'
-import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '../../store/hooks'
+import { useGoogleSilentLogin } from '../../hooks/useGoogleSilentLogin'
 import type { MouseEvent } from 'react'
 import { Button } from './button'
 import { cn } from '../../lib/utils'
@@ -20,15 +20,15 @@ export default function VoteButtons({
   onDownvote,
   userVote,
 }: VoteButtonsProps) {
-  const navigate = useNavigate()
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
+  const triggerSilentLogin = useGoogleSilentLogin()
 
   function handleVote(event: MouseEvent<HTMLButtonElement>, handler?: () => void) {
     event.preventDefault()
     event.stopPropagation()
 
     if (!isAuthenticated) {
-      navigate('/auth/login?reason=vote')
+      triggerSilentLogin()
       return
     }
     handler?.()
@@ -42,8 +42,8 @@ export default function VoteButtons({
         size="sm"
         onClick={(event) => handleVote(event, onUpvote)}
         className={cn(
-          'h-6 w-6 rounded p-0 text-base-100 hover:bg-blue-100 hover:text-blue-600',
-          userVote === 'up' ? 'text-primary-600' : ''
+          'h-6 w-6 rounded p-0 text-base-100 hover:bg-blue-500/15 hover:text-blue-500',
+          userVote === 'up' ? 'text-blue-500' : ''
         )}
         aria-label="Upvote"
       >
@@ -56,8 +56,8 @@ export default function VoteButtons({
         size="sm"
         onClick={(event) => handleVote(event, onDownvote)}
         className={cn(
-          'h-6 w-6 rounded p-0 text-base-100 hover:bg-red-100 hover:text-red-600',
-          userVote === 'down' ? 'text-status-rejected' : ''
+          'h-6 w-6 rounded p-0 text-base-100 hover:bg-red-500/15 hover:text-red-500',
+          userVote === 'down' ? 'text-red-500' : ''
         )}
         aria-label="Downvote"
       >

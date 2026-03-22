@@ -275,11 +275,13 @@ export async function getFeedbackReplies(
   });
 
   const userIds = replies
-    .filter((r) => r.authorType === 'user')
-    .map((r) => r.authorId);
+    .filter((r) => r.authorType === 'user' && r.authorId !== null)
+    .map((r) => r.authorId)
+    .filter((id): id is number => id !== null);
   const companyIds = replies
-    .filter((r) => r.authorType === 'company')
-    .map((r) => r.authorId);
+    .filter((r) => r.authorType === 'company' && r.authorId !== null)
+    .map((r) => r.authorId)
+    .filter((id): id is number => id !== null);
 
   const [users, companies] = await Promise.all([
     userIds.length
@@ -344,28 +346,29 @@ export async function getFeedbackReplies(
       viewer.id === reply.authorId &&
       viewer.type === reply.authorType,
     visibility: reply.isAnonymous ? 'anonymous' : 'public',
-    author: reply.isAnonymous
-      ? null
-      : {
-          id: reply.authorId,
-          type: reply.authorType,
-          name:
-            reply.authorType === 'user'
-              ? (userMap.get(reply.authorId)?.name ?? 'User')
-              : (companyMap.get(reply.authorId)?.name ?? 'Company'),
-          avatarUrl:
-            reply.authorType === 'user'
-              ? (userMap.get(reply.authorId)?.avatarUrl ?? null)
-              : (companyMap.get(reply.authorId)?.logoUrl ?? null),
-        },
+    author:
+      reply.isAnonymous || reply.authorId === null || reply.authorType === null
+        ? null
+        : {
+            id: reply.authorId,
+            type: reply.authorType,
+            name:
+              reply.authorType === 'user'
+                ? (userMap.get(reply.authorId)?.name ?? 'User')
+                : (companyMap.get(reply.authorId)?.name ?? 'Company'),
+            avatarUrl:
+              reply.authorType === 'user'
+                ? (userMap.get(reply.authorId)?.avatarUrl ?? null)
+                : (companyMap.get(reply.authorId)?.logoUrl ?? null),
+          },
     userVote: voteMap.get(reply.id) ?? null,
   }));
 }
 
 export async function createFeedbackReply(
   feedbackId: number,
-  authorId: number,
-  authorType: AuthEntityType,
+  authorId: number | null,
+  authorType: AuthEntityType | null,
   content: string,
   isAnonymous: boolean,
   parentReplyId?: number,
@@ -398,11 +401,11 @@ export async function createFeedbackReply(
     content: content.trim(),
   });
 
-  let authorName = 'Unknown';
-  if (authorType === 'company') {
+  let authorName = 'Anonymous user';
+  if (authorType === 'company' && authorId !== null) {
     const company = await Company.findByPk(authorId, { attributes: ['name'] });
     authorName = company?.name || 'Company';
-  } else {
+  } else if (authorType === 'user' && authorId !== null) {
     const user = await Users.findByPk(authorId, {
       attributes: ['firstName', 'lastName'],
     });
@@ -440,7 +443,12 @@ export async function createFeedbackReply(
     const parentReply = await FeedbackReply.findByPk(parentReplyId, {
       attributes: ['authorId', 'authorType'],
     });
-    if (parentReply && !isAnonymous) {
+    if (
+      parentReply &&
+      !isAnonymous &&
+      parentReply.authorId !== null &&
+      parentReply.authorType !== null
+    ) {
       await createNotification(
         parentReply.authorId,
         parentReply.authorType,

@@ -1,11 +1,13 @@
 import { IconMessageCircle } from '@tabler/icons-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import type { MouseEvent } from 'react'
 import type { FeedbackStatus } from '../types/feedback'
 import Avatar from './ui/Avatar'
 import ShareButton from './ui/ShareButton'
 import StatusBadge from './ui/StatusBadge'
 import VoteButtons from './ui/VoteButtons'
 import SafeHtml from './SafeHtml'
+import { Button } from './ui/button'
 import { formatDate } from '../utils/formatDate'
 
 interface ReusableFeedbackCardData {
@@ -20,6 +22,7 @@ interface ReusableFeedbackCardData {
   comments?: number
   companyName?: string
   companyAvatar?: string
+  companySlug?: string
   status?: FeedbackStatus
 }
 
@@ -44,16 +47,46 @@ export default function FeedbackCard({
   onUpvote,
   onDownvote,
 }: FeedbackCardProps) {
+  const navigate = useNavigate()
   const companyName = feedback.companyName ?? 'a company'
   const companyAvatar = feedback.companyAvatar
+  const companySlug = feedback.companySlug
   const authorName = feedback.authorName?.trim() ? feedback.authorName : 'Anonymous'
   const downvotes = feedback.downvotes ?? 0
+  const hasImageInDescription = /<img[\s>]/i.test(feedback.description ?? '')
+
+  function handleCompanyClick(event: MouseEvent<HTMLElement>) {
+    if (!companySlug) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+    navigate(`/company/${companySlug}`)
+  }
+
   const content = (
     <>
       <div className="flex items-center gap-2 text-xs text-base-100 mb-2.5 sm:mb-3 flex-wrap">
-        <Avatar name={companyName} avatar={companyAvatar} size="sm" />
+        {companySlug ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCompanyClick}
+            className="group inline-flex h-auto cursor-pointer items-center gap-2 rounded px-1 py-0.5 -m-0.5 transition-colors hover:bg-border active:bg-border focus-visible:ring-2 focus-visible:ring-primary-600/40"
+            aria-label={`Open ${companyName} company page`}
+          >
+            <Avatar name={companyName} avatar={companyAvatar} size="sm" />
+            <span className="font-semibold text-base-200 transition-colors">{companyName}</span>
+          </Button>
+        ) : (
+          <>
+            <Avatar name={companyName} avatar={companyAvatar} size="sm" />
+            <span className="font-semibold text-base-200">{companyName}</span>
+          </>
+        )}
         <span className="truncate min-w-0">
-          <span className="font-semibold text-base-200">{companyName}</span>
           <span className="mx-1">-</span>
           requested by <span className="font-semibold text-base-200">{authorName}</span>
         </span>
@@ -76,7 +109,9 @@ export default function FeedbackCard({
       {feedback.description && (
         <SafeHtml
           html={feedback.description}
-          className="text-sm text-base-100 leading-relaxed mb-4 line-clamp-3"
+          className={`text-sm text-base-100 leading-relaxed mb-4 ${
+            hasImageInDescription ? 'feedback-card-html' : 'line-clamp-3'
+          }`}
         />
       )}
 

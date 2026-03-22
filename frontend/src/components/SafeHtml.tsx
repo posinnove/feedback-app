@@ -15,5 +15,7 @@ export default function SafeHtml({ html, className = '' }: SafeHtmlProps) {
   const sanitized = sanitizeHtml(html)
   if (!sanitized) return null
 
-  return <div className={className} dangerouslySetInnerHTML={{ __html: sanitized }} />
+  const mergedClassName = ['safe-html-content', className].filter(Boolean).join(' ')
+
+  return <div className={mergedClassName} dangerouslySetInnerHTML={{ __html: sanitized }} />
 }

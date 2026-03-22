@@ -44,6 +44,7 @@ export const companyAuthApi = apiSlice.injectEndpoints({
 
     getMeCompany: builder.query<AuthUser, void>({
       query: () => '/auth/companies/me',
+      providesTags: [{ type: 'AuthCompany', id: 'ME' }],
     }),
 
     updateMeCompanyProfile: builder.mutation<AuthUser, CompanyProfileUpdateInput>({
@@ -52,6 +53,11 @@ export const companyAuthApi = apiSlice.injectEndpoints({
         method: 'PUT',
         body,
       }),
+      invalidatesTags: [
+        { type: 'AuthCompany', id: 'ME' },
+        { type: 'PublicFeed', id: 'LIST' },
+        'Company',
+      ],
     }),
 
     updateMeCompanySettings: builder.mutation<AuthUser, SettingsUpdateInput>({
@@ -60,6 +66,7 @@ export const companyAuthApi = apiSlice.injectEndpoints({
         method: 'PUT',
         body,
       }),
+      invalidatesTags: [{ type: 'AuthCompany', id: 'ME' }],
     }),
 
     updateMeCompanyPassword: builder.mutation<{ message: string }, PasswordUpdateInput>({

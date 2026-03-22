@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   IconArrowRight,
@@ -11,15 +12,56 @@ import { Card, CardContent, CardDescription, CardTitle } from '../components/ui/
 import { Badge } from '../components/ui/badge'
 import { Separator } from '../components/ui/separator'
 import { useAppSelector } from '../store/hooks'
+import { useGsapReveal, useGsapStagger } from '../utils/gsapMotion'
+import { motionProfile } from '../utils/motionProfile'
 
 export default function LandingPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated } = useAppSelector((s) => s.auth)
+  const pageRef = useRef<HTMLDivElement | null>(null)
   const showcaseImage = '/images/Screenshot%202026-03-21%20140050.png'
+  const insideVoxellaDescription =
+    'Take a quick tour of the core Voxella workflows for users and product teams.'
+  const showcaseCards = [
+    {
+      title: 'Public Feedback Board',
+      desc: 'Show trending requests, voting, and filtering tabs.',
+      image: showcaseImage,
+    },
+    {
+      title: 'Request Discussion Page',
+      desc: 'Highlight nested replies, visibility options, and vote actions.',
+      image: showcaseImage,
+    },
+    {
+      title: 'Company Workspace',
+      desc: 'Present company profile, feedback pipeline, and metrics.',
+      image: showcaseImage,
+    },
+  ]
   const isAuthModalOpen =
     location.pathname === '/auth/login' || location.pathname === '/auth/register'
   const authMode = location.pathname === '/auth/register' ? 'register' : 'login'
+
+  useGsapReveal(pageRef, [location.pathname], {
+    y: motionProfile.route.y,
+    duration: motionProfile.route.duration,
+  })
+
+  useGsapStagger(pageRef, '[data-gsap-land-section]', [location.pathname], {
+    y: motionProfile.board.cards.y,
+    duration: motionProfile.board.cards.duration,
+    stagger: 0.06,
+    delay: 0.03,
+  })
+
+  useGsapStagger(pageRef, '[data-gsap-land-card]', [location.pathname], {
+    y: motionProfile.board.cards.y,
+    duration: motionProfile.board.cards.duration,
+    stagger: motionProfile.board.cards.stagger,
+    delay: 0.08,
+  })
 
   function openAuth(mode: 'login' | 'register') {
     const search = location.search ? location.search : ''
@@ -31,7 +73,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="h-screen overflow-y-auto custom-scroll bg-background">
+    <div ref={pageRef} className="h-screen overflow-y-auto custom-scroll bg-background">
       <header className="border-b border-border bg-card-bg/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-3 flex items-center justify-between gap-4">
           <Link to="/" className="text-2xl font-bold logo-adaptive tracking-tight">
@@ -51,38 +93,33 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-2">
-            {!isAuthenticated? (
+            {!isAuthenticated ? (
               <>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => openAuth('login')}
-                  className="px-3"
+                  className="px-5 py-2 h-auto"
                 >
                   Sign in
                 </Button>
-                <Button
-                  onClick={() => openAuth('register')}
-                  size="sm"
-                  className="rounded-full px-4"
-                >
+                <Button onClick={() => openAuth('register')} size="sm" className="px-5 py-2 h-auto">
                   Sign up
                 </Button>
               </>
-            ):(
-                <Button                  onClick={() => navigate('/feed')}
-                  size="sm"
-                  className="rounded-full px-4"
-                >
-                  View Feed
-                </Button>
-
+            ) : (
+              <Button onClick={() => navigate('/feed')} size="sm" className="px-5 py-2 h-auto">
+                View Feed
+              </Button>
             )}
           </div>
         </div>
       </header>
 
-      <section className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-14 sm:py-20">
+      <section
+        data-gsap-land-section
+        className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-14 sm:py-20"
+      >
         <Badge>Product Feedback Platform</Badge>
 
         <h1 className="mt-5 text-4xl sm:text-5xl font-extrabold leading-tight text-base-200">
@@ -114,9 +151,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-14 sm:pb-20">
+      <section
+        data-gsap-land-section
+        className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-14 sm:pb-20"
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+          <Card data-gsap-land-card>
             <CardContent className="p-5">
               <IconMessageCircle size={20} stroke={1.8} className="icon-adaptive" />
               <CardTitle className="mt-3">Collect Feedback</CardTitle>
@@ -126,7 +166,7 @@ export default function LandingPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card data-gsap-land-card>
             <CardContent className="p-5">
               <IconTrendingUp size={20} stroke={1.8} className="icon-adaptive" />
               <CardTitle className="mt-3">Prioritize by Votes</CardTitle>
@@ -136,7 +176,7 @@ export default function LandingPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card data-gsap-land-card>
             <CardContent className="p-5">
               <IconBuilding size={20} stroke={1.8} className="icon-adaptive" />
               <CardTitle className="mt-3">Work with Companies</CardTitle>
@@ -148,38 +188,24 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-14 sm:pb-16">
+      <section
+        data-gsap-land-section
+        className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-14 sm:pb-16"
+      >
         <div className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 lg:p-7">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-5">
             <div>
               <h2 className="text-xl font-bold text-base-200">Inside Voxella</h2>
-              <p className="text-sm text-base-100 mt-1">
-                Add your real product screenshots here to show users how Voxella works.
-              </p>
+              <p className="text-sm text-base-100 mt-1">{insideVoxellaDescription}</p>
             </div>
-            <span className="text-xs text-base-100">Suggested size: 1600x1000</span>
+            {/* <span className="text-xs text-base-100">Suggested size: 1600x1000</span> */}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {[
-              {
-                title: 'Public Feedback Board',
-                desc: 'Show trending requests, voting, and filtering tabs.',
-                image: showcaseImage,
-              },
-              {
-                title: 'Request Discussion Page',
-                desc: 'Highlight nested replies, visibility options, and vote actions.',
-                image: showcaseImage,
-              },
-              {
-                title: 'Company Workspace',
-                desc: 'Present company profile, feedback pipeline, and metrics.',
-                image: showcaseImage,
-              },
-            ].map((item) => (
+            {showcaseCards.map((item) => (
               <article
                 key={item.title}
+                data-gsap-land-card
                 className="rounded-xl border border-border p-3 bg-background"
               >
                 <img
@@ -195,7 +221,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-14 sm:pb-16">
+      <section
+        data-gsap-land-section
+        className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 pb-14 sm:pb-16"
+      >
         <div className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 lg:p-7">
           <div className="flex items-start justify-between gap-3 mb-5">
             <div>
@@ -229,6 +258,7 @@ export default function LandingPage() {
             ].map((item) => (
               <article
                 key={item.name}
+                data-gsap-land-card
                 className="rounded-xl border border-border bg-background p-4"
               >
                 <p className="text-sm text-base-200 leading-relaxed">"{item.quote}"</p>
@@ -243,12 +273,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-border bg-card-bg">
+      <footer data-gsap-land-section className="border-t border-border bg-card-bg">
         <div className="mx-auto max-w-7xl px-3 sm:px-5 lg:px-6 py-8 sm:py-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="col-span-2 md:col-span-1">
               <div className="text-lg font-extrabold tracking-tight">VOXELLA</div>
-              <p className="mt-2 text-xs text-base-100 max-w-[220px] leading-relaxed">
+              <p className="mt-2 text-xs text-base-100 max-w-55 leading-relaxed">
                 Product feedback infrastructure for transparent decisions and faster delivery.
               </p>
             </div>

@@ -7,11 +7,13 @@ import {
   useUnfollowCompanyMutation,
 } from '../store/api/companyApi'
 import { useAppSelector } from '../store/hooks'
+import { useGoogleSilentLogin } from '../hooks/useGoogleSilentLogin'
 import { Button } from '../components/ui/button'
 
 export default function ExplorePage() {
   const { data: companies, isLoading } = useGetCompaniesQuery()
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
+  const triggerSilentLogin = useGoogleSilentLogin()
   const { data: followedCompanies } = useGetFollowedCompaniesQuery(undefined, {
     skip: !isAuthenticated,
   })
@@ -23,7 +25,7 @@ export default function ExplorePage() {
 
   async function handleFollowToggle(slug: string, followed: boolean) {
     if (!isAuthenticated) {
-      navigate('/auth/login?reason=follow')
+      triggerSilentLogin()
       return
     }
 
@@ -36,11 +38,11 @@ export default function ExplorePage() {
   }
 
   function handleOpenRequestForm(slug: string) {
-    if (!isAuthenticated) {
-      navigate('/auth/login?reason=request-feedback')
-      return
-    }
     navigate(`/request-feedback?company=${slug}`)
+  }
+
+  function handleOpenCompany(slug: string) {
+    navigate(`/company/${slug}`)
   }
 
   return (
@@ -48,7 +50,7 @@ export default function ExplorePage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         <div className="bg-card-bg border border-border rounded-xl p-5 mb-5">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
               <IconCompass size={20} stroke={1.6} />
             </div>
             <div>
@@ -73,7 +75,16 @@ export default function ExplorePage() {
                 return (
                   <div
                     key={company.slug}
-                    className="border border-border rounded-xl p-4 bg-background hover:border-primary-600/30 transition-colors"
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => handleOpenCompany(company.slug)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        handleOpenCompany(company.slug)
+                      }
+                    }}
+                    className="border border-border rounded-xl p-4 bg-background hover:border-primary-600/30 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -89,11 +100,14 @@ export default function ExplorePage() {
                         variant={followed ? 'secondary' : 'default'}
                         size="sm"
                         disabled={followLoading || unfollowLoading}
-                        onClick={() => void handleFollowToggle(company.slug, followed)}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          void handleFollowToggle(company.slug, followed)
+                        }}
                         className={`h-auto shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                           followed
-                            ? 'bg-primary-100 text-primary-600 hover:bg-primary-100/70 border border-primary-600/30'
-                            : 'bg-primary-600 text-white hover:bg-primary-800'
+                            ? 'bg-primary-100 text-base-200 hover:bg-primary-100/70 border border-border'
+                            : ' text-white hover:bg-primary-800'
                         } disabled:opacity-60 disabled:cursor-not-allowed`}
                       >
                         {followed ? 'Unfollow' : 'Follow'}
@@ -106,11 +120,12 @@ export default function ExplorePage() {
                         <span className="font-semibold text-base-200">
                           {(company.followerCount ?? 0).toLocaleString()}
                         </span>
-                        <span>members</span>
+                        <span>Followers</span>
                       </div>
                       <Link
                         to={`/company/${company.slug}`}
-                        className="inline-flex items-center gap-1 text-xs text-primary-600 hover:underline"
+                        className="inline-flex items-center gap-1 text-xs hover:underline"
+                        onClick={(event) => event.stopPropagation()}
                       >
                         View company
                         <IconArrowRight size={12} stroke={1.8} />
@@ -120,9 +135,13 @@ export default function ExplorePage() {
                     <div className="mt-3 flex items-center justify-end">
                       <Button
                         type="button"
+                        variant="secondary"
                         size="sm"
-                        onClick={() => handleOpenRequestForm(company.slug)}
-                        className="h-auto rounded-lg px-3 py-1.5 text-xs font-semibold"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          handleOpenRequestForm(company.slug)
+                        }}
+                        className="h-auto rounded-lg px-3 py-1.5 text-xs font-semibold border border-border text-base-200 hover:bg-border/70"
                       >
                         Provide feedback
                       </Button>

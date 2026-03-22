@@ -1,4 +1,4 @@
-import { useParams, Link, useLocation } from 'react-router-dom'
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { IconMessageCircle, IconArrowLeft, IconPencil } from '@tabler/icons-react'
 import Avatar from '../components/ui/Avatar'
@@ -72,9 +72,12 @@ function wasEdited(createdAt: string, updatedAt: string) {
 export default function RequestDetailPage() {
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
+  const navigate = useNavigate()
   const { isAuthenticated } = useAppSelector((state) => state.auth)
   const [replyDraft, setReplyDraft] = useState('')
-  const [replyVisibility, setReplyVisibility] = useState<'public' | 'anonymous' | null>(null)
+  const [replyVisibility, setReplyVisibility] = useState<'public' | 'anonymous' | null>(
+    isAuthenticated ? null : 'anonymous'
+  )
   const [replyingTo, setReplyingTo] = useState<{ id: number; authorName: string } | null>(null)
   const [replyError, setReplyError] = useState<string | null>(null)
   const [isEditingFeedback, setIsEditingFeedback] = useState(false)
@@ -158,6 +161,12 @@ export default function RequestDetailPage() {
   const displayedUpvotes = voteOverride?.upvotes ?? feedback.upvotes
   const displayedDownvotes = voteOverride?.downvotes ?? feedback.downvotes
   const userVote = voteOverride?.userVote ?? feedback.userVote ?? null
+
+  function handleCompanyClick() {
+    const companySlug = feedback?.company?.slug
+    if (!companySlug) return
+    navigate(`/company/${companySlug}`)
+  }
 
   function beginFeedbackEdit() {
     setFeedbackEditError(null)
@@ -284,13 +293,13 @@ export default function RequestDetailPage() {
       return
     }
 
-    if (!isAuthenticated) {
-      setReplyError('You must be logged in to reply')
+    if (!replyVisibility) {
+      setReplyError('Please choose visibility for your reply')
       return
     }
 
-    if (!replyVisibility) {
-      setReplyError('Please choose visibility for your reply')
+    if (!isAuthenticated && replyVisibility !== 'anonymous') {
+      setReplyError('Please choose anonymous visibility when replying as a guest')
       return
     }
 
@@ -298,11 +307,11 @@ export default function RequestDetailPage() {
       await createReply({
         feedbackId,
         content,
-        visibility: replyVisibility,
+        visibility: isAuthenticated ? replyVisibility : 'anonymous',
         parentReplyId: replyingTo?.id,
       }).unwrap()
       setReplyDraft('')
-      setReplyVisibility(null)
+      setReplyVisibility(isAuthenticated ? null : 'anonymous')
       setReplyingTo(null)
       await refetchReplies()
     } catch {
@@ -481,14 +490,23 @@ export default function RequestDetailPage() {
                 {/* Post Meta */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-sm text-base-100">
-                    <Avatar
-                      name={companyName}
-                      avatar={feedback.company?.logoUrl ?? undefined}
+                    <Button
+                      type="button"
+                      variant="ghost"
                       size="sm"
-                    />
-                    <span className="truncate">
+                      onClick={handleCompanyClick}
+                      className="group inline-flex h-auto cursor-pointer items-center gap-2 rounded px-1 py-0.5 -m-0.5 transition-colors hover:bg-border active:bg-border focus-visible:ring-2 focus-visible:ring-primary-600/40"
+                      aria-label={`Open ${companyName} company page`}
+                    >
+                      <Avatar
+                        name={companyName}
+                        avatar={feedback.company?.logoUrl ?? undefined}
+                        size="sm"
+                      />
                       <span className="font-semibold text-base-200">{companyName}</span>
-                      <span className="mx-1">-</span>
+                    </Button>
+                    <span className="mx-1">-</span>
+                    <span className="text-base-100">
                       requested by{' '}
                       <span className="font-semibold text-base-200">{requesterName}</span>
                     </span>
@@ -654,15 +672,21 @@ export default function RequestDetailPage() {
                         variant="secondary"
                         size="sm"
                         onClick={() => setReplyVisibility('public')}
+                        disabled={!isAuthenticated}
                         className={`rounded-lg border px-3 py-2 text-left text-xs transition-colors ${
                           replyVisibility === 'public'
                             ? 'border-primary-600 bg-primary-100 text-primary-700'
-                            : 'border-border text-base-200 hover:bg-border/50'
+                            : 'border-border text-base-200 hover:bg-border/50 disabled:cursor-not-allowed disabled:opacity-60'
                         }`}
                       >
                         Public
                       </Button>
                     </div>
+                    {!isAuthenticated ? (
+                      <p className="text-xs text-base-100 mt-2">
+                        You are replying as a guest. Only anonymous replies are available.
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex justify-end p-2 bg-card-bg border-t border-border">
                     <Button
@@ -701,14 +725,21 @@ export default function RequestDetailPage() {
               <div className="space-y-4 text-sm">
                 <div>
                   <div className="text-xs text-base-100 mb-1">Company</div>
-                  <div className="font-medium text-base-200 flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCompanyClick}
+                    className="-m-0.5 inline-flex h-auto items-center gap-2 rounded px-1 py-0.5 font-medium text-base-200 transition-colors hover:bg-border active:bg-border"
+                    aria-label={`Open ${companyName} company page`}
+                  >
                     <Avatar
                       name={companyName}
                       avatar={feedback.company?.logoUrl ?? undefined}
                       size="sm"
                     />
                     {companyName}
-                  </div>
+                  </Button>
                 </div>
 
                 <div>

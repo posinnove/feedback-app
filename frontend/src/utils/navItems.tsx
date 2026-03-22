@@ -1,6 +1,6 @@
 import {
   IconHome,
-  IconStar,
+  // IconStar,
   IconCompass,
   IconLayoutKanban,
   // IconList,
@@ -8,7 +8,7 @@ import {
 
 export const NAV_ITEMS = [
   { label: 'Home', path: '/feed', icon: <IconHome size={20} stroke={1.5} /> },
-  { label: 'Popular', path: '/popular', icon: <IconStar size={20} stroke={1.5} /> },
+  // { label: 'Popular', path: '/popular', icon: <IconStar size={20} stroke={1.5} /> },
   { label: 'Explore Companies', path: '/explore', icon: <IconCompass size={20} stroke={1.5} /> },
   // { label: 'All', path: '/all', icon: <IconList size={20} stroke={1.5} /> },
 ]

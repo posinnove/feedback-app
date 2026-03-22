@@ -286,6 +286,8 @@ const companyApi = apiSlice.injectEndpoints({
         { type: 'Company', id: 'LIST' },
         { type: 'Company', id: 'FOLLOWING' },
         { type: 'Company', id: slug },
+        { type: 'AuthUser', id: 'ME' },
+        { type: 'PublicFeed', id: 'LIST' },
       ],
     }),
     unfollowCompany: builder.mutation<FollowCompanyResponse, string>({
@@ -297,6 +299,8 @@ const companyApi = apiSlice.injectEndpoints({
         { type: 'Company', id: 'LIST' },
         { type: 'Company', id: 'FOLLOWING' },
         { type: 'Company', id: slug },
+        { type: 'AuthUser', id: 'ME' },
+        { type: 'PublicFeed', id: 'LIST' },
       ],
     }),
     voteCompanyFeedback: builder.mutation<VoteFeedbackResponse, VoteFeedbackArgs>({
@@ -305,7 +309,12 @@ const companyApi = apiSlice.injectEndpoints({
         method: 'POST',
         body: { direction },
       }),
-      invalidatesTags: (_result, _error, { slug }) => [{ type: 'Company', id: slug }],
+      invalidatesTags: (_result, _error, { slug, feedbackId }) => [
+        { type: 'Company', id: slug },
+        { type: 'Company', id: 'LIST' },
+        { type: 'PublicFeed', id: 'LIST' },
+        { type: 'PublicFeed', id: feedbackId },
+      ],
     }),
     requestCompanyFeedback: builder.mutation<RequestFeedbackResponse, RequestFeedbackArgs>({
       query: ({ slug, feedbackTypeId, title, description, visibility }) => ({
@@ -316,6 +325,7 @@ const companyApi = apiSlice.injectEndpoints({
       invalidatesTags: (_result, _error, { slug }) => [
         { type: 'Company', id: slug },
         { type: 'Company', id: 'LIST' },
+        { type: 'PublicFeed', id: 'LIST' },
       ],
     }),
     getFeedbackTypes: builder.query<FeedbackTypeListResponse, void>({
@@ -326,9 +336,11 @@ const companyApi = apiSlice.injectEndpoints({
         url: '/feedbacks',
         params: { sort },
       }),
+      providesTags: [{ type: 'PublicFeed', id: 'LIST' }],
     }),
     getPublicFeedbackById: builder.query<PublicFeedbackResponse, number>({
       query: (id) => `/feedbacks/${id}`,
+      providesTags: (_result, _error, id) => [{ type: 'PublicFeed', id }],
     }),
     getFeedbackReplies: builder.query<FeedbackRepliesResponse, number>({
       query: (id) => `/feedbacks/${id}/replies`,
@@ -339,6 +351,10 @@ const companyApi = apiSlice.injectEndpoints({
         method: 'POST',
         body: { content, visibility, parentReplyId },
       }),
+      invalidatesTags: (_result, _error, { feedbackId }) => [
+        { type: 'PublicFeed', id: 'LIST' },
+        { type: 'PublicFeed', id: feedbackId },
+      ],
     }),
     updateFeedbackRequest: builder.mutation<
       UpdateFeedbackRequestResponse,
@@ -349,6 +365,10 @@ const companyApi = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { title, description },
       }),
+      invalidatesTags: (_result, _error, { feedbackId }) => [
+        { type: 'PublicFeed', id: 'LIST' },
+        { type: 'PublicFeed', id: feedbackId },
+      ],
     }),
     updateFeedbackReply: builder.mutation<UpdateFeedbackReplyResponse, UpdateFeedbackReplyArgs>({
       query: ({ feedbackId, replyId, content }) => ({
@@ -356,6 +376,10 @@ const companyApi = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { content },
       }),
+      invalidatesTags: (_result, _error, { feedbackId }) => [
+        { type: 'PublicFeed', id: 'LIST' },
+        { type: 'PublicFeed', id: feedbackId },
+      ],
     }),
     voteFeedbackReply: builder.mutation<VoteReplyResponse, VoteReplyArgs>({
       query: ({ feedbackId, replyId, direction }) => ({
@@ -363,6 +387,9 @@ const companyApi = apiSlice.injectEndpoints({
         method: 'POST',
         body: { direction },
       }),
+      invalidatesTags: (_result, _error, { feedbackId }) => [
+        { type: 'PublicFeed', id: feedbackId },
+      ],
     }),
     advancedSearch: builder.query<AdvancedSearchResponse, string>({
       query: (query) => ({
@@ -413,7 +440,11 @@ const companyApi = apiSlice.injectEndpoints({
         method: 'PATCH',
         body: { status },
       }),
-      invalidatesTags: (_result, _error, { slug }) => [{ type: 'Company', id: slug }],
+      invalidatesTags: (_result, _error, { slug, feedbackId }) => [
+        { type: 'Company', id: slug },
+        { type: 'PublicFeed', id: 'LIST' },
+        { type: 'PublicFeed', id: feedbackId },
+      ],
     }),
   }),
 })

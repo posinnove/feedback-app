@@ -16,8 +16,8 @@ export class FeedbackReply extends Model<
   declare id: CreationOptional<number>;
   declare feedbackId: ForeignKey<Feedback['id']>;
   declare parentReplyId: ForeignKey<FeedbackReply['id']> | null;
-  declare authorId: number;
-  declare authorType: AuthEntityType;
+  declare authorId: number | null;
+  declare authorType: AuthEntityType | null;
   declare isAnonymous: CreationOptional<boolean>;
   declare upvotes: CreationOptional<number>;
   declare downvotes: CreationOptional<number>;
@@ -45,12 +45,12 @@ FeedbackReply.init(
     },
     authorId: {
       type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
+      allowNull: true,
       field: 'author_id',
     },
     authorType: {
       type: DataTypes.ENUM('user', 'company'),
-      allowNull: false,
+      allowNull: true,
       field: 'author_type',
     },
     isAnonymous: {

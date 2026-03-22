@@ -164,15 +164,21 @@ export async function advancedSearch(rawQuery: string): Promise<SearchResults> {
   const userAuthorIds = Array.from(
     new Set(
       replies
-        .filter((reply) => reply.authorType === 'user')
-        .map((reply) => reply.authorId),
+        .filter(
+          (reply) => reply.authorType === 'user' && reply.authorId !== null,
+        )
+        .map((reply) => reply.authorId)
+        .filter((id): id is number => id !== null),
     ),
   );
   const companyAuthorIds = Array.from(
     new Set(
       replies
-        .filter((reply) => reply.authorType === 'company')
-        .map((reply) => reply.authorId),
+        .filter(
+          (reply) => reply.authorType === 'company' && reply.authorId !== null,
+        )
+        .map((reply) => reply.authorId)
+        .filter((id): id is number => id !== null),
     ),
   );
 
@@ -249,16 +255,20 @@ export async function advancedSearch(rawQuery: string): Promise<SearchResults> {
           slug: withRelations.feedback.company.slug,
           logoUrl: withRelations.feedback.company.logoUrl,
         },
-        author: withRelations.isAnonymous
-          ? null
-          : {
-              id: withRelations.authorId,
-              type: withRelations.authorType,
-              name:
-                withRelations.authorType === 'user'
-                  ? (userAuthorMap.get(withRelations.authorId) ?? 'User')
-                  : (companyAuthorMap.get(withRelations.authorId) ?? 'Company'),
-            },
+        author:
+          withRelations.isAnonymous ||
+          withRelations.authorId === null ||
+          withRelations.authorType === null
+            ? null
+            : {
+                id: withRelations.authorId,
+                type: withRelations.authorType,
+                name:
+                  withRelations.authorType === 'user'
+                    ? (userAuthorMap.get(withRelations.authorId) ?? 'User')
+                    : (companyAuthorMap.get(withRelations.authorId) ??
+                      'Company'),
+              },
         visibility: withRelations.isAnonymous ? 'anonymous' : 'public',
       };
     }),

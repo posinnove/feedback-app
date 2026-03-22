@@ -18,6 +18,7 @@ export async function getAllCompanies() {
       'id',
       'name',
       'slug',
+      'logoUrl',
       'description',
       [
         literal(
@@ -114,6 +115,7 @@ export async function getFollowedCompanies(
       'id',
       'name',
       'slug',
+      'logoUrl',
       'description',
       [
         literal(
@@ -269,7 +271,7 @@ export async function createFeedbackRequest(
     title: string;
     description?: string;
     feedbackTypeId: number;
-    requesterUserId: number;
+    requesterUserId: number | null;
     isAnonymous: boolean;
   },
 ) {

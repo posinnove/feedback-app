@@ -230,7 +230,7 @@ export async function unifiedGoogleLogin(
         updateData.emailVerificationToken = null;
         updateData.emailVerificationExpires = null;
       }
-      if (!user.avatarUrl && tokenInfo.picture) {
+      if (tokenInfo.picture && user.avatarUrl !== tokenInfo.picture) {
         updateData.avatarUrl = tokenInfo.picture;
       }
       if (Object.keys(updateData).length > 0) {
@@ -294,7 +294,7 @@ export async function unifiedGoogleLogin(
       updateData.emailVerificationToken = null;
       updateData.emailVerificationExpires = null;
     }
-    if (!company.logoUrl && tokenInfo.picture) {
+    if (tokenInfo.picture && company.logoUrl !== tokenInfo.picture) {
       updateData.logoUrl = tokenInfo.picture;
     }
     if (Object.keys(updateData).length > 0) {

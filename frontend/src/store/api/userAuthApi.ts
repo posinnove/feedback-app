@@ -44,6 +44,7 @@ export const userAuthApi = apiSlice.injectEndpoints({
 
     getMeUser: builder.query<AuthUser, void>({
       query: () => '/auth/users/me',
+      providesTags: [{ type: 'AuthUser', id: 'ME' }],
     }),
 
     updateMeUserProfile: builder.mutation<AuthUser, UserProfileUpdateInput>({
@@ -52,6 +53,10 @@ export const userAuthApi = apiSlice.injectEndpoints({
         method: 'PUT',
         body,
       }),
+      invalidatesTags: [
+        { type: 'AuthUser', id: 'ME' },
+        { type: 'PublicFeed', id: 'LIST' },
+      ],
     }),
 
     updateMeUserSettings: builder.mutation<AuthUser, SettingsUpdateInput>({
@@ -60,6 +65,7 @@ export const userAuthApi = apiSlice.injectEndpoints({
         method: 'PUT',
         body,
       }),
+      invalidatesTags: [{ type: 'AuthUser', id: 'ME' }],
     }),
 
     updateMeUserPassword: builder.mutation<{ message: string }, PasswordUpdateInput>({

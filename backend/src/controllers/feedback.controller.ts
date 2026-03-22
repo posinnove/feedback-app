@@ -71,10 +71,6 @@ export async function postReply(req: Request, res: Response) {
     return res.status(400).json({ message: 'Invalid feedback id' });
   }
 
-  if (!req.auth) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
   const content =
     typeof req.body?.content === 'string' ? req.body.content.trim() : '';
   const parentReplyId = Number.parseInt(String(req.body?.parentReplyId), 10);
@@ -105,14 +101,21 @@ export async function postReply(req: Request, res: Response) {
       .json({ message: 'Please choose visibility: anonymous or public' });
   }
 
+  if (!req.auth && visibility !== 'anonymous') {
+    return res.status(400).json({
+      message:
+        'Please choose anonymous visibility when submitting without an account',
+    });
+  }
+
   let reply;
   try {
     reply = await createFeedbackReply(
       id,
-      req.auth.id,
-      req.auth.type,
+      req.auth?.id ?? null,
+      req.auth?.type ?? null,
       content,
-      visibility === 'anonymous',
+      !req.auth || visibility === 'anonymous',
       normalizedParentReplyId,
     );
   } catch (error) {

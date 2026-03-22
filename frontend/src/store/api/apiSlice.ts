@@ -59,6 +59,8 @@ const baseQueryWithErrorHandler = async (args: any, api: any, extraOptions: any)
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithErrorHandler,
-  tagTypes: ['Company', 'AuthUser', 'AuthCompany'],
+  tagTypes: ['Company', 'AuthUser', 'AuthCompany', 'PublicFeed'],
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
   endpoints: () => ({}),
 })

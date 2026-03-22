@@ -19,7 +19,7 @@ const router = Router();
 router.get('/types', getFeedbackTypes);
 router.get('/', optionalAuthenticate, getPublicFeedbacks);
 router.get('/:id/replies', optionalAuthenticate, getReplies);
-router.post('/:id/replies', authenticate, postReply);
+router.post('/:id/replies', optionalAuthenticate, postReply);
 router.patch('/:id/replies/:replyId', authenticate, patchReply);
 router.post('/:id/replies/:replyId/vote', authenticate, voteReply);
 router.patch('/:id', authenticate, patchFeedback);

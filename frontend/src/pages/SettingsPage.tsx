@@ -206,7 +206,7 @@ export default function SettingsPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
         <div className="bg-card-bg border border-border rounded-xl p-5 mb-5">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
               <IconSettings size={22} stroke={1.6} />
             </div>
             <div>
@@ -275,7 +275,7 @@ export default function SettingsPage() {
 
           <div className="border border-border rounded-lg p-3">
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
                 {themeMode === 'dark' ? (
                   <IconMoon size={18} stroke={1.6} />
                 ) : (
@@ -299,7 +299,7 @@ export default function SettingsPage() {
                         onClick={() => handleThemeChange(mode)}
                         className={`h-auto rounded-lg border px-3 py-2 text-sm font-medium capitalize transition-colors ${
                           active
-                            ? 'border-primary-600 bg-primary-100 text-primary-800'
+                            ? 'border-primary-600 bg-primary-100'
                             : 'border-border text-base-200 hover:border-primary-600'
                         }`}
                       >

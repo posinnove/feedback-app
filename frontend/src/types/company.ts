@@ -4,6 +4,7 @@ export interface CompanySummary {
   slug: string
   description?: string | null
   followerCount?: number
+  logoUrl?: string | null
 }
 
 export interface CompanyData {
@@ -25,14 +26,21 @@ export interface CompanyFeedback {
   id: number
   title: string
   description: string | null
+  visibility?: 'public' | 'anonymous'
   feedbackType?: {
     id: number
     name: string
     slug: string
   } | null
+  requester?: {
+    id: number
+    name: string
+  } | null
   status: 'planned' | 'in-progress' | 'completed' | 'under-review' | 'rejected'
   userVote?: 'up' | 'down' | null
   upvotes: number
   downvotes?: number
+  viewCount?: number
+  replyCount?: number
   createdAt: string
 }

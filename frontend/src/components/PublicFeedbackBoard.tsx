@@ -1,12 +1,13 @@
-import { IconFlame, IconClock, IconTrendingUp } from '@tabler/icons-react'
+// import { IconFlame, IconClock, IconTrendingUp } from '@tabler/icons-react'
 import type { Feedback } from '../types/feedback'
 import Avatar from './ui/Avatar'
 import FeedbackCard from './FeedbackCard'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppSelector } from '../store/hooks'
 import { useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
 import { Button } from './ui/button'
+import { useGsapReveal, useGsapStagger } from '../utils/gsapMotion'
 
 function getOptimisticVoteOutcome(
   upvotes: number,
@@ -38,7 +39,6 @@ function getOptimisticVoteOutcome(
 }
 
 export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback[] }) {
-  const [activeTab, setActiveTab] = useState<'trending' | 'new' | 'top'>('new')
   const [voteOverrides, setVoteOverrides] = useState<
     Record<string, { upvotes: number; downvotes: number }>
   >({})
@@ -46,6 +46,11 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
   const [voteFeedback] = useVoteCompanyFeedbackMutation()
   const navigate = useNavigate()
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const listRef = useRef<HTMLDivElement | null>(null)
+  const asideRef = useRef<HTMLElement | null>(null)
+
+  useGsapReveal(rootRef, [], { y: 8, duration: 0.28 })
 
   const boardFeedbacks = useMemo(
     () =>
@@ -58,44 +63,24 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
   )
 
   const sortedFeedbacks = useMemo(() => {
-    const withScore = boardFeedbacks.map((feedback) => {
-      const createdAtMs = feedback.createdAt ? new Date(feedback.createdAt).getTime() : 0
-      const netVotes = feedback.upvotes - (feedback.downvotes ?? 0)
-      const recencySignal = createdAtMs > 0 ? createdAtMs / 1_000_000_000_000 : 0
-      const trendingScore = netVotes * 2 + feedback.comments * 1.5 + recencySignal
-
-      return {
-        feedback,
-        createdAtMs,
-        netVotes,
-        trendingScore,
-      }
+    return [...boardFeedbacks].sort((a, b) => {
+      const aCreatedAtMs = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const bCreatedAtMs = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return bCreatedAtMs - aCreatedAtMs
     })
+  }, [boardFeedbacks])
 
-    if (activeTab === 'new') {
-      return withScore.sort((a, b) => b.createdAtMs - a.createdAtMs).map((item) => item.feedback)
-    }
-
-    if (activeTab === 'top') {
-      return withScore
-        .sort((a, b) => b.netVotes - a.netVotes || b.feedback.upvotes - a.feedback.upvotes)
-        .map((item) => item.feedback)
-    }
-
-    return withScore.sort((a, b) => b.trendingScore - a.trendingScore).map((item) => item.feedback)
-  }, [activeTab, boardFeedbacks])
-
-  const totalUpvotes = boardFeedbacks.reduce((sum, f) => sum + f.upvotes, 0)
-  const totalDownvotes = boardFeedbacks.reduce((sum, f) => sum + (f.downvotes ?? 0), 0)
-  const totalCompanies = useMemo(
-    () =>
-      new Set(
-        boardFeedbacks.flatMap((feedback) =>
-          feedback.reachedTo.map((company) => company.id || company.name.trim())
-        )
-      ).size,
-    [boardFeedbacks]
-  )
+  // const totalUpvotes = boardFeedbacks.reduce((sum, f) => sum + f.upvotes, 0)
+  // const totalDownvotes = boardFeedbacks.reduce((sum, f) => sum + (f.downvotes ?? 0), 0)
+  // const totalCompanies = useMemo(
+  //   () =>
+  //     new Set(
+  //       boardFeedbacks.flatMap((feedback) =>
+  //         feedback.reachedTo.map((company) => company.id || company.name.trim())
+  //       )
+  //     ).size,
+  //   [boardFeedbacks]
+  // )
   const topCompanies = useMemo(
     () =>
       Array.from(
@@ -125,6 +110,18 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
         .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
     [boardFeedbacks]
   )
+
+  useGsapStagger(listRef, '[data-gsap-card]', [sortedFeedbacks.length], {
+    y: 14,
+    duration: 0.34,
+    stagger: 0.045,
+  })
+
+  useGsapStagger(asideRef, '[data-gsap-aside]', [topCompanies.length, boardFeedbacks.length], {
+    y: 10,
+    duration: 0.3,
+    stagger: 0.06,
+  })
 
   const incrementVote = async (feedbackId: string, direction: 'up' | 'down') => {
     if (!isAuthenticated) {
@@ -217,10 +214,10 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
   }
 
   return (
-    <div className="bg-background">
+    <div ref={rootRef} data-gsap-page className="bg-background mx-2">
       <div className="mx-auto w-full px-1 sm:px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-[minmax(0,840px)_320px] lg:justify-center gap-6">
         <main className="min-w-0">
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <div className="flex items-center gap-2 border border-border bg-card-bg px-2 py-2 rounded-xl mb-6 overflow-x-auto shadow-none">
               <Button
                 type="button"
@@ -262,41 +259,46 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                 <IconFlame size={18} stroke={3} /> Trending
               </Button>
             </div>
-          </div>
+          </div> */}
 
-          <div className="flex flex-col gap-4">
+          <div ref={listRef} className="flex flex-col gap-4">
             {sortedFeedbacks.map((f) => (
-              <FeedbackCard
-                key={f.id}
-                feedback={{
-                  id: f.id,
-                  title: f.title,
-                  description: f.description,
-                  authorName: f.author,
-                  feedbackType: f.category,
-                  createdAt: f.createdAt,
-                  upvotes: f.upvotes,
-                  downvotes: f.downvotes,
-                  comments: f.comments,
-                  companyName: f.reachedTo?.[0]?.name || 'a company',
-                  companyAvatar: f.reachedTo?.[0]?.avatar,
-                  status: f.status,
-                }}
-                detailHref={`/request/${f.id}`}
-                discussionHref={`/request/${f.id}#discussions`}
-                shareUrl={`${window.location.origin}/request/${f.id}`}
-                showStatus
-                userVote={voteSelections[f.id] ?? f.userVote ?? null}
-                onUpvote={() => void incrementVote(f.id, 'up')}
-                onDownvote={() => void incrementVote(f.id, 'down')}
-              />
+              <div key={f.id} data-gsap-card>
+                <FeedbackCard
+                  feedback={{
+                    id: f.id,
+                    title: f.title,
+                    description: f.description,
+                    authorName: f.author,
+                    feedbackType: f.category,
+                    createdAt: f.createdAt,
+                    upvotes: f.upvotes,
+                    downvotes: f.downvotes,
+                    comments: f.comments,
+                    companyName: f.reachedTo?.[0]?.name || 'a company',
+                    companyAvatar: f.reachedTo?.[0]?.avatar,
+                    companySlug: f.reachedTo?.[0]?.slug,
+                    status: f.status,
+                  }}
+                  detailHref={`/request/${f.id}`}
+                  discussionHref={`/request/${f.id}#discussions`}
+                  shareUrl={`${window.location.origin}/request/${f.id}`}
+                  showStatus
+                  userVote={voteSelections[f.id] ?? f.userVote ?? null}
+                  onUpvote={() => void incrementVote(f.id, 'up')}
+                  onDownvote={() => void incrementVote(f.id, 'down')}
+                />
+              </div>
             ))}
           </div>
         </main>
 
-        <aside className="hidden lg:block space-y-4">
-          <div className="bg-card-bg border border-border rounded-xl p-5 shadow-none">
-            <h3 className="text-sm font-bold text-base-200 mb-2 uppercase tracking-wider text-[11px]">
+        <aside ref={asideRef} className="hidden lg:block space-y-4">
+          <div
+            data-gsap-aside
+            className="bg-card-bg border border-border rounded-xl p-5 shadow-none"
+          >
+            {/* <h3 className="text-sm font-bold text-base-200 mb-2 uppercase tracking-wider text-[11px]">
               Platform Overview
             </h3>
             <p className="text-sm text-base-100 mb-4 leading-relaxed">
@@ -326,13 +328,16 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                 </div>
                 <div className="text-xs text-base-100">Total Downvotes</div>
               </div>
-            </div>
+            </div> */}
             <Button type="button" onClick={handleRequestFeature} className="w-full">
               Request a Feature
             </Button>
           </div>
 
-          <div className="bg-card-bg border border-border rounded-xl p-5 shadow-none">
+          <div
+            data-gsap-aside
+            className="bg-card-bg border border-border rounded-xl p-5 shadow-none"
+          >
             <h3 className="text-sm font-bold text-base-200 mb-3 uppercase tracking-wider text-[11px]">
               Recent Requests
             </h3>
@@ -354,7 +359,10 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
             </div>
           </div>
 
-          <div className="bg-card-bg border border-border rounded-xl p-5 shadow-none">
+          <div
+            data-gsap-aside
+            className="bg-card-bg border border-border rounded-xl p-5 shadow-none"
+          >
             <h3 className="text-sm font-bold text-base-200 mb-3 uppercase tracking-wider text-[11px]">
               Top Companies
             </h3>

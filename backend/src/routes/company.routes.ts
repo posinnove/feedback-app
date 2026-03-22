@@ -53,8 +53,7 @@ router.post(
   '/:slug/feedback',
   validateSlug,
   resolveCompany,
-  authenticate,
-  requireType('user'),
+  optionalAuthenticate,
   createFeedbackRequest,
 );
 

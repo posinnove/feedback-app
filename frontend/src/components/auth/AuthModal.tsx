@@ -1,7 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { IconBuilding, IconUser, IconEye, IconEyeOff } from '@tabler/icons-react'
 import { useAppDispatch } from '../../store/hooks'
 import { setCredentials } from '../../store/slices/authSlice'
@@ -11,12 +9,12 @@ import {
   extractEntityFromUnifiedResponse,
   type UnifiedLoginResponse,
 } from '../../store/api/authApi'
-import { loginSchema, type LoginInput } from '../../schemas/auth.schema'
-import UserRegisterForm from './UserRegisterForm'
 import CompanyRegisterForm from './CompanyRegisterForm'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
+import { useGsapReveal, useGsapStagger } from '../../utils/gsapMotion'
+import { motionProfile } from '../../utils/motionProfile'
 
 type Mode = 'login' | 'register'
 type RegisterType = 'user' | 'company'
@@ -55,29 +53,49 @@ export default function AuthModal({ open, mode, onClose }: Props) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const [registerType, setRegisterType] = useState<RegisterType>('user')
+  const [registerType, setRegisterType] = useState<RegisterType>('company')
   const [showPassword, setShowPassword] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
   const [signupSuccess, setSignupSuccess] = useState<string | null>(null)
   const [isGoogleApiReady, setIsGoogleApiReady] = useState(false)
+  const [waitingForCompanyDetails, setWaitingForCompanyDetails] = useState(false)
+  const modeRef = useRef<Mode>(mode)
+  const registerTypeRef = useRef<RegisterType>(registerType)
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+
+  useGsapReveal(dialogRef, [open, mode], {
+    y: motionProfile.auth.reveal.y,
+    duration: motionProfile.auth.reveal.duration,
+    enabled: open,
+  })
+
+  useGsapStagger(dialogRef, '[data-gsap-auth-item]', [open, mode, registerType], {
+    y: motionProfile.auth.content.y,
+    duration: motionProfile.auth.content.duration,
+    stagger: motionProfile.auth.content.stagger,
+    delay: motionProfile.auth.content.delay,
+    enabled: open,
+  })
 
   const reason = searchParams.get('reason')
   const reasonMessage = reason ? REASON_COPY[reason] : null
+  const isCompanyDetailsStep =
+    mode === 'register' &&
+    (waitingForCompanyDetails || searchParams.get('companyStep') === 'details')
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-  })
-
-  const [login, { isLoading }] = useLoginMutation()
+  const [login, { isLoading: isEmailLoading }] = useLoginMutation()
   const [googleLogin, { isLoading: isGoogleLoading }] = useGoogleLoginMutation()
-  const isLoginBusy = isSubmitting || isLoading
+  const [companyEmail, setCompanyEmail] = useState('')
+  const [companyPassword, setCompanyPassword] = useState('')
+
+  useEffect(() => {
+    modeRef.current = mode
+  }, [mode])
+
+  useEffect(() => {
+    registerTypeRef.current = registerType
+  }, [registerType])
 
   const handleUnifiedSuccess = useCallback(
     async (response: UnifiedLoginResponse) => {
@@ -89,12 +107,17 @@ export default function AuthModal({ open, mode, onClose }: Props) {
           accessToken: response.accessToken,
         })
       )
-      reset()
       onClose()
       navigate('/feed', { replace: true })
     },
-    [dispatch, navigate, onClose, reset]
+    [dispatch, navigate, onClose]
   )
+
+  const handleCompanyDetailsSuccess = useCallback(() => {
+    setWaitingForCompanyDetails(false)
+    onClose()
+    navigate('/feed', { replace: true })
+  }, [navigate, onClose])
 
   useEffect(() => {
     if (!open) return
@@ -119,15 +142,42 @@ export default function AuthModal({ open, mode, onClose }: Props) {
     [registerType]
   )
 
-  async function onLoginSubmit(values: LoginInput) {
+  async function handleCompanyEmailLogin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setApiError(null)
+
+    if (!companyEmail || !companyPassword) {
+      setApiError('Please enter email and password')
+      return
+    }
+
     try {
-      const response = await login(values).unwrap()
-      await handleUnifiedSuccess(response)
+      const response = await login({ email: companyEmail, password: companyPassword }).unwrap()
+      const entity = extractEntityFromUnifiedResponse(response)
+      dispatch(
+        setCredentials({
+          entity,
+          type: response.type,
+          accessToken: response.accessToken,
+        })
+      )
+      onClose()
+      navigate('/feed', { replace: true })
     } catch (err: unknown) {
       const msg = (err as { data?: { message?: string } })?.data?.message
       setApiError(msg ?? 'Login failed. Please try again.')
     }
+  }
+
+  function handleGoogleButtonClick() {
+    const googleApi = (window as GoogleApiWindow).google?.accounts?.id
+    if (!googleApi) {
+      setApiError('Google sign in is still loading. Please try again.')
+      return
+    }
+
+    setApiError(null)
+    googleApi.prompt()
   }
 
   useEffect(() => {
@@ -151,11 +201,31 @@ export default function AuthModal({ open, mode, onClose }: Props) {
           }
 
           try {
+            const currentMode = modeRef.current
+            const currentRegisterType = registerTypeRef.current
             const result = await googleLogin({
               idToken: response.credential,
-              accountType: mode === 'register' ? registerType : undefined,
+              accountType: currentMode === 'register' ? currentRegisterType : undefined,
             }).unwrap()
-            await handleUnifiedSuccess(result)
+
+            // For company signup via Google, show the company details form
+            if (currentMode === 'register' && currentRegisterType === 'company') {
+              const entity = extractEntityFromUnifiedResponse(result)
+              dispatch(
+                setCredentials({
+                  entity,
+                  type: result.type,
+                  accessToken: result.accessToken,
+                })
+              )
+              setWaitingForCompanyDetails(true)
+              setSignupSuccess(null)
+              const nextParams = new URLSearchParams(searchParams)
+              nextParams.set('companyStep', 'details')
+              navigate(`/auth/register?${nextParams.toString()}`, { replace: true })
+            } else {
+              await handleUnifiedSuccess(result)
+            }
           } catch (err: unknown) {
             const msg = (err as { data?: { message?: string } })?.data?.message
             setApiError(msg ?? 'Google login failed. Please try again.')
@@ -180,23 +250,25 @@ export default function AuthModal({ open, mode, onClose }: Props) {
     script.defer = true
     script.onload = initializeGoogle
     document.head.appendChild(script)
-  }, [open, mode, registerType, googleClientId, googleLogin, handleUnifiedSuccess])
-
-  function handleGoogleButtonClick() {
-    const googleApi = (window as GoogleApiWindow).google?.accounts?.id
-    if (!googleApi) {
-      setApiError('Google sign in is still loading. Please try again.')
-      return
-    }
-
-    setApiError(null)
-    googleApi.prompt()
-  }
+  }, [
+    open,
+    mode,
+    registerType,
+    googleClientId,
+    googleLogin,
+    handleUnifiedSuccess,
+    dispatch,
+    searchParams,
+    navigate,
+  ])
 
   function goToMode(next: Mode) {
     setApiError(null)
     setSignupSuccess(null)
-    const search = searchParams.toString()
+    setWaitingForCompanyDetails(false)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('companyStep')
+    const search = nextParams.toString()
     navigate(`/auth/${next}${search ? `?${search}` : ''}`)
   }
 
@@ -209,8 +281,8 @@ export default function AuthModal({ open, mode, onClose }: Props) {
         }
       }}
     >
-      <DialogContent className="max-h-[92vh] overflow-y-auto custom-scroll">
-        <DialogHeader>
+      <DialogContent ref={dialogRef} className="max-h-[92vh] overflow-y-auto custom-scroll">
+        <DialogHeader data-gsap-auth-item>
           <DialogTitle>Welcome to Voxella</DialogTitle>
           <DialogDescription>
             {reasonMessage ?? 'Join the conversation around product feedback.'}
@@ -218,66 +290,59 @@ export default function AuthModal({ open, mode, onClose }: Props) {
         </DialogHeader>
 
         {apiError && (
-          <div className="mt-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div
+            data-gsap-auth-item
+            className="mt-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
             {apiError}
           </div>
         )}
 
         {mode === 'login' && (
-          <form onSubmit={handleSubmit(onLoginSubmit)} className="mt-5 space-y-4" noValidate>
-            <div>
-              <label className="block text-sm font-medium text-base-200 mb-1.5">Email</label>
-              <Input
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                className={errors.email ? 'border-red-400 focus-visible:ring-red-400' : ''}
-                {...register('email')}
-              />
-              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-base-200 mb-1.5">Password</label>
-              <div className="relative">
+          <div data-gsap-auth-item className="mt-5 space-y-4">
+            <form onSubmit={handleCompanyEmailLogin} className="space-y-4" noValidate>
+              <div>
+                <label className="block text-sm font-medium text-base-200 mb-1.5">Email</label>
                 <Input
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  className={`pr-10 ${errors.password ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
-                  {...register('password')}
+                  type="email"
+                  autoComplete="email"
+                  placeholder="company@example.com"
+                  value={companyEmail}
+                  onChange={(e) => setCompanyEmail(e.target.value)}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-3 h-auto w-auto px-0 py-0 text-base-100 hover:bg-transparent hover:text-base-200"
-                >
-                  {showPassword ? (
-                    <IconEyeOff size={17} stroke={1.5} />
-                  ) : (
-                    <IconEye size={17} stroke={1.5} />
-                  )}
-                </Button>
               </div>
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
-              )}
-              <div className="mt-2 text-right">
-                <Link
-                  to="/auth/forgot-password"
-                  className="text-xs text-primary-600 hover:underline"
-                  onClick={() => onClose()}
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            </div>
 
-            <Button type="submit" disabled={isLoginBusy} className="w-full">
-              {isLoginBusy ? 'Signing in…' : 'Sign in'}
-            </Button>
+              <div>
+                <label className="block text-sm font-medium text-base-200 mb-1.5">Password</label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    value={companyPassword}
+                    onChange={(e) => setCompanyPassword(e.target.value)}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-3 h-auto w-auto px-0 py-0 text-base-100 hover:bg-transparent hover:text-base-200"
+                  >
+                    {showPassword ? (
+                      <IconEyeOff size={17} stroke={1.5} />
+                    ) : (
+                      <IconEye size={17} stroke={1.5} />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <Button type="submit" disabled={isEmailLoading} className="w-full">
+                {isEmailLoading ? 'Signing in…' : 'Sign in'}
+              </Button>
+            </form>
 
             <div className="flex items-center gap-3">
               <div className="h-px bg-border flex-1" />
@@ -304,46 +369,57 @@ export default function AuthModal({ open, mode, onClose }: Props) {
                 variant="ghost"
                 size="sm"
                 onClick={() => goToMode('register')}
-                className="h-auto px-0 py-0 text-primary-600 hover:bg-transparent hover:underline"
+                className="h-auto px-0 py-0 text-primary-400 hover:bg-transparent hover:underline"
               >
                 Sign up
               </Button>
             </p>
-          </form>
+          </div>
         )}
 
         {mode === 'register' && (
-          <div className="mt-5">
-            <div className="mb-5">
-              <label className="block text-xs text-base-100 mb-1.5">Account Type</label>
-              <div className="flex gap-1 bg-sidebar-bg border border-border rounded-xl p-1">
-                {(['user', 'company'] as RegisterType[]).map((type) => (
-                  <Button
-                    key={type}
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setRegisterType(type)
-                      setApiError(null)
-                      setSignupSuccess(null)
-                    }}
-                    className={`h-auto flex-1 py-2 text-sm font-medium transition-colors ${
-                      registerType === type
-                        ? 'bg-card-bg text-primary-600 shadow-sm'
-                        : 'text-base-100 hover:text-base-200'
-                    }`}
-                  >
-                    {type === 'user' ? (
-                      <IconUser size={16} stroke={1.5} />
-                    ) : (
-                      <IconBuilding size={16} stroke={1.5} />
-                    )}
-                    {type === 'user' ? 'Personal' : 'Business'}
-                  </Button>
-                ))}
+          <div data-gsap-auth-item className="mt-5">
+            {!isCompanyDetailsStep && (
+              <div className="mb-5">
+                <label className="block text-xs text-base-100 mb-1.5">Account Type</label>
+                <div className="flex gap-1 bg-sidebar-bg border border-border rounded-xl p-1">
+                  {(['company', 'user'] as RegisterType[]).map((type) => (
+                    <Button
+                      key={type}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setRegisterType(type)
+                        setApiError(null)
+                        setSignupSuccess(null)
+                        setWaitingForCompanyDetails(false)
+                        const nextParams = new URLSearchParams(searchParams)
+                        nextParams.delete('companyStep')
+                        navigate(
+                          `/auth/register${nextParams.toString() ? `?${nextParams.toString()}` : ''}`,
+                          {
+                            replace: true,
+                          }
+                        )
+                      }}
+                      className={`h-auto flex-1 py-2 text-sm font-medium transition-colors ${
+                        registerType === type
+                          ? 'bg-border text-base-300 shadow-sm'
+                          : 'text-base-100 hover:text-base-200'
+                      }`}
+                    >
+                      {type === 'user' ? (
+                        <IconUser size={16} stroke={1.5} />
+                      ) : (
+                        <IconBuilding size={16} stroke={1.5} />
+                      )}
+                      {type === 'user' ? 'Personal' : 'Business'}
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {signupSuccess && (
               <div className="mb-5 rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700">
@@ -351,38 +427,63 @@ export default function AuthModal({ open, mode, onClose }: Props) {
               </div>
             )}
 
-            {!signupSuccess && registerType === 'user' && (
-              <UserRegisterForm
-                onSuccess={setSignupSuccess}
-                onApiError={(message) => setApiError(message || null)}
-              />
-            )}
-
-            {!signupSuccess && registerType === 'company' && (
-              <CompanyRegisterForm
-                onSuccess={setSignupSuccess}
-                onApiError={(message) => setApiError(message || null)}
-              />
+            {!signupSuccess && (registerType === 'company' || isCompanyDetailsStep) && (
+              <>
+                {isCompanyDetailsStep ? (
+                  <CompanyRegisterForm
+                    key="company-google-details"
+                    onSuccess={handleCompanyDetailsSuccess}
+                    onApiError={(message) => setApiError(message || null)}
+                    isGoogleAuth={true}
+                  />
+                ) : (
+                  <CompanyRegisterForm
+                    key="company-email-register"
+                    onSuccess={setSignupSuccess}
+                    onApiError={(message) => setApiError(message || null)}
+                  />
+                )}
+              </>
             )}
 
             {!signupSuccess && (
               <>
-                <div className="flex items-center gap-3 mt-4">
-                  <div className="h-px bg-border flex-1" />
-                  <span className="text-xs text-base-100 uppercase tracking-wide">or</span>
-                  <div className="h-px bg-border flex-1" />
-                </div>
+                {registerType === 'user' && (
+                  <div className="space-y-3">
+                    {googleClientId && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full"
+                        onClick={handleGoogleButtonClick}
+                        disabled={isGoogleLoading || !isGoogleApiReady}
+                      >
+                        {isGoogleLoading ? 'Signing up…' : 'Sign up with Google'}
+                      </Button>
+                    )}
+                  </div>
+                )}
 
-                {googleClientId && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="mt-3 w-full"
-                    onClick={handleGoogleButtonClick}
-                    disabled={isGoogleLoading || !isGoogleApiReady}
-                  >
-                    {isGoogleLoading ? 'Signing in…' : 'Continue with Google'}
-                  </Button>
+                {registerType === 'company' && !isCompanyDetailsStep && (
+                  <>
+                    <div className="flex items-center gap-3 mt-4">
+                      <div className="h-px bg-border flex-1" />
+                      <span className="text-xs text-base-100 uppercase tracking-wide">or</span>
+                      <div className="h-px bg-border flex-1" />
+                    </div>
+
+                    {googleClientId && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="mt-3 w-full"
+                        onClick={handleGoogleButtonClick}
+                        disabled={isGoogleLoading || !isGoogleApiReady}
+                      >
+                        {isGoogleLoading ? 'Signing up…' : 'Continue with Google'}
+                      </Button>
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -401,7 +502,7 @@ export default function AuthModal({ open, mode, onClose }: Props) {
                   variant="ghost"
                   size="sm"
                   onClick={() => goToMode('login')}
-                  className="h-auto px-0 py-0 text-primary-600 hover:bg-transparent hover:underline"
+                  className="h-auto px-0 py-0 text-primary-400 hover:bg-transparent hover:underline"
                 >
                   Sign in
                 </Button>

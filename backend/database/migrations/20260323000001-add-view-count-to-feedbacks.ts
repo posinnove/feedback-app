@@ -1,15 +1,13 @@
-import type { QueryInterface, DataTypes as DT } from 'sequelize';
+import { DataTypes, QueryInterface } from 'sequelize';
 
-module.exports = {
-  up: async (queryInterface: QueryInterface, Sequelize: typeof DT) => {
-    await queryInterface.addColumn('feedbacks', 'view_count', {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-    });
-  },
+export async function up(queryInterface: QueryInterface): Promise<void> {
+  await queryInterface.addColumn('feedbacks', 'view_count', {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  });
+}
 
-  down: async (queryInterface: QueryInterface) => {
-    await queryInterface.removeColumn('feedbacks', 'view_count');
-  },
-};
+export async function down(queryInterface: QueryInterface): Promise<void> {
+  await queryInterface.removeColumn('feedbacks', 'view_count');
+}

@@ -1,60 +1,113 @@
-import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { IconEye, IconEyeOff, IconArrowLeft } from '@tabler/icons-react'
+import { IconArrowLeft } from '@tabler/icons-react'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { setCredentials } from '../../store/slices/authSlice'
-import { useLoginMutation, extractEntityFromUnifiedResponse } from '../../store/api/authApi'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { loginSchema, type LoginInput } from '../../schemas/auth.schema'
+import { useGoogleLoginMutation, extractEntityFromUnifiedResponse } from '../../store/api/authApi'
 import AuthImagePanel from '../../components/auth/AuthImagePanel'
-import { Input } from '../../components/ui/input'
 import { Button } from '../../components/ui/button'
 import signupBg from '../../assets/auth - signup - 1.jpg'
 
-// Types moved to schemas/auth.schema.ts
+interface GoogleIdApi {
+  initialize: (config: {
+    client_id: string
+    callback: (response: { credential?: string }) => void
+  }) => void
+  prompt: () => void
+}
+
+interface GoogleApiWindow extends Window {
+  google?: {
+    accounts?: {
+      id?: GoogleIdApi
+    }
+  }
+}
 
 export default function LoginPage() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
 
-  const [showPassword, setShowPassword] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+  const [isGoogleApiReady, setIsGoogleApiReady] = useState(false)
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-  })
-
-  const [login, { isLoading }] = useLoginMutation()
-  const isBusy = isSubmitting || isLoading
+  const [googleLogin, { isLoading: isGoogleLoading }] = useGoogleLoginMutation()
 
   useEffect(() => {
     if (isAuthenticated) navigate('/', { replace: true })
   }, [isAuthenticated, navigate])
 
-  async function onSubmit(values: LoginInput) {
-    setApiError(null)
-    try {
-      const response = await login(values).unwrap()
-      const entity = extractEntityFromUnifiedResponse(response)
-      dispatch(
-        setCredentials({
-          entity,
-          type: response.type,
-          accessToken: response.accessToken,
-        })
-      )
-      navigate('/', { replace: true })
-    } catch (err: unknown) {
-      const msg = (err as { data?: { message?: string } })?.data?.message
-      setApiError(msg ?? 'Login failed. Please try again.')
+  useEffect(() => {
+    if (!googleClientId) return
+
+    const existingScript = document.querySelector(
+      'script[src="https://accounts.google.com/gsi/client"]'
+    ) as HTMLScriptElement | null
+
+    const initializeGoogle = () => {
+      const googleApi = (window as GoogleApiWindow).google?.accounts?.id
+      if (!googleApi) return
+
+      googleApi.initialize({
+        client_id: googleClientId,
+        callback: async (response: { credential?: string }) => {
+          setApiError(null)
+          if (!response.credential) {
+            setApiError('Google login failed. Please try again.')
+            return
+          }
+
+          try {
+            const result = await googleLogin({
+              idToken: response.credential,
+            }).unwrap()
+            const entity = extractEntityFromUnifiedResponse(result)
+            dispatch(
+              setCredentials({
+                entity,
+                type: result.type,
+                accessToken: result.accessToken,
+              })
+            )
+            navigate('/', { replace: true })
+          } catch (err: unknown) {
+            const msg = (err as { data?: { message?: string } })?.data?.message
+            setApiError(msg ?? 'Google login failed. Please try again.')
+          }
+        },
+      })
+      setIsGoogleApiReady(true)
     }
+
+    if (existingScript) {
+      if ((window as GoogleApiWindow).google?.accounts?.id) {
+        initializeGoogle()
+      } else {
+        existingScript.addEventListener('load', initializeGoogle, { once: true })
+      }
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = initializeGoogle
+    document.head.appendChild(script)
+  }, [googleClientId, googleLogin, dispatch, navigate])
+
+  function handleGoogleButtonClick() {
+    const googleApi = (window as GoogleApiWindow).google?.accounts?.id
+    if (!googleApi) {
+      setApiError('Google sign in is still loading. Please try again.')
+      return
+    }
+
+    setApiError(null)
+    googleApi.prompt()
   }
 
   const panelContent = (
@@ -109,62 +162,20 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-base-200 mb-1.5">Email</label>
-              <Input
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                className={errors.email ? 'border-red-400 focus-visible:ring-red-400' : ''}
-                {...register('email')}
-              />
-              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
-            </div>
-
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium text-base-200 mb-1.5">Password</label>
-              <div className="relative">
-                <Input
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  className={`pr-10 ${errors.password ? 'border-red-400 focus-visible:ring-red-400' : ''}`}
-                  {...register('password')}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowPassword((p) => !p)}
-                  className="absolute inset-y-0 right-3 h-auto w-auto px-0 py-0 text-base-100 hover:bg-transparent hover:text-base-200"
-                >
-                  {showPassword ? (
-                    <IconEyeOff size={17} stroke={1.5} />
-                  ) : (
-                    <IconEye size={17} stroke={1.5} />
-                  )}
-                </Button>
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>
-              )}
-              <div className="mt-2 text-right">
-                <Link
-                  to="/auth/forgot-password"
-                  className="text-xs text-primary-600 hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            </div>
-
-            <Button type="submit" disabled={isBusy} className="w-full">
-              {isBusy ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
+          <div className="space-y-4">
+            {googleClientId && (
+              <Button
+                ref={buttonRef}
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={handleGoogleButtonClick}
+                disabled={isGoogleLoading || !isGoogleApiReady}
+              >
+                {isGoogleLoading ? 'Signing in…' : 'Continue with Google'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

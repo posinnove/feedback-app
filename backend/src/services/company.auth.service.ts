@@ -250,7 +250,29 @@ function toSlug(value: string): string {
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-');
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+async function generateUniqueCompanySlug(baseName: string, excludeId?: number) {
+  const base = toSlug(baseName) || 'company';
+  let slug = base;
+  let suffix = 1;
+
+  while (
+    await Company.findOne({
+      where: {
+        slug,
+        ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
+      },
+    })
+  ) {
+    slug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
 }
 
 export async function updateCompanyProfile(
@@ -271,18 +293,7 @@ export async function updateCompanyProfile(
 
   let slug = company.slug;
   if (data.name.trim() !== company.name) {
-    slug = toSlug(data.name);
-    const slugExists = await Company.findOne({
-      where: {
-        slug,
-        id: { [Op.ne]: id },
-      },
-    });
-    if (slugExists) {
-      throw Object.assign(new Error('Company name is already taken'), {
-        status: 409,
-      });
-    }
+    slug = await generateUniqueCompanySlug(data.name, id);
   }
 
   await company.update({
