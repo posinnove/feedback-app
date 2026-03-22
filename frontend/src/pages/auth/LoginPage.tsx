@@ -35,9 +35,13 @@ export default function LoginPage() {
     const [login, { isLoading }] = useLoginMutation()
     const isBusy = isSubmitting || isLoading
 
+    const userType = useAppSelector((s) => s.auth.type)
+
     useEffect(() => {
-        if (isAuthenticated) navigate('/', { replace: true })
-    }, [isAuthenticated, navigate])
+        if (isAuthenticated) {
+            navigate(userType === 'company' ? '/company/dashboard' : '/', { replace: true })
+        }
+    }, [isAuthenticated, userType, navigate])
 
     async function onSubmit(values: LoginInput) {
         setApiError(null)
@@ -51,7 +55,7 @@ export default function LoginPage() {
                     accessToken: response.accessToken,
                 }),
             )
-            navigate('/', { replace: true })
+            navigate(response.type === 'company' ? '/company/dashboard' : '/', { replace: true })
         } catch (err: unknown) {
             const msg = (err as { data?: { message?: string } })?.data?.message
             setApiError(msg ?? 'Login failed. Please try again.')

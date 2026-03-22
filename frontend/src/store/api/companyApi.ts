@@ -14,7 +14,11 @@ const companyApi = apiSlice.injectEndpoints({
                 { type: 'Company', id: slug },
             ],
         }),
+        getMyFeatures: builder.query<{ features: any[]; totalVoteCount: number }, void>({
+            query: () => '/companies/me/features',
+            providesTags: ['CompanyFeatures'],
+        }),
     }),
 })
 
-export const { useGetCompaniesQuery, useGetCompanyBySlugQuery } = companyApi
+export const { useGetCompaniesQuery, useGetCompanyBySlugQuery, useGetMyFeaturesQuery } = companyApi

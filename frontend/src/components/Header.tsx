@@ -122,12 +122,21 @@ export default function Header({ onMenuToggle, sidebarOpen = false }: HeaderProp
                   <p className="text-sm font-medium text-base-200 truncate">{displayName}</p>
                   <p className="text-xs text-base-100 truncate mt-0.5">{entity.email}</p>
                 </div>
+                {type === 'company' && (
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-gray-50 transition-colors"
+                    onClick={() => { setDropdownOpen(false); navigate('/company/dashboard') }}
+                  >
+                    <IconUser size={16} stroke={1.5} className="text-base-100" />
+                    Dashboard
+                  </button>
+                )}
                 <button
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-gray-50 transition-colors"
-                  onClick={() => { setDropdownOpen(false); navigate(type === 'company' ? '/dashboard' : '/profile') }}
+                  onClick={() => { setDropdownOpen(false); navigate(type === 'company' ? '/company/dashboard/profile' : '/profile') }}
                 >
                   <IconUser size={16} stroke={1.5} className="text-base-100" />
-                  {type === 'company' ? 'Dashboard' : 'Profile'}
+                  Profile
                 </button>
                 <button
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-base-200 hover:bg-gray-50 transition-colors"

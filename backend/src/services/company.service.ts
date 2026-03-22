@@ -28,3 +28,17 @@ export async function findCompanyBySlug(slug: string) {
         ],
     });
 }
+
+export async function getCompanyFeaturesStats(companyId: number) {
+    const features = await Feedback.findAll({
+        where: { companyId },
+        order: [["createdAt", "DESC"]],
+    });
+
+    const totalVoteCount = features.reduce((sum, f) => sum + (f.upvotes || 0), 0);
+
+    return {
+        features,
+        totalVoteCount,
+    };
+}
