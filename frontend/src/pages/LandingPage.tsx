@@ -52,23 +52,23 @@ const features = [
   },
 ]
 
-const showcaseCards = [
-  {
-    title: 'Public Feedback Board',
-    desc: 'Trending requests, voting, and filtering, all in one view.',
-    image: '/images/Screenshot%202026-03-21%20140050.png',
-  },
-  {
-    title: 'Request Discussion',
-    desc: 'Nested replies, visibility controls, and vote actions on every thread.',
-    image: '/images/Screenshot%202026-03-21%20140050.png',
-  },
-  {
-    title: 'Company Workspace',
-    desc: 'Company profile, feedback pipeline, and metrics at a glance.',
-    image: '/images/Screenshot%202026-03-21%20140050.png',
-  },
-]
+// const showcaseCards = [
+//   {
+//     title: 'Public Feedback Board',
+//     desc: 'Trending requests, voting, and filtering, all in one view.',
+//     image: '/images/Screenshot%202026-03-21%20140050.png',
+//   },
+//   {
+//     title: 'Request Discussion',
+//     desc: 'Nested replies, visibility controls, and vote actions on every thread.',
+//     image: '/images/Screenshot%202026-03-21%20140050.png',
+//   },
+//   {
+//     title: 'Company Workspace',
+//     desc: 'Company profile, feedback pipeline, and metrics at a glance.',
+//     image: '/images/Screenshot%202026-03-21%20140050.png',
+//   },
+// ]
 
 const testimonials = [
   {

@@ -206,10 +206,6 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
   }
 
   function handleRequestFeature() {
-    if (!isAuthenticated) {
-      navigate('/auth/login?reason=request-feedback')
-      return
-    }
     navigate('/request-feedback')
   }
 
