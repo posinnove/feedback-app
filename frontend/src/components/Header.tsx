@@ -180,8 +180,9 @@ export default function Header({
     >
       {/* Brand */}
       <div className="shrink-0 w-auto lg:w-[13%]">
-        <Link to="/" className="text-2xl font-bold tracking-tight">
-          VOXELLA
+        <Link to="/" className="flex items-center gap-1">
+          <img src="/images/logo.png" alt="Voxella" className="h-8 w-auto" />
+          <span className="text-2xl font-bold tracking-tight">OXELLA</span>
         </Link>
       </div>
 
