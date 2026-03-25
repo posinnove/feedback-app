@@ -7,6 +7,7 @@ import {
   type PublicFeedbackSort,
   getAllFeedbackTypes,
   voteOnReply,
+  voteOnFeedback,
   updateFeedbackReply,
   updateFeedbackRequest,
 } from '../services/feedback.service.ts';
@@ -22,7 +23,11 @@ export async function getPublicFeedbacks(req: Request, res: Response) {
       : 'trending'
   ) as PublicFeedbackSort;
 
-  const feedbacks = await getPublicFeedbackFeed(sort, req.auth);
+  const feedbacks = await getPublicFeedbackFeed(
+    sort,
+    req.auth,
+    req.auth ? undefined : req.anonFingerprint,
+  );
 
   return res.status(200).json({
     feedbacks,
@@ -40,7 +45,11 @@ export async function getPublicFeedback(req: Request, res: Response) {
     return res.status(400).json({ message: 'Invalid feedback id' });
   }
 
-  const feedback = await getPublicFeedbackById(id, req.auth);
+  const feedback = await getPublicFeedbackById(
+    id,
+    req.auth,
+    req.auth ? undefined : req.anonFingerprint,
+  );
   if (!feedback) {
     return res.status(404).json({ message: 'Feedback not found' });
   }
@@ -60,7 +69,11 @@ export async function getReplies(req: Request, res: Response) {
     return res.status(400).json({ message: 'Invalid feedback id' });
   }
 
-  const replies = await getFeedbackReplies(id, req.auth);
+  const replies = await getFeedbackReplies(
+    id,
+    req.auth,
+    req.auth ? undefined : req.anonFingerprint,
+  );
   return res.status(200).json({ replies });
 }
 
@@ -134,6 +147,42 @@ export async function postReply(req: Request, res: Response) {
   return res.status(201).json({ message: 'Reply posted', reply });
 }
 
+export async function voteFeedback(req: Request, res: Response) {
+  const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = Number.parseInt(rawId, 10);
+  if (!Number.isFinite(id) || id <= 0) {
+    return res.status(400).json({ message: 'Invalid feedback id' });
+  }
+
+  const direction = req.body?.direction as 'up' | 'down' | undefined;
+  if (direction !== 'up' && direction !== 'down') {
+    return res
+      .status(400)
+      .json({ message: 'direction must be either "up" or "down"' });
+  }
+
+  const voter = req.auth
+    ? { type: 'auth' as const, voterId: req.auth.id, voterType: req.auth.type }
+    : { type: 'anon' as const, fingerprint: req.anonFingerprint! };
+
+  const result = await voteOnFeedback(id, direction, voter);
+
+  if (!result) {
+    return res.status(404).json({ message: 'Feedback not found' });
+  }
+
+  return res.status(200).json({
+    message: `${direction === 'up' ? 'Upvote' : 'Downvote'} handled`,
+    action: result.action,
+    userVote: result.userVote,
+    feedback: {
+      id: result.feedback.id,
+      upvotes: result.feedback.upvotes,
+      downvotes: result.feedback.downvotes,
+    },
+  });
+}
+
 export async function voteReply(req: Request, res: Response) {
   const rawFeedbackId = Array.isArray(req.params.id)
     ? req.params.id[0]
@@ -153,10 +202,6 @@ export async function voteReply(req: Request, res: Response) {
     return res.status(400).json({ message: 'Invalid feedback or reply id' });
   }
 
-  if (!req.auth) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
   const direction = req.body?.direction as 'up' | 'down' | undefined;
   if (direction !== 'up' && direction !== 'down') {
     return res
@@ -164,13 +209,11 @@ export async function voteReply(req: Request, res: Response) {
       .json({ message: 'direction must be either "up" or "down"' });
   }
 
-  const voted = await voteOnReply(
-    feedbackId,
-    replyId,
-    direction,
-    req.auth.id,
-    req.auth.type,
-  );
+  const voter = req.auth
+    ? { type: 'auth' as const, voterId: req.auth.id, voterType: req.auth.type }
+    : { type: 'anon' as const, fingerprint: req.anonFingerprint! };
+
+  const voted = await voteOnReply(feedbackId, replyId, direction, voter);
 
   if (!voted) {
     return res.status(404).json({ message: 'Reply not found' });

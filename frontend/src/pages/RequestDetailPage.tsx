@@ -161,9 +161,9 @@ export default function RequestDetailPage() {
   const displayedUpvotes = voteOverride?.upvotes ?? feedback.upvotes
   const displayedDownvotes = voteOverride?.downvotes ?? feedback.downvotes
   const userVote = voteOverride?.userVote ?? feedback.userVote ?? null
+  const companySlug = feedback.company?.slug
 
   function handleCompanyClick() {
-    const companySlug = feedback?.company?.slug
     if (!companySlug) return
     navigate(`/company/${companySlug}`)
   }
@@ -250,10 +250,8 @@ export default function RequestDetailPage() {
     }
   }
 
-  async function handleVote(direction: 'up' | 'down') {
-    if (!feedback) return
-    const companySlug = feedback.company?.slug
-    if (!companySlug) return
+  const handleVote = async (direction: 'up' | 'down') => {
+    if (!feedback || !companySlug) return
 
     const previousOverride = voteOverride
     const currentVote = voteOverride?.userVote ?? feedback.userVote ?? null

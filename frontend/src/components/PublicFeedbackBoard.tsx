@@ -4,7 +4,6 @@ import Avatar from './ui/Avatar'
 import FeedbackCard from './FeedbackCard'
 import { useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAppSelector } from '../store/hooks'
 import { useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
 import { Button } from './ui/button'
 import { useGsapReveal, useGsapStagger } from '../utils/gsapMotion'
@@ -43,7 +42,6 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
     Record<string, { upvotes: number; downvotes: number }>
   >({})
   const [voteSelections, setVoteSelections] = useState<Record<string, 'up' | 'down' | null>>({})
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
   const [voteFeedback] = useVoteCompanyFeedbackMutation()
   const navigate = useNavigate()
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -124,11 +122,6 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
   })
 
   const incrementVote = async (feedbackId: string, direction: 'up' | 'down') => {
-    if (!isAuthenticated) {
-      navigate('/auth/login?reason=vote-feedback')
-      return
-    }
-
     const current = boardFeedbacks.find((feedback) => feedback.id === feedbackId)
     if (!current) return
 

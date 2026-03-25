@@ -304,8 +304,8 @@ const companyApi = apiSlice.injectEndpoints({
       ],
     }),
     voteCompanyFeedback: builder.mutation<VoteFeedbackResponse, VoteFeedbackArgs>({
-      query: ({ slug, feedbackId, direction }) => ({
-        url: `/companies/${slug}/feedback/${feedbackId}/vote`,
+      query: ({ feedbackId, direction }) => ({
+        url: `/feedbacks/${feedbackId}/vote`,
         method: 'POST',
         body: { direction },
       }),

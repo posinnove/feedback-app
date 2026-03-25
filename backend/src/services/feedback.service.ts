@@ -12,6 +12,8 @@ import {
   type ReplyVoteDirection,
 } from '../models/feedback.reply.vote.model.ts';
 import { FeedbackVote } from '../models/feedback.vote.model.ts';
+import { AnonFeedbackVote } from '../models/anon.feedback.vote.model.ts';
+import { AnonReplyVote } from '../models/anon.reply.vote.model.ts';
 import { createNotification } from './notification.service.ts';
 
 export type PublicFeedbackSort = 'trending' | 'new' | 'top' | 'all';
@@ -19,6 +21,7 @@ export type PublicFeedbackSort = 'trending' | 'new' | 'top' | 'all';
 export async function getPublicFeedbackFeed(
   sort: PublicFeedbackSort,
   viewer?: { id: number; type: AuthEntityType },
+  anonFingerprint?: string,
 ) {
   const order: Order =
     sort === 'top'
@@ -91,6 +94,15 @@ export async function getPublicFeedbackFeed(
     voteMap = new Map(
       votes.map((vote) => [vote.feedbackId, vote.direction as 'up' | 'down']),
     );
+  } else if (anonFingerprint && feedbacks.length > 0) {
+    const feedbackIds = feedbacks.map((feedback) => feedback.id);
+    const votes = await AnonFeedbackVote.findAll({
+      where: { feedbackId: feedbackIds, fingerprint: anonFingerprint },
+      attributes: ['feedbackId', 'direction'],
+    });
+    voteMap = new Map(
+      votes.map((vote) => [vote.feedbackId, vote.direction as 'up' | 'down']),
+    );
   }
 
   return feedbacks.map((feedback) => ({
@@ -139,6 +151,7 @@ export async function getPublicFeedbackFeed(
 export async function getPublicFeedbackById(
   feedbackId: number,
   viewer?: { id: number; type: AuthEntityType },
+  anonFingerprint?: string,
 ) {
   const feedback = await Feedback.findByPk(feedbackId, {
     attributes: [
@@ -192,6 +205,12 @@ export async function getPublicFeedbackById(
         voterId: viewer.id,
         voterType: viewer.type,
       },
+      attributes: ['direction'],
+    });
+    userVote = (vote?.direction as 'up' | 'down' | undefined) ?? null;
+  } else if (anonFingerprint) {
+    const vote = await AnonFeedbackVote.findOne({
+      where: { feedbackId, fingerprint: anonFingerprint },
       attributes: ['direction'],
     });
     userVote = (vote?.direction as 'up' | 'down' | undefined) ?? null;
@@ -256,6 +275,7 @@ export async function getAllFeedbackTypes() {
 export async function getFeedbackReplies(
   feedbackId: number,
   viewer?: { id: number; type: AuthEntityType },
+  anonFingerprint?: string,
 ) {
   const replies = await FeedbackReply.findAll({
     where: { feedbackId },
@@ -326,6 +346,15 @@ export async function getFeedbackReplies(
         voterId: viewer.id,
         voterType: viewer.type,
       },
+      attributes: ['replyId', 'direction'],
+    });
+    voteMap = new Map(
+      votes.map((vote) => [vote.replyId, vote.direction as 'up' | 'down']),
+    );
+  } else if (anonFingerprint && replies.length > 0) {
+    const replyIds = replies.map((reply) => reply.id);
+    const votes = await AnonReplyVote.findAll({
+      where: { replyId: replyIds, fingerprint: anonFingerprint },
       attributes: ['replyId', 'direction'],
     });
     voteMap = new Map(
@@ -560,8 +589,9 @@ export async function voteOnReply(
   feedbackId: number,
   replyId: number,
   direction: ReplyVoteDirection,
-  voterId: number,
-  voterType: AuthEntityType,
+  voter:
+    | { type: 'auth'; voterId: number; voterType: AuthEntityType }
+    | { type: 'anon'; fingerprint: string },
 ) {
   return sequelize.transaction(async (transaction) => {
     const reply = await FeedbackReply.findOne({
@@ -575,62 +605,145 @@ export async function voteOnReply(
 
     if (!reply) return null;
 
-    const existingVote = await FeedbackReplyVote.findOne({
-      where: {
-        replyId,
-        voterId,
-        voterType,
-      },
+    let action: 'added' | 'removed' | 'switched' = 'added';
+    let userVote: ReplyVoteDirection | null = direction;
+
+    if (voter.type === 'auth') {
+      const { voterId, voterType } = voter;
+      const existingVote = await FeedbackReplyVote.findOne({
+        where: { replyId, voterId, voterType },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      if (!existingVote) {
+        await FeedbackReplyVote.create(
+          { replyId, voterId, voterType, direction },
+          { transaction },
+        );
+        await reply.increment(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      } else if (existingVote.direction === direction) {
+        action = 'removed';
+        userVote = null;
+        await existingVote.destroy({ transaction });
+        await reply.decrement(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      } else {
+        action = 'switched';
+        const oldDirection = existingVote.direction;
+        await existingVote.update({ direction }, { transaction });
+        await reply.decrement(oldDirection === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+        await reply.increment(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      }
+    } else {
+      const { fingerprint } = voter;
+      const existingVote = await AnonReplyVote.findOne({
+        where: { replyId, fingerprint },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      if (!existingVote) {
+        await AnonReplyVote.create(
+          { replyId, fingerprint, direction },
+          { transaction },
+        );
+        await reply.increment(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      } else if (existingVote.direction === direction) {
+        action = 'removed';
+        userVote = null;
+        await existingVote.destroy({ transaction });
+        await reply.decrement(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      } else {
+        action = 'switched';
+        const oldDirection = existingVote.direction;
+        await existingVote.update({ direction }, { transaction });
+        await reply.decrement(oldDirection === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+        await reply.increment(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      }
+    }
+
+    await reply.reload({ transaction });
+    return { reply, action, userVote };
+  });
+}
+
+// ── Vote on a feedback post (authenticated or anonymous) ─────────────────────
+
+export type FeedbackVoteDirection = 'up' | 'down';
+
+export async function voteOnFeedback(
+  feedbackId: number,
+  direction: FeedbackVoteDirection,
+  voter:
+    | { type: 'auth'; voterId: number; voterType: AuthEntityType }
+    | { type: 'anon'; fingerprint: string },
+) {
+  return sequelize.transaction(async (transaction) => {
+    const feedback = await Feedback.findByPk(feedbackId, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
 
-    let action: 'added' | 'removed' | 'switched' = 'added';
-    let userVote: ReplyVoteDirection | null = direction;
+    if (!feedback) return null;
 
-    if (!existingVote) {
-      await FeedbackReplyVote.create(
-        {
-          replyId,
-          voterId,
-          voterType,
-          direction,
-        },
-        { transaction },
-      );
-      await reply.increment(direction === 'up' ? 'upvotes' : 'downvotes', {
-        by: 1,
+    let action: 'added' | 'removed' | 'switched' = 'added';
+    let userVote: FeedbackVoteDirection | null = direction;
+
+    if (voter.type === 'auth') {
+      const { voterId, voterType } = voter;
+      const existingVote = await FeedbackVote.findOne({
+        where: { feedbackId, voterId, voterType },
         transaction,
+        lock: transaction.LOCK.UPDATE,
       });
-    } else if (existingVote.direction === direction) {
-      action = 'removed';
-      userVote = null;
-      await existingVote.destroy({ transaction });
-      await reply.decrement(direction === 'up' ? 'upvotes' : 'downvotes', {
-        by: 1,
-        transaction,
-      });
+
+      if (!existingVote) {
+        await FeedbackVote.create(
+          { feedbackId, voterId, voterType, direction },
+          { transaction },
+        );
+        await feedback.increment(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      } else if (existingVote.direction === direction) {
+        action = 'removed';
+        userVote = null;
+        await existingVote.destroy({ transaction });
+        await feedback.decrement(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      } else {
+        action = 'switched';
+        const oldDirection = existingVote.direction;
+        await existingVote.update({ direction }, { transaction });
+        await feedback.decrement(oldDirection === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+        await feedback.increment(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      }
     } else {
-      action = 'switched';
-      await existingVote.update({ direction }, { transaction });
-      await reply.decrement(
-        existingVote.direction === 'up' ? 'upvotes' : 'downvotes',
-        {
-          by: 1,
-          transaction,
-        },
-      );
-      await reply.increment(direction === 'up' ? 'upvotes' : 'downvotes', {
-        by: 1,
+      const { fingerprint } = voter;
+      const existingVote = await AnonFeedbackVote.findOne({
+        where: { feedbackId, fingerprint },
         transaction,
+        lock: transaction.LOCK.UPDATE,
       });
+
+      if (!existingVote) {
+        await AnonFeedbackVote.create(
+          { feedbackId, fingerprint, direction },
+          { transaction },
+        );
+        await feedback.increment(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      } else if (existingVote.direction === direction) {
+        action = 'removed';
+        userVote = null;
+        await existingVote.destroy({ transaction });
+        await feedback.decrement(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      } else {
+        action = 'switched';
+        const oldDirection = existingVote.direction;
+        await existingVote.update({ direction }, { transaction });
+        await feedback.decrement(oldDirection === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+        await feedback.increment(direction === 'up' ? 'upvotes' : 'downvotes', { by: 1, transaction });
+      }
     }
 
-    await reply.reload({ transaction });
-    return {
-      reply,
-      action,
-      userVote,
-    };
+    await feedback.reload({ transaction });
+    return { feedback, action, userVote }; 
   });
 }
