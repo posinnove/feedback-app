@@ -41,7 +41,8 @@ export default function AdminCompanies() {
             <tr>
               <th className="px-4 py-3 rounded-tl-lg font-medium">Name</th>
               <th className="px-4 py-3 font-medium">Email</th>
-              <th className="px-4 py-3 font-medium text-center">Verified</th>
+              <th className="px-4 py-3 font-medium text-center">Email Verified</th>
+              <th className="px-4 py-3 font-medium text-center">Approved</th>
               <th className="px-4 py-3 font-medium text-right rounded-tr-lg">Actions</th>
             </tr>
           </thead>
@@ -58,21 +59,30 @@ export default function AdminCompanies() {
                   <td className="px-4 py-3 text-center">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        company.isEmailVerified ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'
+                        company.isEmailVerified ? 'bg-emerald-500/10 text-emerald-600' : 'bg-yellow-500/10 text-yellow-600'
                       }`}
                     >
                       {company.isEmailVerified ? 'Yes' : 'No'}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-center">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                        company.isApproved ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'
+                      }`}
+                    >
+                      {company.isApproved ? 'Approved' : 'Pending'}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 flex items-center justify-end gap-2 text-right">
                     <Button
-                      variant={company.isEmailVerified ? 'secondary' : 'default'}
+                      variant={company.isApproved ? 'secondary' : 'default'}
                       size="sm"
-                      className={company.isEmailVerified ? 'text-xs' : 'text-xs bg-primary-600 hover:bg-primary-700'}
-                      onClick={() => handleToggleVerification(company.id, company.isEmailVerified)}
+                      className={company.isApproved ? 'text-xs' : 'text-xs bg-primary-600 hover:bg-primary-700'}
+                      onClick={() => handleToggleVerification(company.id, company.isApproved)}
                       disabled={loadingId === company.id}
                     >
-                      {company.isEmailVerified ? 'Revoke' : 'Verify'}
+                      {company.isApproved ? 'Revoke' : 'Approve'}
                     </Button>
                     <Button
                       variant="secondary"

@@ -2,6 +2,7 @@ import { Users } from '../models/users.model.ts';
 import { Company } from '../models/company.model.ts';
 import { Feedback } from '../models/feedback.model.ts';
 import { FeedbackReply } from '../models/feedback.reply.model.ts';
+import { sendCompanyApprovalEmail } from '../utils/sendEmail.ts';
 
 export async function getDashboardStats() {
   const [totalUsers, totalCompanies, totalFeedbacks, totalReplies] = await Promise.all([
@@ -16,7 +17,7 @@ export async function getDashboardStats() {
 
 export async function getAllCompaniesForAdmin() {
   return Company.findAll({
-    attributes: ['id', 'name', 'slug', 'email', 'isEmailVerified', 'createdAt'],
+    attributes: ['id', 'name', 'slug', 'email', 'isEmailVerified', 'isApproved', 'createdAt'],
     order: [['createdAt', 'DESC']],
   });
 }
@@ -25,8 +26,16 @@ export async function toggleCompanyVerification(companyId: number, status: boole
   const company = await Company.findByPk(companyId);
   if (!company) throw new Error('Company not found');
   
-  company.isEmailVerified = status;
+  const wasApproved = company.isApproved;
+  company.isApproved = status;
   await company.save();
+
+  if (!wasApproved && status) {
+    // Notify company
+    await sendCompanyApprovalEmail(company.email, company.name)
+      .catch((err) => console.error('Failed to send approval email', err));
+  }
+
   return company;
 }
 

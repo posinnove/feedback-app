@@ -33,6 +33,7 @@ export class Company extends Model<
   declare description: CreationOptional<string | null>;
   declare logoUrl: CreationOptional<string | null>;
   declare isEmailVerified: CreationOptional<boolean>;
+  declare isApproved: CreationOptional<boolean>;
   declare emailVerificationToken: CreationOptional<string | null>;
   declare emailVerificationExpires: CreationOptional<Date | null>;
   declare passwordResetToken: CreationOptional<string | null>;
@@ -97,6 +98,12 @@ Company.init(
       allowNull: false,
       defaultValue: false,
       field: 'is_email_verified',
+    },
+    isApproved: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_approved',
     },
     emailVerificationToken: {
       type: DataTypes.STRING,

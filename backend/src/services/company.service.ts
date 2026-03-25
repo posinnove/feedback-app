@@ -14,6 +14,7 @@ export type VoteDirection = 'up' | 'down';
 
 export async function getAllCompanies() {
   return Company.findAll({
+    where: { isApproved: true },
     attributes: [
       'id',
       'name',
@@ -75,6 +76,18 @@ export async function findCompanyBySlug(
     return null;
   }
 
+  if (!company.isApproved) {
+    if (viewer?.type === 'user') {
+      const { Users } = await import('../models/users.model.ts');
+      const user = await Users.findByPk(viewer.id, { attributes: ['isAdmin'] });
+      if (!user?.isAdmin) {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+
   if (!viewer || !company.feedbacks?.length) {
     return company;
   }
@@ -111,6 +124,7 @@ export async function getFollowedCompanies(
   followerType: AuthEntityType,
 ) {
   return Company.findAll({
+    where: { isApproved: true },
     attributes: [
       'id',
       'name',

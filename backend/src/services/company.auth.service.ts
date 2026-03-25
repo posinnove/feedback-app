@@ -11,7 +11,9 @@ import {
 import {
   sendVerificationEmail,
   sendPasswordResetEmail,
+  sendAdminNewCompanyCreatedEmail,
 } from '../utils/sendEmail.ts';
+import { Users } from '../models/users.model.ts';
 
 // Register
 
@@ -58,6 +60,20 @@ export async function registerCompany(data: {
   });
 
   await sendVerificationEmail(company.email, token, 'company');
+
+  // Notify Admins
+  try {
+    const admins = await Users.findAll({ where: { isAdmin: true }, attributes: ['email'] });
+    if (admins.length > 0) {
+      await sendAdminNewCompanyCreatedEmail(
+        admins.map(a => a.email),
+        company.name,
+        company.email
+      );
+    }
+  } catch (err) {
+    console.error('Failed to send admin notification email', err);
+  }
 
   return { id: company.id, email: company.email, slug: company.slug };
 }

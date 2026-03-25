@@ -91,6 +91,7 @@ export async function advancedSearch(rawQuery: string): Promise<SearchResults> {
           { slug: { [Op.iLike]: pattern } },
           { description: { [Op.iLike]: pattern } },
         ],
+        isApproved: true,
       },
       attributes: ['id', 'name', 'slug', 'description', 'logoUrl'],
       order: [['name', 'ASC']],
@@ -115,6 +116,7 @@ export async function advancedSearch(rawQuery: string): Promise<SearchResults> {
         {
           model: Company,
           as: 'company',
+          where: { isApproved: true },
           attributes: ['id', 'name', 'slug', 'logoUrl'],
           required: true,
         },
@@ -149,6 +151,7 @@ export async function advancedSearch(rawQuery: string): Promise<SearchResults> {
             {
               model: Company,
               as: 'company',
+              where: { isApproved: true },
               attributes: ['id', 'name', 'slug', 'logoUrl'],
               required: true,
             },

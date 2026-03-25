@@ -62,3 +62,55 @@ export async function sendPasswordResetEmail(
         </div>`,
   });
 }
+
+export async function sendCompanyApprovalEmail(
+  to: string,
+  companyName: string,
+): Promise<void> {
+  const loginUrl = `${FRONTEND_URL}/auth/login`;
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: 'Your Voxela Company Account is Approved!',
+    html: `
+        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+          <h2 style="color:#4f46e5;">Welcome to Voxela, ${companyName}! 🎉</h2>
+          <p>Great news! An administrator has reviewed and approved your company profile.</p>
+          <p>Your company is now publicly visible and users can begin submitting feedback.</p>
+          <a href="${loginUrl}"
+             style="display:inline-block;margin:16px 0;padding:12px 24px;background:#4f46e5;
+                    color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">
+            Sign In to Your Dashboard
+          </a>
+        </div>`,
+  });
+}
+
+export async function sendAdminNewCompanyCreatedEmail(
+  adminEmails: string[],
+  companyName: string,
+  companyEmail: string,
+): Promise<void> {
+  const adminUrl = `${FRONTEND_URL}/admin/companies`;
+
+  await transporter.sendMail({
+    from: FROM,
+    to: adminEmails.join(','),
+    subject: 'New Company Registration requires review',
+    html: `
+        <div style="font-family:sans-serif;max-width:560px;margin:0 auto;">
+          <h2 style="color:#4f46e5;">New Company Registration</h2>
+          <p>A new company has just registered and is awaiting approval.</p>
+          <ul>
+            <li><strong>Company Name:</strong> ${companyName}</li>
+            <li><strong>Contact Email:</strong> ${companyEmail}</li>
+          </ul>
+          <a href="${adminUrl}"
+             style="display:inline-block;margin:16px 0;padding:12px 24px;background:#4f46e5;
+                    color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">
+            Review in Admin Dashboard
+          </a>
+        </div>`,
+  });
+}

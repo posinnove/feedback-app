@@ -12,6 +12,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from '../utils/token.ts';
+import { sendAdminNewCompanyCreatedEmail } from '../utils/sendEmail.ts';
 
 interface GoogleTokenInfo {
   email: string;
@@ -289,6 +290,20 @@ export async function unifiedGoogleLogin(
       emailVerificationToken: null,
       emailVerificationExpires: null,
     });
+
+    // Notify Admins
+    try {
+      const admins = await Users.findAll({ where: { isAdmin: true }, attributes: ['email'] });
+      if (admins.length > 0) {
+        await sendAdminNewCompanyCreatedEmail(
+          admins.map(a => a.email),
+          company.name,
+          company.email
+        );
+      }
+    } catch (err) {
+      console.error('Failed to send admin notification email', err);
+    }
   } else {
     const updateData: Partial<Company> = {};
     if (!company.isEmailVerified) {

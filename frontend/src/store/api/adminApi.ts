@@ -13,6 +13,7 @@ export interface AdminCompany {
   slug: string
   email: string
   isEmailVerified: boolean
+  isApproved: boolean
   createdAt: string
 }
 
