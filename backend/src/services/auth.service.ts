@@ -157,6 +157,7 @@ export async function unifiedGoogleLogin(
           avatarUrl: existingUser.avatarUrl,
           phoneNumber: existingUser.phoneNumber,
           themeMode: existingUser.themeMode,
+          isAdmin: existingUser.isAdmin,
         },
       };
     }
@@ -253,6 +254,7 @@ export async function unifiedGoogleLogin(
         avatarUrl: user.avatarUrl,
         phoneNumber: user.phoneNumber,
         themeMode: user.themeMode,
+        isAdmin: user.isAdmin,
       },
     };
   }

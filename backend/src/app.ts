@@ -10,6 +10,7 @@ import notificationRoutes from './routes/notification.routes.ts';
 import userAuthRoutes from './routes/user.auth.routes.ts';
 import companyAuthRoutes from './routes/company.auth.routes.ts';
 import authRoutes from './routes/auth.routes.ts';
+import adminRoutes from './routes/admin.routes.ts';
 import { errorHandler } from './middleware/error.middleware.ts';
 
 const authLimiter = rateLimit({
@@ -53,6 +54,9 @@ app.use('/api/search', searchRoutes);
 
 // Notifications
 app.use('/api/notifications', notificationRoutes);
+
+// Admin
+app.use('/api/admin', adminRoutes);
 
 // Error handling - MUST BE LAST
 app.use(errorHandler);

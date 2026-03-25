@@ -132,6 +132,7 @@ export async function loginUser(email: string, password: string) {
       avatarUrl: user.avatarUrl,
       phoneNumber: user.phoneNumber,
       themeMode: user.themeMode,
+      isAdmin: user.isAdmin,
     },
   };
 }
