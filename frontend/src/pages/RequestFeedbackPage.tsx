@@ -222,7 +222,7 @@ export default function RequestFeedbackPage() {
       setSuccessMessage('Feedback request submitted successfully')
       setTitle('')
       setDescription('')
-      navigate(`/company/${selectedCompanySlug}`)
+      navigate(`/${selectedCompanySlug}`)
     } catch (err: unknown) {
       const message =
         typeof err === 'object' &&

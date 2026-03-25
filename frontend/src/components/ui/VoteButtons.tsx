@@ -1,6 +1,4 @@
 import { IconArrowUp, IconArrowDown } from '@tabler/icons-react'
-import { useAppSelector } from '../../store/hooks'
-import { useGoogleSilentLogin } from '../../hooks/useGoogleSilentLogin'
 import type { MouseEvent } from 'react'
 import { Button } from './button'
 import { cn } from '../../lib/utils'
@@ -20,17 +18,10 @@ export default function VoteButtons({
   onDownvote,
   userVote,
 }: VoteButtonsProps) {
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
-  const triggerSilentLogin = useGoogleSilentLogin()
-
   function handleVote(event: MouseEvent<HTMLButtonElement>, handler?: () => void) {
     event.preventDefault()
     event.stopPropagation()
 
-    if (!isAuthenticated) {
-      triggerSilentLogin()
-      return
-    }
     handler?.()
   }
 

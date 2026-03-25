@@ -153,10 +153,6 @@ export async function voteReply(req: Request, res: Response) {
     return res.status(400).json({ message: 'Invalid feedback or reply id' });
   }
 
-  if (!req.auth) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
   const direction = req.body?.direction as 'up' | 'down' | undefined;
   if (direction !== 'up' && direction !== 'down') {
     return res
@@ -168,8 +164,8 @@ export async function voteReply(req: Request, res: Response) {
     feedbackId,
     replyId,
     direction,
-    req.auth.id,
-    req.auth.type,
+    req.auth?.id,
+    req.auth?.type,
   );
 
   if (!voted) {

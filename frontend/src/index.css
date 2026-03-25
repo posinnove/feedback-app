@@ -244,7 +244,10 @@
 
   /* Card hover mode inversion */
   .card-invert-hover {
-    transition: background-color 0.25s, border-color 0.25s, color 0.25s;
+    transition:
+      background-color 0.25s,
+      border-color 0.25s,
+      color 0.25s;
   }
 
   .card-invert-hover:hover {
@@ -267,40 +270,40 @@
 
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme='light']) .card-invert-hover:hover {
-      background-color: #ffffff;
-      border-color: #e6e6e6;
+      background-color: #1f1f1f;
+      border-color: #3a3a3a;
     }
 
     :root:not([data-theme='light']) .card-invert-hover:hover h3,
     :root:not([data-theme='light']) .card-invert-hover:hover p {
-      color: #111111;
+      color: #f7f7f7;
     }
 
     :root:not([data-theme='light']) .card-invert-hover:hover .icon-adaptive {
-      color: #111111;
+      color: #f7f7f7;
     }
 
     :root:not([data-theme='light']) .card-invert-hover:hover .bg-primary-100 {
-      background-color: #f2f2f2;
+      background-color: #2a2a2a;
     }
   }
 
   :root[data-theme='dark'] .card-invert-hover:hover {
-    background-color: #ffffff;
-    border-color: #e6e6e6;
+    background-color: #1f1f1f;
+    border-color: #3a3a3a;
   }
 
   :root[data-theme='dark'] .card-invert-hover:hover h3,
   :root[data-theme='dark'] .card-invert-hover:hover p {
-    color: #111111;
+    color: #f7f7f7;
   }
 
   :root[data-theme='dark'] .card-invert-hover:hover .icon-adaptive {
-    color: #111111;
+    color: #f7f7f7;
   }
 
   :root[data-theme='dark'] .card-invert-hover:hover .bg-primary-100 {
-    background-color: #f2f2f2;
+    background-color: #2a2a2a;
   }
 
   @keyframes mobileSearchDialogIn {

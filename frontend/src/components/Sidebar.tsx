@@ -87,16 +87,18 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
                 key={item.path}
                 to={item.path}
                 data-gsap-drawer-item
-                className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${isCollapsed ? 'justify-center px-2' : ''} ${
+                className={`group flex items-center rounded-lg text-sm transition-all duration-200 ${
+                  isCollapsed ? 'justify-center p-2 mx-auto w-10 h-10' : 'gap-3 px-3 py-2'
+                } ${
                   isActive ? 'bg-active font-medium' : 'hover:bg-border/50'
                 }`}
                 title={isCollapsed ? item.label : undefined}
               >
-                <span className="transition-transform duration-200 group-hover:translate-x-0.5">
+                <span className={`transition-transform duration-200 ${!isCollapsed && 'group-hover:translate-x-0.5'}`}>
                   {item.icon}
                 </span>
                 {!isCollapsed && (
-                  <span className={`transition-all duration-150`}>{item.label}</span>
+                  <span className="transition-all duration-150">{item.label}</span>
                 )}
               </Link>
             )
@@ -105,18 +107,20 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
             <Link
               to={KANBAN_NAV_ITEM.path}
               data-gsap-drawer-item
-              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${isCollapsed ? 'justify-center px-2' : ''} ${
+              className={`group flex items-center rounded-lg text-sm transition-all duration-200 ${
+                isCollapsed ? 'justify-center p-2 mx-auto w-10 h-10' : 'gap-3 px-3 py-2'
+              } ${
                 location.pathname === KANBAN_NAV_ITEM.path
                   ? 'bg-active font-medium'
                   : 'hover:bg-border/50'
               }`}
               title={isCollapsed ? KANBAN_NAV_ITEM.label : undefined}
             >
-              <span className="transition-transform duration-200 group-hover:translate-x-0.5">
+              <span className={`transition-transform duration-200 ${!isCollapsed && 'group-hover:translate-x-0.5'}`}>
                 {KANBAN_NAV_ITEM.icon}
               </span>
               {!isCollapsed && (
-                <span className={`transition-all duration-150`}>{KANBAN_NAV_ITEM.label}</span>
+                <span className="transition-all duration-150">{KANBAN_NAV_ITEM.label}</span>
               )}
             </Link>
           )}
@@ -126,19 +130,19 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
           <Link
             to="/request-feedback"
             data-gsap-drawer-item
-            className={`group flex items-center gap-3 px-3 py-2 mt-2 rounded-lg text-sm text-base-200 hover:bg-border/50 transition-all duration-200 ${isCollapsed ? 'justify-center px-2' : ''}`}
+            className={`group flex items-center mt-2 rounded-lg text-sm text-base-200 hover:bg-border/50 transition-all duration-200 ${
+              isCollapsed ? 'justify-center p-2 mx-auto w-10 h-10' : 'gap-3 px-3 py-2'
+            }`}
             title={isCollapsed ? 'Provide Feedback' : undefined}
           >
             <IconPlus
               size={20}
               stroke={1.5}
-              className="transition-transform duration-200 group-hover:translate-x-0.5"
+              className={`transition-transform duration-200 ${!isCollapsed && 'group-hover:translate-x-0.5'}`}
             />
-            <span
-              className={`transition-all duration-150 ${isCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100'}`}
-            >
-              Provide Feedback
-            </span>
+            {!isCollapsed && (
+              <span className="transition-all duration-150">Provide Feedback</span>
+            )}
           </Link>
         )}
 
@@ -165,7 +169,7 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
         <div className={`px-3 mt-6 mb-2 shrink-0 ${isCollapsed ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-semibold text-base-100 uppercase tracking-wider">
-              Followed Companies
+              Subscribed Companies
             </h3>
             {/* <button
               className="text-base-100 hover:text-base-200 transition-colors"
@@ -193,7 +197,7 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
               <div className="px-3 py-2 text-xs text-base-100">Loading...</div>
             ) : followedCompanyList.length === 0 ? (
               <div className="px-3 py-2 text-xs text-base-100">
-                No followed companies yet. Visit Explore to follow.
+                No subscribed companies yet. Visit Explore to subscribe.
               </div>
             ) : (
               followedCompanyList.map((company) => (

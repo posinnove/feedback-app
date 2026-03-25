@@ -190,8 +190,8 @@ export async function voteOnFeedback(
   companyId: number,
   feedbackId: number,
   direction: VoteDirection,
-  voterId: number,
-  voterType: AuthEntityType,
+  voterId?: number,
+  voterType?: AuthEntityType,
 ) {
   return sequelize.transaction(async (transaction) => {
     const feedback = await Feedback.findOne({
@@ -204,6 +204,20 @@ export async function voteOnFeedback(
     });
 
     if (!feedback) return null;
+
+    if (!voterId || !voterType) {
+      await feedback.increment(direction === 'up' ? 'upvotes' : 'downvotes', {
+        by: 1,
+        transaction,
+      });
+
+      await feedback.reload({ transaction });
+      return {
+        feedback,
+        action: 'added' as const,
+        userVote: direction,
+      };
+    }
 
     const existingVote = await FeedbackVote.findOne({
       where: {

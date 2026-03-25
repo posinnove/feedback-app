@@ -9,7 +9,7 @@ interface CompanyListItemProps {
 export default function CompanyListItem({ name, slug, logo }: CompanyListItemProps) {
   const initial = name.charAt(0).toUpperCase()
   const location = useLocation()
-  const isActive = location.pathname === `/company/${slug}`
+  const isActive = location.pathname === `/${slug}`
 
   return (
     <div
@@ -17,7 +17,7 @@ export default function CompanyListItem({ name, slug, logo }: CompanyListItemPro
         isActive ? 'bg-active' : 'hover:bg-border/50'
       }`}
     >
-      <Link to={`/company/${slug}`} className="flex items-center gap-3 flex-1 min-w-0">
+      <Link to={`/${slug}`} className="flex items-center gap-3 flex-1 min-w-0">
         {logo ? (
           <img src={logo} alt={name} className="w-6 h-6 rounded-full object-cover" />
         ) : (

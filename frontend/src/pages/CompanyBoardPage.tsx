@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useMemo, useState } from 'react'
-import { IconClock, IconFlame, IconTrendingUp } from '@tabler/icons-react'
+import { IconClock, IconTrendingUp } from '@tabler/icons-react'
 import { useGetCompanyBySlugQuery, useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
 import FeedbackCard from '../components/FeedbackCard'
 import CompanyInfo from '../components/CompanyInfo'
@@ -9,12 +9,15 @@ import EmptyState from '../components/EmptyState'
 import LoadingSpinner from '../components/LoadingSpinner'
 import NotFoundState from '../components/NotFoundState'
 import { Button } from '../components/ui/button'
+import { useAppSelector } from '../store/hooks'
+import { getGuestVote, recordGuestVote, removeGuestVote } from '../utils/guestVotes'
 
 export default function CompanyBoardPage() {
   const { slug } = useParams<{ slug: string }>()
   const { data: company, isLoading, isError } = useGetCompanyBySlugQuery(slug!, { skip: !slug })
   const [activeSort, setActiveSort] = useState<'new' | 'top' | 'trending'>('new')
   const [voteFeedback] = useVoteCompanyFeedbackMutation()
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
   const [voteOverrides, setVoteOverrides] = useState<
     Record<number, { upvotes: number; downvotes: number }>
   >({})
@@ -23,8 +26,43 @@ export default function CompanyBoardPage() {
   async function handleVote(feedbackId: number, direction: 'up' | 'down') {
     if (!slug) return
 
+    const currentFeedback = feedbacks.find((item) => item.id === feedbackId)
+    if (!currentFeedback) return
+
+    if (!isAuthenticated) {
+      const guestVoteKey = `feedback:${feedbackId}`
+      const existingGuestVote = getGuestVote(guestVoteKey)
+      if (existingGuestVote) {
+        const nextUpvotes =
+          existingGuestVote === 'up'
+            ? Math.max(0, currentFeedback.upvotes - 1)
+            : currentFeedback.upvotes
+        const nextDownvotes =
+          existingGuestVote === 'down'
+            ? Math.max(0, (currentFeedback.downvotes ?? 0) - 1)
+            : (currentFeedback.downvotes ?? 0)
+
+        setVoteOverrides((prev) => ({
+          ...prev,
+          [feedbackId]: {
+            upvotes: nextUpvotes,
+            downvotes: nextDownvotes,
+          },
+        }))
+        setUserVotes((prev) => ({
+          ...prev,
+          [feedbackId]: null,
+        }))
+        removeGuestVote(guestVoteKey)
+        return
+      }
+    }
+
     try {
       const result = await voteFeedback({ slug, feedbackId, direction }).unwrap()
+      if (!isAuthenticated) {
+        recordGuestVote(`feedback:${feedbackId}`, direction)
+      }
       setVoteOverrides((prev) => ({
         ...prev,
         [feedbackId]: {
@@ -34,7 +72,7 @@ export default function CompanyBoardPage() {
       }))
       setUserVotes((prev) => ({
         ...prev,
-        [feedbackId]: result.userVote,
+        [feedbackId]: !isAuthenticated ? direction : result.userVote,
       }))
     } catch {
       // Keep UI unchanged on failure; API errors are handled globally by consumers.
@@ -123,7 +161,7 @@ export default function CompanyBoardPage() {
               >
                 <IconTrendingUp size={16} stroke={2} /> Top
               </Button>
-              <Button
+              {/* <Button
                 type="button"
                 variant="ghost"
                 size="sm"
@@ -135,7 +173,7 @@ export default function CompanyBoardPage() {
                 }`}
               >
                 <IconFlame size={16} stroke={2} /> Trending
-              </Button>
+              </Button> */}
             </div>
           </div>
 
@@ -168,9 +206,14 @@ export default function CompanyBoardPage() {
                   }}
                   detailHref={`/request/${feedback.id}`}
                   discussionHref={`/request/${feedback.id}#discussions`}
-                  shareUrl={`${window.location.origin}/company/${slug!}/feedback/${feedback.id}`}
+                  shareUrl={`${window.location.origin}/${slug!}/feedback/${feedback.id}`}
                   showStatus
-                  userVote={userVotes[feedback.id] ?? feedback.userVote ?? null}
+                  userVote={
+                    userVotes[feedback.id] ??
+                    (!isAuthenticated ? getGuestVote(`feedback:${feedback.id}`) : null) ??
+                    feedback.userVote ??
+                    null
+                  }
                   onUpvote={() => void handleVote(feedback.id, 'up')}
                   onDownvote={() => void handleVote(feedback.id, 'down')}
                 />

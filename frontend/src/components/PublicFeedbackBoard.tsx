@@ -4,10 +4,11 @@ import Avatar from './ui/Avatar'
 import FeedbackCard from './FeedbackCard'
 import { useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAppSelector } from '../store/hooks'
 import { useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
 import { Button } from './ui/button'
 import { useGsapReveal, useGsapStagger } from '../utils/gsapMotion'
+import { useAppSelector } from '../store/hooks'
+import { getGuestVote, recordGuestVote, removeGuestVote } from '../utils/guestVotes'
 
 function getOptimisticVoteOutcome(
   upvotes: number,
@@ -43,9 +44,9 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
     Record<string, { upvotes: number; downvotes: number }>
   >({})
   const [voteSelections, setVoteSelections] = useState<Record<string, 'up' | 'down' | null>>({})
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
   const [voteFeedback] = useVoteCompanyFeedbackMutation()
   const navigate = useNavigate()
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const listRef = useRef<HTMLDivElement | null>(null)
   const asideRef = useRef<HTMLElement | null>(null)
@@ -124,17 +125,39 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
   })
 
   const incrementVote = async (feedbackId: string, direction: 'up' | 'down') => {
-    if (!isAuthenticated) {
-      navigate('/auth/login?reason=vote-feedback')
-      return
-    }
-
     const current = boardFeedbacks.find((feedback) => feedback.id === feedbackId)
     if (!current) return
 
     const companySlug = current.reachedTo[0]?.slug
     const numericFeedbackId = Number.parseInt(feedbackId, 10)
     if (!companySlug || !Number.isFinite(numericFeedbackId)) return
+
+    if (!isAuthenticated) {
+      const guestVoteKey = `feedback:${numericFeedbackId}`
+      const existingGuestVote = getGuestVote(guestVoteKey)
+      if (existingGuestVote) {
+        const nextUpvotes =
+          existingGuestVote === 'up' ? Math.max(0, current.upvotes - 1) : current.upvotes
+        const nextDownvotes =
+          existingGuestVote === 'down'
+            ? Math.max(0, (current.downvotes ?? 0) - 1)
+            : (current.downvotes ?? 0)
+
+        setVoteOverrides((prev) => ({
+          ...prev,
+          [feedbackId]: {
+            upvotes: nextUpvotes,
+            downvotes: nextDownvotes,
+          },
+        }))
+        setVoteSelections((prev) => ({
+          ...prev,
+          [feedbackId]: null,
+        }))
+        removeGuestVote(guestVoteKey)
+        return
+      }
+    }
 
     const previousOverride = voteOverrides[feedbackId]
     const previousSelection = voteSelections[feedbackId]
@@ -166,6 +189,10 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
         direction,
       }).unwrap()
 
+      if (!isAuthenticated) {
+        recordGuestVote(`feedback:${numericFeedbackId}`, direction)
+      }
+
       setVoteOverrides((prev) => ({
         ...prev,
         [feedbackId]: {
@@ -176,7 +203,7 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
 
       setVoteSelections((prev) => ({
         ...prev,
-        [feedbackId]: result.userVote,
+        [feedbackId]: !isAuthenticated ? direction : result.userVote,
       }))
 
       return
@@ -213,6 +240,12 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
     <div ref={rootRef} data-gsap-page className="bg-background mx-2">
       <div className="mx-auto w-full px-1 sm:px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-[minmax(0,840px)_320px] lg:justify-center gap-6">
         <main className="min-w-0">
+          <div className="mb-4 lg:hidden">
+            <Button type="button" onClick={handleRequestFeature} className="w-full">
+              Provide Feedback
+            </Button>
+          </div>
+
           {/* <div className="mb-6">
             <div className="flex items-center gap-2 border border-border bg-card-bg px-2 py-2 rounded-xl mb-6 overflow-x-auto shadow-none">
               <Button
@@ -280,7 +313,14 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                   discussionHref={`/request/${f.id}#discussions`}
                   shareUrl={`${window.location.origin}/request/${f.id}`}
                   showStatus
-                  userVote={voteSelections[f.id] ?? f.userVote ?? null}
+                  userVote={
+                    voteSelections[f.id] ??
+                    (!isAuthenticated
+                      ? getGuestVote(`feedback:${Number.parseInt(f.id, 10)}`)
+                      : null) ??
+                    f.userVote ??
+                    null
+                  }
                   onUpvote={() => void incrementVote(f.id, 'up')}
                   onDownvote={() => void incrementVote(f.id, 'down')}
                 />
@@ -326,7 +366,7 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
               </div>
             </div> */}
             <Button type="button" onClick={handleRequestFeature} className="w-full">
-              Request a Feature
+              Provide Feedback
             </Button>
           </div>
 
@@ -335,19 +375,19 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
             className="bg-card-bg border border-border rounded-xl p-5 shadow-none"
           >
             <h3 className="text-sm font-bold text-base-200 mb-3 uppercase tracking-wider text-[11px]">
-              Recent Requests
+              Recent Feedbacks
             </h3>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
               {sortedFeedbacks.slice(0, 3).map((f) => (
                 <Link
                   to={`/request/${f.id}`}
                   key={`recent-${f.id}`}
-                  className="group cursor-pointer"
+                  className="group cursor-pointer rounded-lg px-3 py-1.5 hover:bg-border/40 transition-colors"
                 >
                   <div className="text-xs text-base-100 mb-1">
                     {f.upvotes} upvotes - {f.comments} comments
                   </div>
-                  <h4 className="text-sm font-medium text-base-200 group-hover:text-primary-600 line-clamp-2 leading-snug">
+                  <h4 className="text-sm font-medium text-base-200 group-hover:text-primary-500 line-clamp-2 leading-snug">
                     {f.title}
                   </h4>
                 </Link>
@@ -362,12 +402,12 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
             <h3 className="text-sm font-bold text-base-200 mb-3 uppercase tracking-wider text-[11px]">
               Top Companies
             </h3>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
               {topCompanies.map((company) => (
                 <Link
-                  to={`/company/${company.slug ?? company.name.toLowerCase()}`}
+                  to={`/${company.slug ?? company.name.toLowerCase()}`}
                   key={company.slug ?? company.name}
-                  className="flex items-center gap-3"
+                  className="group flex items-center gap-3 rounded-lg p-2 -mx-2 hover:bg-border/40 transition-colors"
                 >
                   <Avatar name={company.name} avatar={company.avatar} />
                   <div className="flex-1 text-sm font-medium text-base-200">{company.name}</div>

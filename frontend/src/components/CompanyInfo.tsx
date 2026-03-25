@@ -1,6 +1,5 @@
 import type { CompanyData } from '../types/company'
 import { IconWorldWww } from '@tabler/icons-react'
-import ShareButton from './ui/ShareButton'
 
 interface CompanyInfoProps {
   company: CompanyData
@@ -24,19 +23,6 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
 
   return (
     <div className="relative mb-6 rounded-xl border border-border bg-card-bg p-4 sm:p-5">
-      {website ? (
-        <a
-          href={websiteHref}
-          target="_blank"
-          rel="noreferrer"
-          className="absolute right-3 top-3 inline-flex items-center justify-center rounded-md border border-border bg-background p-1.5 text-primary-700 transition-colors hover:border-primary-600/50 hover:bg-background hover:text-primary-600"
-          aria-label={`Open ${company.name} website`}
-          title="Visit website"
-        >
-          <IconWorldWww size={15} stroke={1.9} />
-        </a>
-      ) : null}
-
       <div className="flex items-start gap-3 sm:gap-4">
         <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-100 flex items-center justify-center shrink-0">
           {company.logoUrl ? (
@@ -58,9 +44,34 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
               {company.name}
             </h1>
             {/* Mobile share button — visible only when stats card is hidden */}
-            <div className="lg:hidden shrink-0">
-              <ShareButton size={16} label="" />
+            <div className="lg:hidden shrink-0 flex items-center gap-1.5">
+              {website ? (
+                <a
+                  href={websiteHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-md border border-border bg-card-bg p-1.5 text-primary-500 transition-colors hover:border-primary-600/50 hover:bg-border/40 hover:text-primary-400"
+                  aria-label={`Open ${company.name} website`}
+                  title="Visit website"
+                >
+                  <IconWorldWww size={15} stroke={1.9} />
+                </a>
+              ) : null}
+              {/* <ShareButton size={16} label="" /> */}
             </div>
+            {/* Desktop website icon */}
+            {website ? (
+              <a
+                href={websiteHref}
+                target="_blank"
+                rel="noreferrer"
+                className="hidden lg:inline-flex items-center justify-center rounded-md border border-border bg-card-bg p-1.5 text-primary-500 transition-colors hover:border-primary-600/50 hover:bg-border/40 hover:text-primary-400 shrink-0"
+                aria-label={`Open ${company.name} website`}
+                title="Visit website"
+              >
+                <IconWorldWww size={15} stroke={1.9} />
+              </a>
+            ) : null}
           </div>
 
           {company.description && (
@@ -71,10 +82,10 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
 
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-base-200">
-              {company.feedbacks.length} posts
+              {company.feedbacks.length} Posts
             </span>
             <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-base-200">
-              {followerCount.toLocaleString()} followers
+              {followerCount.toLocaleString()} Subscribers
             </span>
           </div>
         </div>

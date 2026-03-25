@@ -46,7 +46,7 @@ router.post(
   '/:slug/feedback/:feedbackId/vote',
   validateSlug,
   resolveCompany,
-  authenticate,
+  optionalAuthenticate,
   voteOnFeedback,
 );
 router.post(

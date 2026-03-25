@@ -1,12 +1,20 @@
 import { lazy, Suspense, useState, useCallback, useEffect, useRef } from 'react'
-import { Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import {
+  Routes,
+  Route,
+  Outlet,
+  useLocation,
+  useNavigate,
+  Navigate,
+  useParams,
+} from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import LoadingSpinner from './components/LoadingSpinner'
 import { useAppSelector, useAppDispatch } from './store/hooks'
 import { clearCredentials, setAuthError } from './store/slices/authSlice'
 import { useLogoutMutation } from './store/api/authApi'
-import { useGsapStagger } from './utils/gsapMotion'
+import { useGsapReveal } from './utils/gsapMotion'
 import { motionProfile } from './utils/motionProfile'
 import { useGoogleSilentLogin } from './hooks/useGoogleSilentLogin'
 
@@ -36,6 +44,16 @@ function FeedEntryPage() {
   return <PublicFeedPage sort="trending" />
 }
 
+function LegacyCompanyRedirect() {
+  const { slug } = useParams<{ slug: string }>()
+
+  if (!slug) {
+    return <Navigate to="/feed" replace />
+  }
+
+  return <Navigate to={`/${slug}`} replace />
+}
+
 function AppLayout() {
   const dispatch = useAppDispatch()
   const location = useLocation()
@@ -51,10 +69,9 @@ function AppLayout() {
   const inactivityTimeoutRef = useRef<number | null>(null)
   const mainRef = useRef<HTMLElement | null>(null)
 
-  useGsapStagger(mainRef, '[data-gsap-page]', [location.pathname], {
+  useGsapReveal(mainRef, [location.pathname], {
     y: motionProfile.route.y,
     duration: motionProfile.route.duration,
-    stagger: motionProfile.route.stagger,
   })
 
   useEffect(() => {
@@ -154,7 +171,7 @@ function AppLayout() {
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
         />
-        <main ref={mainRef} className={`flex-1 min-h-0 w-full overflow-y-auto custom-scroll`}>
+        <main ref={mainRef} className={`flex-1 min-h-0 w-full overflow-y-auto custom-scroll px-2 lg:px-0`}>
           <Outlet />
         </main>
       </div>
@@ -203,8 +220,9 @@ function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/portal-kanban" element={<CompanyPortalPage />} />
-            <Route path="/company/:slug" element={<CompanyBoardPage />} />
+            <Route path="/company/:slug" element={<LegacyCompanyRedirect />} />
             <Route path="/request/:id" element={<RequestDetailPage />} />
+            <Route path="/:slug" element={<CompanyBoardPage />} />
           </Route>
         </Routes>
       </Suspense>

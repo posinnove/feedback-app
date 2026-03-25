@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   IconBuilding,
   IconMessageCircle,
@@ -24,15 +24,12 @@ function truncate(text: string, length = 120) {
 export default function SearchPage() {
   const [searchParams] = useSearchParams()
   const query = (searchParams.get('q') ?? '').trim()
+
   const normalizedQuery = useMemo(() => query, [query])
 
   const { data, isLoading, isFetching, isError } = useAdvancedSearchQuery(normalizedQuery, {
     skip: normalizedQuery.length < 2,
   })
-
-  if (!normalizedQuery) {
-    return <Navigate to="/feed" replace />
-  }
 
   const totalResults =
     (data?.companies.length ?? 0) + (data?.feedbacks.length ?? 0) + (data?.replies.length ?? 0)
@@ -47,10 +44,12 @@ export default function SearchPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-base-200">Search results</h1>
-              <p className="text-sm text-base-100 mt-1">
-                Query: <span className="font-semibold text-base-200">{normalizedQuery}</span>
-              </p>
-              {!isLoading && !isFetching && !isError ? (
+              {normalizedQuery ? (
+                <p className="text-sm text-base-100 mt-1">
+                  Results for: <span className="font-semibold text-base-200">{normalizedQuery}</span>
+                </p>
+              ) : null}
+              {!isLoading && !isFetching && !isError && normalizedQuery ? (
                 <p className="text-xs text-base-100 mt-1">{totalResults} results found</p>
               ) : null}
             </div>
@@ -88,7 +87,7 @@ export default function SearchPage() {
                   {data.companies.map((company) => (
                     <Link
                       key={company.slug}
-                      to={`/company/${company.slug}`}
+                      to={`/${company.slug}`}
                       className="block border border-border rounded-lg p-3 hover:border-primary-600/40 transition-colors"
                     >
                       <p className="text-sm font-semibold text-base-200">{company.name}</p>

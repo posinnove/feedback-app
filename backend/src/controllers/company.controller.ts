@@ -108,11 +108,6 @@ export async function voteOnFeedback(req: Request, res: Response) {
       return;
     }
 
-    if (!auth) {
-      res.status(401).json({ message: 'Unauthorized' });
-      return;
-    }
-
     if (!Number.isInteger(feedbackId) || feedbackId <= 0) {
       res.status(400).json({ message: 'Invalid feedback id' });
       return;
@@ -129,8 +124,8 @@ export async function voteOnFeedback(req: Request, res: Response) {
       company.id,
       feedbackId,
       direction,
-      auth.id,
-      auth.type,
+      auth?.id,
+      auth?.type,
     );
     if (!feedback) {
       res.status(404).json({ message: 'Feedback not found' });

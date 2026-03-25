@@ -1,11 +1,10 @@
-import { useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   IconArrowRight,
   IconBuilding,
   IconMessageCircle,
   IconTrendingUp,
-  IconShieldCheck,
   IconChartBar,
   IconUsers,
   IconPlus,
@@ -16,7 +15,15 @@ import { Card, CardContent, CardDescription, CardTitle } from '../components/ui/
 import { Badge } from '../components/ui/badge'
 import { Separator } from '../components/ui/separator'
 import { useAppSelector } from '../store/hooks'
-import { useGsapReveal, useGsapStagger } from '../utils/gsapMotion'
+import { useGsapReveal, useGsapScrollReveal, useGsapParallax } from '../utils/gsapMotion'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+function shouldReduceMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
 import { motionProfile } from '../utils/motionProfile'
 
 const features = [
@@ -25,10 +32,10 @@ const features = [
     title: 'Collect Feedback',
     desc: 'Users submit product ideas, report bugs, and discuss them transparently on public boards. Every voice gets heard.',
   },
-  {
-    icon: IconTrendingUp,
-    title: 'Prioritize by Votes',
-    desc: 'Upvotes and downvotes surface what matters most.',
+    {
+    icon: IconChartBar,
+    title: 'Real-time Insights',
+    desc: 'Track feedback trends, vote velocity, and request status across your entire pipeline. Make data-driven decisions with clear visibility into what your users want most.',
   },
   {
     icon: IconBuilding,
@@ -36,14 +43,9 @@ const features = [
     desc: 'Each company gets a dedicated board so teams can respond, triage, and deliver. Organize feedback by status, category, and priority to keep your roadmap aligned with real user needs.',
   },
   {
-    icon: IconShieldCheck,
-    title: 'Secure by Default',
-    desc: 'HttpOnly cookies, rate limiting, and Zod validation protect every request end-to-end.',
-  },
-  {
-    icon: IconChartBar,
-    title: 'Real-time Insights',
-    desc: 'Track feedback trends, vote velocity, and request status across your entire pipeline. Make data-driven decisions with clear visibility into what your users want most.',
+    icon: IconTrendingUp,
+    title: 'Prioritize by Votes',
+    desc: 'Upvotes and downvotes surface what matters most.',
   },
   {
     icon: IconUsers,
@@ -107,6 +109,7 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAppSelector((s) => s.auth)
   const pageRef = useRef<HTMLDivElement | null>(null)
+  const scrollerRef = useRef<HTMLDivElement | null>(null)
 
   const isAuthModalOpen =
     location.pathname === '/auth/login' || location.pathname === '/auth/register'
@@ -117,45 +120,73 @@ export default function LandingPage() {
     duration: motionProfile.route.duration,
   })
 
-  useGsapStagger(pageRef, '[data-gsap-land-section]', [location.pathname], {
-    y: motionProfile.board.cards.y,
-    duration: motionProfile.board.cards.duration,
-    stagger: 0.06,
-    delay: 0.03,
-  })
+  useGsapParallax(pageRef, '[data-gsap-parallax]', { speed: 0.25, scrollerRef })
+  useGsapScrollReveal(pageRef, '[data-gsap-scroll]', { y: 32, duration: 0.65, scrollerRef })
 
-  useGsapStagger(pageRef, '[data-gsap-land-card]', [location.pathname], {
-    y: motionProfile.board.cards.y,
-    duration: motionProfile.board.cards.duration,
-    stagger: motionProfile.board.cards.stagger,
-    delay: 0.08,
-  })
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current
+    if (!scroller || shouldReduceMotion()) return
+
+    const ctx = gsap.context(() => {
+      gsap.to('[data-gsap-hero-content]', {
+        autoAlpha: 0,
+        scale: 0.92,
+        y: -40,
+        ease: 'none',
+        scrollTrigger: {
+          scroller,
+          trigger: '[data-gsap-hero-content]',
+          start: 'top top',
+          end: '+=320',
+          scrub: true,
+        },
+      })
+    })
+
+    return () => ctx.revert()
+  }, [])
 
   function openAuth(mode: 'login' | 'register') {
     navigate(`/auth/${mode}${location.search || ''}`)
   }
 
   return (
-    <div ref={pageRef} className="h-screen overflow-y-auto custom-scroll bg-background">
+    <div ref={(el) => { pageRef.current = el; scrollerRef.current = el }} className="h-screen overflow-y-auto custom-scroll bg-background">
       {/* ── Navbar ── */}
       <header className="sticky top-0 z-50 border-b border-border bg-card-bg/80 backdrop-blur-lg">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-1">
-            <img src="/images/logo.png" alt="Voxella" className="h-8 w-auto" />
-            <span className="text-2xl font-bold logo-adaptive tracking-tight">OXELLA</span>
-          </Link>
+        <div className="mx-auto max-w-7xl h-20 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+          <Link to="/" className="flex items-center">
+  <img src="/images/logo.png" className="h-9 w-auto dark:hidden" />
+  <img src="/images/logo-dark.png" className="h-9 w-auto hidden dark:block" />
+
+  <span className="flex items-center text-2xl font-bold tracking-tight leading-none -translate-x-1">
+    OXELLA
+  </span>
+</Link>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-base-100">
-            <a href="#features" className="hover:text-base-200 transition-colors">
+            <a
+              href="#features"
+              className="hover:text-base-200 hover:-translate-y-0.5 transition-all"
+            >
               Features
             </a>
-            <a href="#showcase" className="hover:text-base-200 transition-colors">
+            <a
+              href="#showcase"
+              className="hover:text-base-200 hover:-translate-y-0.5 transition-all"
+            >
               Product
             </a>
-            <a href="#testimonials" className="hover:text-base-200 transition-colors">
+            <a
+              href="#testimonials"
+              className="hover:text-base-200 hover:-translate-y-0.5 transition-all"
+            >
               Testimonials
             </a>
-            <Link to="/explore" className="hover:text-base-200 transition-colors">
+            <Link
+              to="/feed"
+              className="hover:text-base-200 hover:-translate-y-0.5 transition-all"
+            >
               Explore
             </Link>
           </nav>
@@ -174,7 +205,7 @@ export default function LandingPage() {
                 <Button
                   onClick={() => openAuth('register')}
                   size="sm"
-                  className="px-5 py-2 h-auto rounded-full"
+                  className="px-5 py-2 h-auto"
                 >
                   Get Started
                 </Button>
@@ -183,7 +214,7 @@ export default function LandingPage() {
               <Button
                 onClick={() => navigate('/feed')}
                 size="sm"
-                className="px-5 py-2 h-auto rounded-full"
+                className="px-5 py-2 h-auto"
               >
                 Go to Feed
               </Button>
@@ -194,16 +225,15 @@ export default function LandingPage() {
 
       {/* ── Hero (sticky behind content) ── */}
       <div className="sticky top-0 z-0">
-        <section
-          data-gsap-land-section
-          className="relative overflow-hidden"
-        >
-          <div className="absolute inset-0 -z-10">
-            <div className="absolute top-[-40%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full bg-primary-100/40 blur-3xl" />
-          </div>
+        <section data-gsap-land-section className="relative overflow-hidden">
+            <div data-gsap-parallax className="absolute inset-0 -z-10">
+                <div className="absolute top-[-40%] left-1/2 -translate-x-1/2 w-200 h-200 rounded-full bg-primary-100/40 blur-3xl" />
+              </div>
 
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-16 sm:pb-20 text-center">
-            <Badge className="mx-auto rounded-md px-4 py-2 text-sm">VOXELLA: Open Feedback Platform</Badge>
+          <div data-gsap-hero-content className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pt-20 sm:pt-28 pb-16 sm:pb-20 text-center">
+            <Badge className="mx-auto rounded-md px-4 py-2 text-sm">
+              VOXELLA: Open Feedback Platform
+            </Badge>
 
             <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-base-200">
               Turn customer feedback into
@@ -211,14 +241,14 @@ export default function LandingPage() {
             </h1>
 
             <p className="mt-6 mx-auto max-w-2xl text-base sm:text-lg text-base-100 leading-relaxed">
-              Collect requests, vote on what matters, and keep discussions in one place. Voxella gives
-              users a public board to propose ideas and gives companies a simple workflow to prioritize
-              and ship.
+              Collect requests, vote on what matters, and keep discussions in one place. Voxella
+              gives users a public board to propose ideas and gives companies a simple workflow to
+              prioritize and ship.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <Link to="/feed">
-                <Button className="px-6 py-3 h-auto rounded-full text-base">
+                <Button className="px-6 py-3 h-auto text-base">
                   Explore Public Feed
                   <IconArrowRight size={18} stroke={2} />
                 </Button>
@@ -227,7 +257,7 @@ export default function LandingPage() {
                 <Button
                   variant="secondary"
                   onClick={() => openAuth('register')}
-                  className="px-6 py-3 h-auto rounded-full text-base"
+                  className="px-6 py-3 h-auto text-base"
                 >
                   Add Organization
                   <IconPlus size={18} stroke={2} />
@@ -240,107 +270,111 @@ export default function LandingPage() {
 
       {/* ── Scrolling content (covers the hero) ── */}
       <div className="relative z-10 bg-background rounded-t-3xl -mt-6 shadow-[0_-4px_30px_-12px_rgba(0,0,0,0.06)]">
+        {/* ── Trusted By ── */}
+        <section
+          data-gsap-land-section
+          className="border-y border-border bg-card-bg overflow-hidden"
+        >
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+            <p className="text-center text-xs font-semibold uppercase tracking-widest text-base-100 mb-6">
+              Trusted by teams at
+            </p>
+            <div className="relative">
+              {/* Fade edges */}
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-24 bg-linear-to-r from-card-bg to-transparent z-10" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-24 bg-linear-to-l from-card-bg to-transparent z-10" />
 
-      {/* ── Trusted By ── */}
-      <section data-gsap-land-section className="border-y border-border bg-card-bg overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-          <p className="text-center text-xs font-semibold uppercase tracking-widest text-base-100 mb-6">
-            Trusted by teams at
-          </p>
-          <div className="relative">
-            {/* Fade edges */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-24 bg-gradient-to-r from-card-bg to-transparent z-10" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-24 bg-gradient-to-l from-card-bg to-transparent z-10" />
+              <div className="flex gap-12 sm:gap-16 animate-marquee">
+                {[...trustedLogos, ...trustedLogos].map((logo, i) => (
+                  <div
+                    key={`${logo.name}-${i}`}
+                    className="shrink-0 flex items-center justify-center h-8"
+                  >
+                    <img
+                      src={logo.src}
+                      alt={logo.name}
+                      className="h-6 sm:h-7 w-auto object-contain opacity-40 hover:opacity-70 transition-opacity grayscale"
+                      onError={(e) => {
+                        const target = e.currentTarget
+                        target.style.display = 'none'
+                        const fallback = document.createElement('span')
+                        fallback.className =
+                          'text-base sm:text-lg font-bold tracking-tight text-base-100/40 hover:text-base-100/70 transition-colors select-none'
+                        fallback.textContent = logo.name
+                        target.parentElement?.appendChild(fallback)
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
-            <div className="flex gap-12 sm:gap-16 animate-marquee">
-              {[...trustedLogos, ...trustedLogos].map((logo, i) => (
-                <div
-                  key={`${logo.name}-${i}`}
-                  className="flex-shrink-0 flex items-center justify-center h-8"
-                >
-                  <img
-                    src={logo.src}
-                    alt={logo.name}
-                    className="h-6 sm:h-7 w-auto object-contain opacity-40 hover:opacity-70 transition-opacity grayscale"
-                    onError={(e) => {
-                      const target = e.currentTarget
-                      target.style.display = 'none'
-                      const fallback = document.createElement('span')
-                      fallback.className = 'text-base sm:text-lg font-bold tracking-tight text-base-100/40 hover:text-base-100/70 transition-colors select-none'
-                      fallback.textContent = logo.name
-                      target.parentElement?.appendChild(fallback)
-                    }}
-                  />
-                </div>
+        {/* ── Features ── */}
+        <section
+          id="features"
+          data-gsap-land-section
+          className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24"
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-base-200">
+              Everything you need to manage feedback
+            </h2>
+            <p className="mt-3 mx-auto max-w-xl text-sm sm:text-base text-base-100">
+              From collection to prioritization, a complete toolkit for product teams and their
+              users.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            {/* Row 1 — 1 card centered */}
+            <div className="flex justify-center">
+              <Card data-gsap-land-card className="max-w-2xl text-center card-invert-hover">
+                <CardContent className="p-5">
+                  <div className="h-9 w-9 rounded-lg bg-primary-100 flex items-center justify-center mb-3 mx-auto">
+                    <IconMessageCircle size={18} stroke={1.8} className="icon-adaptive" />
+                  </div>
+                  <CardTitle>{features[0].title}</CardTitle>
+                  <CardDescription className="mt-1.5">{features[0].desc}</CardDescription>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Row 2 — 3 cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {features.slice(1, 3).map((f) => (
+                <Card key={f.title} data-gsap-scroll className="text-center card-invert-hover">
+                  <CardContent className="p-5">
+                    <div className="h-9 w-9 rounded-lg bg-primary-100 flex items-center justify-center mb-3 mx-auto">
+                      <f.icon size={18} stroke={1.8} className="icon-adaptive" />
+                    </div>
+                    <CardTitle>{f.title}</CardTitle>
+                    <CardDescription className="mt-1.5">{f.desc}</CardDescription>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Row 3 — 2 cards centered */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-5xl mx-auto w-full">
+              {features.slice(3).map((f) => (
+                <Card key={f.title} data-gsap-scroll className="text-center card-invert-hover">
+                  <CardContent className="p-5">
+                    <div className="h-9 w-9 rounded-lg bg-primary-100 flex items-center justify-center mb-3 mx-auto">
+                      <f.icon size={18} stroke={1.8} className="icon-adaptive" />
+                    </div>
+                    <CardTitle>{f.title}</CardTitle>
+                    <CardDescription className="mt-1.5">{f.desc}</CardDescription>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Features ── */}
-      <section
-        id="features"
-        data-gsap-land-section
-        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24"
-      >
-        <div className="text-center mb-12">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-base-200">
-            Everything you need to manage feedback
-          </h2>
-          <p className="mt-3 mx-auto max-w-xl text-sm sm:text-base text-base-100">
-            From collection to prioritization, a complete toolkit for product teams and their users.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-6">
-          {/* Row 1 — 1 card centered */}
-          <div className="flex justify-center">
-            <Card data-gsap-land-card className="max-w-2xl text-center card-invert-hover">
-              <CardContent className="p-5">
-                <div className="h-9 w-9 rounded-lg bg-primary-100 flex items-center justify-center mb-3 mx-auto">
-                  <IconMessageCircle size={18} stroke={1.8} className="icon-adaptive" />
-                </div>
-                <CardTitle>{features[0].title}</CardTitle>
-                <CardDescription className="mt-1.5">{features[0].desc}</CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Row 2 — 3 cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {features.slice(1, 4).map((f) => (
-              <Card key={f.title} data-gsap-land-card className="text-center card-invert-hover">
-                <CardContent className="p-5">
-                  <div className="h-9 w-9 rounded-lg bg-primary-100 flex items-center justify-center mb-3 mx-auto">
-                    <f.icon size={18} stroke={1.8} className="icon-adaptive" />
-                  </div>
-                  <CardTitle>{f.title}</CardTitle>
-                  <CardDescription className="mt-1.5">{f.desc}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Row 3 — 2 cards centered */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-5xl mx-auto w-full">
-            {features.slice(4).map((f) => (
-              <Card key={f.title} data-gsap-land-card className="text-center card-invert-hover">
-                <CardContent className="p-5">
-                  <div className="h-9 w-9 rounded-lg bg-primary-100 flex items-center justify-center mb-3 mx-auto">
-                    <f.icon size={18} stroke={1.8} className="icon-adaptive" />
-                  </div>
-                  <CardTitle>{f.title}</CardTitle>
-                  <CardDescription className="mt-1.5">{f.desc}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Showcase (hidden) ── */}
-      {/* <section
+        {/* ── Showcase (hidden) ── */}
+        {/* <section
         id="showcase"
         data-gsap-land-section
         className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24"
@@ -370,145 +404,146 @@ export default function LandingPage() {
         </div>
       </section> */}
 
-      {/* ── Testimonials ── */}
-      <section
-        id="testimonials"
-        data-gsap-land-section
-        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24"
-      >
-        <div className="text-center mb-10">
-          <Badge>Testimonials</Badge>
-          <h2 className="mt-4 text-2xl sm:text-3xl font-extrabold text-base-200">
-            Trusted by product teams
-          </h2>
-        </div>
+        {/* ── Testimonials ── */}
+        <section
+          id="testimonials"
+          data-gsap-land-section
+          className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24"
+        >
+          <div className="text-center mb-10">
+            <Badge>Testimonials</Badge>
+            <h2 className="mt-4 text-2xl sm:text-3xl font-extrabold text-base-200">
+              Trusted by product teams
+            </h2>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {testimonials.map((item) => (
-            <Card
-              key={item.name}
-              data-gsap-land-card
-              className="group hover:border-base-100/30 transition-colors"
-            >
-              <CardContent className="p-5 flex flex-col justify-between h-full">
-                <p className="text-sm text-base-200 leading-relaxed italic">"{item.quote}"</p>
-                <div className="mt-5">
-                  <Separator />
-                  <p className="text-sm font-semibold text-base-200 mt-4">{item.name}</p>
-                  <p className="text-xs text-base-100 mt-0.5">{item.role}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CTA Band ── */}
-      <section data-gsap-land-section className="border-y border-border bg-card-bg">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 text-center">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-base-200">
-            Ready to build what your users actually want?
-          </h2>
-          <p className="mt-4 text-sm sm:text-base text-base-100 max-w-lg mx-auto">
-            Join hundreds of companies using Voxella to collect, prioritize, and act on product
-            feedback.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            {!isAuthenticated ? (
-              <Button
-                onClick={() => openAuth('register')}
-                className="px-6 py-3 h-auto rounded-full text-base"
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {testimonials.map((item) => (
+              <Card
+                key={item.name}
+                data-gsap-scroll
+                className="group hover:border-base-100/30 hover:bg-border/20 transition-colors"
               >
-                Get Started, It's Free
-                <IconArrowRight size={18} stroke={2} />
-              </Button>
-            ) : (
-              <Link to="/feed">
-                <Button className="px-6 py-3 h-auto rounded-full text-base">
-                  Go to Feed
+                <CardContent className="p-5 flex flex-col justify-between h-full">
+                  <p className="text-sm text-base-200 leading-relaxed italic">"{item.quote}"</p>
+                  <div className="mt-5">
+                    <Separator />
+                    <p className="text-sm font-semibold text-base-200 mt-4">{item.name}</p>
+                    <p className="text-xs text-base-100 mt-0.5">{item.role}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* ── CTA Band ── */}
+        <section data-gsap-land-section className="border-y border-border bg-card-bg">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20 text-center">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-base-200">
+              Ready to build what your users actually want?
+            </h2>
+            <p className="mt-4 text-sm sm:text-base text-base-100 max-w-lg mx-auto">
+              Join hundreds of companies using Voxella to collect, prioritize, and act on product
+              feedback.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              {!isAuthenticated ? (
+                <Button
+                  onClick={() => openAuth('register')}
+                  className="px-6 py-3 h-auto text-base"
+                >
+                  Get Started, It's Free
                   <IconArrowRight size={18} stroke={2} />
                 </Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Footer ── */}
-      <footer data-gsap-land-section className="bg-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-1">
-                <img src="/images/logo.png" alt="Voxella" className="h-7 w-auto" />
-                <span className="text-lg font-extrabold tracking-tight">OXELLA</span>
-              </div>
-              <p className="mt-2 text-xs text-base-100 max-w-55 leading-relaxed">
-                Product feedback infrastructure for transparent decisions and faster delivery.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-base-200">
-                Product
-              </h3>
-              <div className="mt-3 flex flex-col gap-2 text-xs text-base-100">
-                <Link to="/feed" className="hover:text-base-200 transition-colors">
-                  Public Feed
+              ) : (
+                <Link to="/feed">
+                  <Button className="px-6 py-3 h-auto text-base">
+                    Go to Feed
+                    <IconArrowRight size={18} stroke={2} />
+                  </Button>
                 </Link>
-                <Link to="/popular" className="hover:text-base-200 transition-colors">
-                  Popular
-                </Link>
-                <Link to="/explore" className="hover:text-base-200 transition-colors">
-                  Explore Companies
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-base-200">
-                Account
-              </h3>
-              <div className="mt-3 flex flex-col gap-2 text-xs text-base-100">
-                <Link to="/auth/register" className="hover:text-base-200 transition-colors">
-                  Create Account
-                </Link>
-                <Link to="/auth/login" className="hover:text-base-200 transition-colors">
-                  Sign In
-                </Link>
-                <Link to="/request-feedback" className="hover:text-base-200 transition-colors">
-                  Request Feedback
-                </Link>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-base-200">
-                Contact
-              </h3>
-              <div className="mt-3 flex flex-col gap-2 text-xs text-base-100">
-                <a
-                  href="mailto:contact@voxella.app"
-                  className="hover:text-base-200 transition-colors"
-                >
-                  contact@voxella.app
-                </a>
-                <a href="tel:+250787524308" className="hover:text-base-200 transition-colors">
-                  +250 787 524 308
-                </a>
-                <p>Kigali, Rwanda</p>
-              </div>
+              )}
             </div>
           </div>
+        </section>
 
-          <div className="mt-10 pt-5 border-t border-border text-xs text-base-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <p>Voxella, Inc. © {new Date().getFullYear()}. All rights reserved.</p>
-            <p>Built for community-driven product decisions.</p>
+        {/* ── Footer ── */}
+        <footer data-gsap-land-section className="bg-background">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="col-span-2 md:col-span-1">
+                <div className="flex items-center gap-0.5">
+                  <img src="/images/logo.png" alt="Voxella" className="h-7 w-auto dark:hidden" />
+                  <img src="/images/logo-dark.png" alt="Voxella" className="h-7 w-auto hidden dark:block" />
+                  <span className="text-lg font-extrabold tracking-tight">OXELLA</span>
+                </div>
+                <p className="mt-2 text-xs text-base-100 max-w-55 leading-relaxed">
+                  Product feedback infrastructure for transparent decisions and faster delivery.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-base-200">
+                  Product
+                </h3>
+                <div className="mt-3 flex flex-col gap-2 text-xs text-base-100">
+                  <Link to="/feed" className="hover:text-base-200 transition-colors">
+                    Public Feed
+                  </Link>
+                  <Link to="/popular" className="hover:text-base-200 transition-colors">
+                    Popular
+                  </Link>
+                  <Link to="/explore" className="hover:text-base-200 transition-colors">
+                    Explore Companies
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-base-200">
+                  Account
+                </h3>
+                <div className="mt-3 flex flex-col gap-2 text-xs text-base-100">
+                  <Link to="/auth/register" className="hover:text-base-200 transition-colors">
+                    Create Account
+                  </Link>
+                  <Link to="/auth/login" className="hover:text-base-200 transition-colors">
+                    Sign In
+                  </Link>
+                  <Link to="/request-feedback" className="hover:text-base-200 transition-colors">
+                    Request Feedback
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-base-200">
+                  Contact
+                </h3>
+                <div className="mt-3 flex flex-col gap-2 text-xs text-base-100">
+                  <a
+                    href="mailto:contact@voxella.app"
+                    className="hover:text-base-200 transition-colors"
+                  >
+                    contact@voxella.app
+                  </a>
+                  <a href="tel:+250787524308" className="hover:text-base-200 transition-colors">
+                    +250 787 524 308
+                  </a>
+                  <p>Kigali, Rwanda</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-10 pt-5 border-t border-border text-xs text-base-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <p>Voxella, Inc. © {new Date().getFullYear()}. All rights reserved.</p>
+              <p>Built for community-driven product decisions.</p>
+            </div>
           </div>
-        </div>
-      </footer>
-
-      </div>{/* end scrolling content wrapper */}
+        </footer>
+      </div>
+      {/* end scrolling content wrapper */}
 
       <AuthModal open={isAuthModalOpen} mode={authMode} onClose={() => navigate('/')} />
     </div>

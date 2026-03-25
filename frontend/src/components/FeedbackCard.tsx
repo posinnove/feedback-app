@@ -62,7 +62,7 @@ export default function FeedbackCard({
 
     event.preventDefault()
     event.stopPropagation()
-    navigate(`/company/${companySlug}`)
+    navigate(`/${companySlug}`)
   }
 
   const content = (

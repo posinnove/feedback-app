@@ -150,11 +150,11 @@ export default function CompanyPortalPage() {
                           draggable
                           onDragStart={() => handleDragStart(feedback.id)}
                           onDragEnd={handleDragEnd}
-                          className={`border border-border rounded-lg p-3 bg-background cursor-move transition-opacity ${draggedFeedbackId === feedback.id ? 'opacity-50' : 'hover:bg-border/20'}`}
+                          className={`border border-border rounded-lg p-3 bg-background cursor-move transition-all ${draggedFeedbackId === feedback.id ? 'opacity-50' : 'hover:border-border/60 hover:bg-card-bg'}`}
                         >
                           <Link
                             to={`/request/${feedback.id}`}
-                            className="text-sm font-semibold text-base-200 hover:text-primary-600 line-clamp-2"
+                            className="text-sm font-semibold text-base-200 hover:text-primary-400 line-clamp-2"
                           >
                             {feedback.title}
                           </Link>

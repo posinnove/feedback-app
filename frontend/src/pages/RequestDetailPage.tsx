@@ -22,6 +22,7 @@ import {
   useVoteCompanyFeedbackMutation,
 } from '../store/api/companyApi'
 import { useAppSelector } from '../store/hooks'
+import { getGuestVote, recordGuestVote, removeGuestVote } from '../utils/guestVotes'
 
 function getOptimisticVoteOutcome(
   upvotes: number,
@@ -165,7 +166,7 @@ export default function RequestDetailPage() {
   function handleCompanyClick() {
     const companySlug = feedback?.company?.slug
     if (!companySlug) return
-    navigate(`/company/${companySlug}`)
+    navigate(`/${companySlug}`)
   }
 
   function beginFeedbackEdit() {
@@ -255,6 +256,28 @@ export default function RequestDetailPage() {
     const companySlug = feedback.company?.slug
     if (!companySlug) return
 
+    if (!isAuthenticated) {
+      const guestVoteKey = `feedback:${feedbackId}`
+      const existingGuestVote = getGuestVote(guestVoteKey)
+      if (existingGuestVote) {
+        const currentVote = voteOverride?.userVote ?? feedback.userVote ?? null
+        const currentUpvotes = voteOverride?.upvotes ?? feedback.upvotes
+        const currentDownvotes = voteOverride?.downvotes ?? feedback.downvotes
+
+        if (currentVote === existingGuestVote) {
+          setVoteOverride({
+            upvotes: existingGuestVote === 'up' ? Math.max(0, currentUpvotes - 1) : currentUpvotes,
+            downvotes:
+              existingGuestVote === 'down' ? Math.max(0, currentDownvotes - 1) : currentDownvotes,
+            userVote: null,
+          })
+        }
+
+        removeGuestVote(guestVoteKey)
+        return
+      }
+    }
+
     const previousOverride = voteOverride
     const currentVote = voteOverride?.userVote ?? feedback.userVote ?? null
     const optimistic = getOptimisticVoteOutcome(
@@ -273,10 +296,14 @@ export default function RequestDetailPage() {
         direction,
       }).unwrap()
 
+      if (!isAuthenticated) {
+        recordGuestVote(`feedback:${feedbackId}`, direction)
+      }
+
       setVoteOverride({
         upvotes: result.feedback.upvotes,
         downvotes: result.feedback.downvotes,
-        userVote: result.userVote,
+        userVote: !isAuthenticated ? direction : result.userVote,
       })
     } catch {
       setVoteOverride(previousOverride)
@@ -323,6 +350,28 @@ export default function RequestDetailPage() {
     const existingReply = replies.find((reply) => reply.id === replyId)
     if (!existingReply) return
 
+    if (!isAuthenticated) {
+      const guestVoteKey = `reply:${replyId}`
+      const existingGuestVote = getGuestVote(guestVoteKey)
+      if (existingGuestVote) {
+        const previousVoteState = replyVoteState[replyId]
+        const currentUpvotes = previousVoteState?.upvotes ?? existingReply.upvotes
+        const currentDownvotes = previousVoteState?.downvotes ?? existingReply.downvotes
+
+        setReplyVoteState((prev) => ({
+          ...prev,
+          [replyId]: {
+            upvotes: existingGuestVote === 'up' ? Math.max(0, currentUpvotes - 1) : currentUpvotes,
+            downvotes:
+              existingGuestVote === 'down' ? Math.max(0, currentDownvotes - 1) : currentDownvotes,
+            userVote: null,
+          },
+        }))
+        removeGuestVote(guestVoteKey)
+        return
+      }
+    }
+
     const previousVoteState = replyVoteState[replyId]
     const currentUpvotes = previousVoteState?.upvotes ?? existingReply.upvotes
     const currentDownvotes = previousVoteState?.downvotes ?? existingReply.downvotes
@@ -342,12 +391,17 @@ export default function RequestDetailPage() {
 
     try {
       const result = await voteReply({ feedbackId, replyId, direction }).unwrap()
+
+      if (!isAuthenticated) {
+        recordGuestVote(`reply:${replyId}`, direction)
+      }
+
       setReplyVoteState((prev) => ({
         ...prev,
         [replyId]: {
           upvotes: result.reply.upvotes,
           downvotes: result.reply.downvotes,
-          userVote: result.userVote,
+          userVote: !isAuthenticated ? direction : result.userVote,
         },
       }))
     } catch {
@@ -373,7 +427,11 @@ export default function RequestDetailPage() {
       const vote = replyVoteState[reply.id]
       const upvotes = vote?.upvotes ?? reply.upvotes
       const downvotes = vote?.downvotes ?? reply.downvotes
-      const userVote = vote?.userVote ?? reply.userVote ?? null
+      const userVote =
+        vote?.userVote ??
+        (!isAuthenticated ? getGuestVote(`reply:${reply.id}`) : null) ??
+        reply.userVote ??
+        null
       const authorName = reply.author?.name ?? 'Anonymous'
       const authorAvatar = reply.author?.avatarUrl ?? undefined
 
@@ -587,7 +645,11 @@ export default function RequestDetailPage() {
                   <VoteButtons
                     upvotes={displayedUpvotes}
                     downvotes={displayedDownvotes}
-                    userVote={userVote}
+                    userVote={
+                      userVote ??
+                      (!isAuthenticated ? getGuestVote(`feedback:${feedbackId}`) : null) ??
+                      null
+                    }
                     onUpvote={() => void handleVote('up')}
                     onDownvote={() => void handleVote('down')}
                   />

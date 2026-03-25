@@ -56,7 +56,7 @@ export default function Header({
   // onThemeModeChange,
 }: HeaderProps) {
   const iconButtonClass =
-    'h-9 w-9 rounded-lg p-0 text-base-100 hover:text-base-200 hover:bg-border/50'
+    'h-10 w-10 rounded-lg p-0 text-base-100 hover:text-base-200 hover:bg-border/50'
 
   // const handleThemeCycle = () => {
   //   const nextMode: Record<ThemeMode, ThemeMode> = {
@@ -176,46 +176,49 @@ export default function Header({
   return (
     <header
       ref={headerRef}
-      className="bg-card-bg border-b border-border px-4 lg:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-30"
+      className="bg-card-bg border-b border-border px-4 lg:px-6 py-4 flex items-center justify-between gap-3 sticky top-0 z-30"
     >
       {/* Brand */}
-      <div className="shrink-0 w-auto lg:w-[13%]">
-        <Link to="/" className="flex items-center gap-1">
-          <img src="/images/logo.png" alt="Voxella" className="h-8 w-auto" />
-          <span className="text-2xl font-bold tracking-tight">OXELLA</span>
-        </Link>
-      </div>
+  <Link to="/" className="flex items-center">
+  <img src="/images/logo.png" className="h-9 w-auto dark:hidden" />
+  <img src="/images/logo-dark.png" className="h-9 w-auto hidden dark:block" />
+
+  <span className="flex items-center text-2xl font-bold tracking-tight leading-none -translate-x-1">
+    OXELLA
+  </span>
+</Link>
 
       {/* Search Bar */}
       <div className="hidden md:block flex-1 min-w-0 max-w-xl ml-11">
         <Popover open={searchPopoverOpen} onOpenChange={setSearchPopoverOpen}>
-          <PopoverTrigger asChild>
-            <form onSubmit={handleSearchSubmit} className="relative">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <PopoverTrigger asChild>
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <IconSearch size={18} stroke={1.5} className="text-base-100" />
               </div>
-              <Input
-                type="text"
-                placeholder="Search companies, feedback, replies..."
-                className="pl-10"
-                value={searchInput}
-                onFocus={() => {
-                  if (searchInput.trim().length >= 2) {
-                    setSearchPopoverOpen(true)
-                  }
-                }}
-                onChange={(event) => {
-                  const value = event.target.value
-                  setSearchInput(value)
-                  setSearchPopoverOpen(value.trim().length >= 2)
-                }}
-              />
-            </form>
-          </PopoverTrigger>
+            </PopoverTrigger>
+            <Input
+              type="text"
+              placeholder="Search companies, feedback, replies..."
+              className="pl-10"
+              value={searchInput}
+              onFocus={() => {
+                if (searchInput.trim().length >= 2) {
+                  setSearchPopoverOpen(true)
+                }
+              }}
+              onChange={(event) => {
+                const value = event.target.value
+                setSearchInput(value)
+                setSearchPopoverOpen(value.trim().length >= 2)
+              }}
+            />
+          </form>
 
           {searchPopoverOpen && debouncedSearch.length >= 2 && (
             <PopoverContent
               align="start"
+              onOpenAutoFocus={(e) => e.preventDefault()}
               className="w-(--radix-popover-trigger-width) max-w-none overflow-hidden p-0"
             >
               {isSearching ? (
@@ -235,7 +238,7 @@ export default function Header({
                           className="px-2 py-2"
                           onClick={() => {
                             setSearchPopoverOpen(false)
-                            navigate(`/company/${company.slug}`)
+                            navigate(`/${company.slug}`)
                           }}
                         >
                           <p className="text-sm font-medium text-base-200">{company.name}</p>
@@ -322,6 +325,15 @@ export default function Header({
 
       {/* Right side */}
       <div data-gsap-header-item className="flex items-center gap-1 sm:gap-2 lg:gap-3 ml-auto">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => navigate('/request-feedback')}
+          className="sm:hidden h-10 px-4 text-sm font-semibold"
+        >
+          Provide Feedback
+        </Button>
+
         {/* Mobile search dialog */}
         <Dialog open={mobileSearchOpen} onOpenChange={setMobileSearchOpen}>
           <DialogTrigger asChild>
@@ -388,7 +400,7 @@ export default function Header({
                               className="px-2 py-2"
                               onClick={() => {
                                 setMobileSearchOpen(false)
-                                navigate(`/company/${company.slug}`)
+                                navigate(`/${company.slug}`)
                               }}
                             >
                               <p className="text-sm font-medium text-base-200 line-clamp-1">
@@ -626,12 +638,12 @@ export default function Header({
           /* Unauthenticated: Login + Signup buttons */
           <div className="hidden sm:flex items-center gap-2 pl-2 lg:pl-3 border-l border-border">
             <Link to="/auth/login" className="inline-flex items-center">
-              <Button variant="ghost" size="sm" className="px-3">
+              <Button variant="ghost" size="sm" className="h-9 px-4 text-sm">
                 Sign in
               </Button>
             </Link>
             <Link to="/auth/register" className="inline-flex items-center">
-              <Button size="sm" className="rounded-full px-4">
+              <Button size="sm" className="h-9 px-4 text-sm">
                 Sign up
               </Button>
             </Link>

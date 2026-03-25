@@ -42,7 +42,7 @@ export default function ExplorePage() {
   }
 
   function handleOpenCompany(slug: string) {
-    navigate(`/company/${slug}`)
+    navigate(`/${slug}`)
   }
 
   return (
@@ -56,10 +56,10 @@ export default function ExplorePage() {
             <div>
               <h1 className="text-xl font-bold text-base-200">Explore Companies</h1>
               <p className="text-sm text-base-100 mt-1">
-                Follow companies to pin them in your sidebar for quick access.
+                Subscribe to companies to pin them in your sidebar for quick access.
               </p>
               <p className="text-xs text-base-100 mt-2">
-                Following {(followedCompanies ?? []).length} companies
+                Subscribed to {(followedCompanies ?? []).length} companies
               </p>
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function ExplorePage() {
                             : ' text-white hover:bg-primary-800'
                         } disabled:opacity-60 disabled:cursor-not-allowed`}
                       >
-                        {followed ? 'Unfollow' : 'Follow'}
+                        {followed ? 'Unsubscribe' : 'Subscribe'}
                       </Button>
                     </div>
 
@@ -120,10 +120,10 @@ export default function ExplorePage() {
                         <span className="font-semibold text-base-200">
                           {(company.followerCount ?? 0).toLocaleString()}
                         </span>
-                        <span>Followers</span>
+                        <span>Subscribers</span>
                       </div>
                       <Link
-                        to={`/company/${company.slug}`}
+                        to={`/${company.slug}`}
                         className="inline-flex items-center gap-1 text-xs hover:underline"
                         onClick={(event) => event.stopPropagation()}
                       >

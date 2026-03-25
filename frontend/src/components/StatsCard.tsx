@@ -14,7 +14,7 @@ export default function StatsCard({ company }: StatsCardProps) {
   return (
     <Card className="sticky top-6 p-4">
       <ShareButton variant="primary" size={14} className="mb-3 h-9" />
-      <div className="text-sm text-base-100 mb-2">{followerCount.toLocaleString()} followers</div>
+      <div className="text-sm text-base-100 mb-2">{followerCount.toLocaleString()} subscribers</div>
       <p className="text-xs text-base-100 mb-3 leading-relaxed">
         {company.description ?? `Welcome to ${company.name}'s feedback board.`}
       </p>
