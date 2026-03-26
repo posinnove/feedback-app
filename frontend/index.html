@@ -1,16 +1,91 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/images/logo.png" />
+    <link rel="canonical" href="https://voxella.app/" />
+    <link rel="apple-touch-icon" href="/images/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="/images/logo.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Voxella - Feedback App</title>
-</head>
+    <title>Voxella - Feedback App</title>
+    <meta
+      name="description"
+      content="Voxella is a modern feedback platform where users can request features, share feedback, and engage with companies. Upvote your favorite ideas and be heard."
+    />
+    <meta
+      name="keywords"
+      content="feedback, feature request, user feedback, product feedback, community, voting"
+    />
+    <meta name="author" content="Voxella" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="language" content="English" />
 
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://voxella.app/" />
+    <meta property="og:title" content="Voxella - Feedback & Feature Request Platform" />
+    <meta
+      property="og:description"
+      content="A modern platform for sharing feedback and requesting features from your favorite companies. Vote on ideas and make your voice heard."
+    />
+    <meta property="og:image" content="https://voxella.app/images/logo.png" />
+    <meta property="og:site_name" content="Voxella" />
+    <meta property="og:locale" content="en_US" />
 
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://voxella.app/" />
+    <meta name="twitter:title" content="Voxella - Feedback & Feature Request Platform" />
+    <meta
+      name="twitter:description"
+      content="Share your ideas and vote on features with the Voxella community."
+    />
+    <meta name="twitter:image" content="https://voxella.app/images/logo.png" />
+
+    <!-- Additional SEO Tags -->
+    <meta name="application-name" content="Voxella" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Voxella" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Voxella",
+        "description": "A modern feedback and feature request platform where users can share ideas and vote on features.",
+        "url": "https://voxella.app",
+        "applicationCategory": "ProductivityApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "creator": {
+          "@type": "Organization",
+          "name": "Voxella",
+          "url": "https://voxella.app"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Umami Analytics -->
+    <script
+      defer
+      src="https://analytics.voxella.app/script.js"
+      data-website-id="ef7073ee-328e-48a3-a60c-a7a516f56a5f"
+    ></script>
+  </body>
 </html>
