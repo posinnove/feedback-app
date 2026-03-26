@@ -79,15 +79,11 @@ export default function CompanyBoardPage() {
     }
   }
 
-  const feedbacks = useMemo(
-    () =>
-      (company?.feedbacks ?? []).map((feedback) => ({
+  const feedbacks = (company?.feedbacks ?? []).map((feedback) => ({
         ...feedback,
         upvotes: voteOverrides[feedback.id]?.upvotes ?? feedback.upvotes,
         downvotes: voteOverrides[feedback.id]?.downvotes ?? feedback.downvotes ?? 0,
-      })),
-    [company?.feedbacks, voteOverrides]
-  )
+      }))
 
   const sortedFeedbacks = useMemo(() => {
     const withScore = feedbacks.map((feedback) => {

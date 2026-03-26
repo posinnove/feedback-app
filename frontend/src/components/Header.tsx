@@ -11,6 +11,7 @@ import {
   IconLogout,
   IconUser,
   IconSettings,
+  IconPlus,
 } from '@tabler/icons-react'
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -327,11 +328,13 @@ export default function Header({
       <div data-gsap-header-item className="flex items-center gap-1 sm:gap-2 lg:gap-3 ml-auto">
         <Button
           type="button"
-          size="sm"
+          aria-label="Provide feedback"
+          variant="outline"
+          size="icon"
           onClick={() => navigate('/request-feedback')}
-          className="sm:hidden h-10 px-4 text-sm font-semibold"
+          className="sm:hidden text-sm font-semibold"
         >
-          Provide Feedback
+        <IconPlus />
         </Button>
 
         {/* Mobile search dialog */}

@@ -326,7 +326,7 @@ export default function SettingsPage() {
 
         <div className="bg-card-bg border border-border rounded-xl p-5 mt-5 space-y-4">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
               <IconLock size={20} stroke={1.6} />
             </div>
             <div>

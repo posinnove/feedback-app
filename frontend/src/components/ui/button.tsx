@@ -10,11 +10,13 @@ const buttonVariants = cva(
         default: 'bg-primary-600 text-white hover:bg-primary-800',
         secondary: 'border border-border bg-card-bg text-base-200 hover:bg-border/50',
         ghost: 'text-base-200 hover:bg-border/50',
+        outline: 'border border-primary-600 text-base-600 hover:bg-primary-100',
       },
       size: {
         default: 'h-10 px-4 py-2',
         sm: 'h-9 px-3',
         lg: 'h-11 px-6',
+        icon: 'h-8 w-8 p-0',
       },
     },
     defaultVariants: {

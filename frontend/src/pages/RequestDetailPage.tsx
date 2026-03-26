@@ -529,7 +529,7 @@ export default function RequestDetailPage() {
 
   return (
     <div className="flex-1 bg-background min-h-screen">
-      <div className="mx-auto px-4 lg:px-6 py-6 lg:py-8">
+      <div className="mx-auto px-1.5 lg:px-6 py-6 lg:py-8">
         {/* Back button */}
         <Link
           to="/feed"
@@ -544,10 +544,10 @@ export default function RequestDetailPage() {
           <div className="min-w-0">
             {/* Request Post */}
             <div className="bg-card-bg border border-border rounded-xl overflow-hidden p-0 shadow-none mb-6">
-              <div className="p-5 sm:p-6 lg:p-8 flex flex-col min-w-0">
+              <div className="p-5 sm:p-6 lg:p-8 flex flex-col min-w-0 relative">
                 {/* Post Meta */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2 text-sm text-base-100">
+                <div className="flex items-center justify-between max-sm:my-5">
+                  <div className="flex items-center gap-2 text-xs text-base-100 mb-2.5 sm:mb-3 flex-wrap">
                     <Button
                       type="button"
                       variant="ghost"
@@ -574,7 +574,11 @@ export default function RequestDetailPage() {
                       <span className="shrink-0">(edited)</span>
                     ) : null}
                   </div>
-                  {feedback.status && <StatusBadge status={feedback.status} />}
+                  {feedback.status && (
+                    <div className="max-sm:absolute top-3 right-3">
+                      <StatusBadge status={feedback.status} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}

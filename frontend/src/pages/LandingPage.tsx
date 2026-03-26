@@ -203,7 +203,7 @@ export default function LandingPage() {
                   Sign in
                 </Button>
                 <Button
-                  onClick={() => openAuth('register')}
+                  onClick={() => navigate('/feed')}
                   size="sm"
                   className="px-5 py-2 h-auto"
                 >
