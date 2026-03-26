@@ -110,7 +110,7 @@ export default function ExplorePage() {
                             : ' text-white hover:bg-primary-800'
                         } disabled:opacity-60 disabled:cursor-not-allowed`}
                       >
-                        {followed ? 'Unfollow' : 'Follow'}
+                        {followed ? 'UnSubscribe' : 'Subscribe'}
                       </Button>
                     </div>
 
@@ -120,7 +120,7 @@ export default function ExplorePage() {
                         <span className="font-semibold text-base-200">
                           {(company.followerCount ?? 0).toLocaleString()}
                         </span>
-                        <span>Followers</span>
+                        <span>Subscribers</span>
                       </div>
                       <Link
                         to={`/company/${company.slug}`}

@@ -74,7 +74,7 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
               {company.feedbacks.length} posts
             </span>
             <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-base-200">
-              {followerCount.toLocaleString()} followers
+              {followerCount.toLocaleString()} subscribers
             </span>
           </div>
         </div>
