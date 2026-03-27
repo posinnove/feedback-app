@@ -20,6 +20,7 @@ export function SEOHead({ seo }: SEOHeadProps) {
 
       {/* Open Graph */}
       <meta property="og:type" content={seo.type || 'website'} />
+      <meta property="og:site_name" content="Voxella" />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
@@ -27,6 +28,7 @@ export function SEOHead({ seo }: SEOHeadProps) {
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@voxella" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />

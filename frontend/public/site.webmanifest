@@ -1,0 +1,16 @@
+{
+  "name": "Voxella",
+  "short_name": "Voxella",
+  "description": "Voxella - Feedback and feature request platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
