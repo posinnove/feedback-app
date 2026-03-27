@@ -531,7 +531,7 @@ export default function RequestDetailPage() {
 
   return (
     <>
-      <SEOHead seo={feedbackSEO(feedback.title, companyName, requesterName)} />
+      <SEOHead seo={feedbackSEO(feedback.title, companyName, requesterName, feedbackId)} />
       <div className="flex-1 bg-background min-h-screen">
         <div className="mx-auto px-1.5 lg:px-6 py-6 lg:py-8">
           {/* Back button */}

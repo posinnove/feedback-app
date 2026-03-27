@@ -120,7 +120,7 @@ export default function CompanyBoardPage() {
 
   return (
     <>
-      <SEOHead seo={companySEO(company.name, company.description ?? undefined)} />
+      <SEOHead seo={companySEO(company.name, company.slug, company.description ?? undefined)} />
       <div data-gsap-page className="bg-background">
         <div className="max-w-6xl mx-auto px-1 sm:px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 lg:gap-8">
           {/* Left column — Company info, tabs, feedback */}

@@ -2,9 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/images/logo.png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="shortcut icon" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/logo.png" />
     <link rel="canonical" href="https://voxella.app/" />
-    <link rel="apple-touch-icon" href="/images/logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
@@ -16,7 +18,7 @@
     />
     <meta
       name="keywords"
-      content="feedback, feature request, user feedback, product feedback, community, voting"
+      content="voxella, Voxella app, voxella feedback, feedback platform, feature request platform, user feedback, product feedback, customer feedback tool, roadmap voting, idea voting, suggestion board, public feedback board, community feedback, SaaS feedback"
     />
     <meta name="author" content="Voxella" />
     <meta
@@ -55,6 +57,29 @@
     <meta name="format-detection" content="telephone=no" />
 
     <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Voxella",
+        "url": "https://voxella.app",
+        "logo": "https://voxella.app/images/logo.png",
+        "sameAs": []
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Voxella",
+        "url": "https://voxella.app",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://voxella.app/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",

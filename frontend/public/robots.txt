@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Keep non-content auth endpoints out of search indexes
+Disallow: /auth/
+Disallow: /portal-kanban
+
+Sitemap: https://voxella.app/sitemap.xml
