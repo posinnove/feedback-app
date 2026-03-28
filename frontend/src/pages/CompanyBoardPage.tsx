@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { IconClock, IconTrendingUp } from '@tabler/icons-react'
 import { useGetCompanyBySlugQuery, useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
@@ -129,6 +129,13 @@ export default function CompanyBoardPage() {
 
             {/* Mobile stats card */}
             <div className="lg:hidden mb-5">
+              <Link
+              to={`/request-feedback?company=${encodeURIComponent(company.slug)}`}
+              className="inline-flex w-full mb-3 h-9 items-center justify-center rounded-lg bg-primary-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-primary-800"
+              aria-label={`Provide feedback for ${company.name}`}
+            >
+              Provide Feedback
+            </Link>
               <StatsCard company={{ ...company, feedbacks }} />
             </div>
 
@@ -224,6 +231,13 @@ export default function CompanyBoardPage() {
 
           {/* Right column — Stats/Share card (hidden on mobile) */}
           <div className="hidden lg:block">
+            <Link
+              to={`/request-feedback?company=${encodeURIComponent(company.slug)}`}
+              className="inline-flex w-full mb-3 h-9 items-center justify-center rounded-lg bg-primary-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-primary-800"
+              aria-label={`Provide feedback for ${company.name}`}
+            >
+              Provide Feedback
+            </Link>
             <StatsCard company={{ ...company, feedbacks }} />
           </div>
         </div>
