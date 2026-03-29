@@ -38,8 +38,8 @@ export const adminApi = apiSlice.injectEndpoints({
       query: () => '/admin/stats',
       providesTags: ['Company', 'AuthUser', 'PublicFeed'],
     }),
-    getAdminCompanies: builder.query<AdminCompany[], void>({
-      query: () => '/admin/companies',
+    getAdminCompanies: builder.query<AdminCompany[], string | void>({
+      query: (search) => search ? `/admin/companies?search=${encodeURIComponent(search)}` : '/admin/companies',
       providesTags: ['Company'],
     }),
     verifyAdminCompany: builder.mutation<void, { id: number; status: boolean }>({

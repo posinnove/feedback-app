@@ -5,6 +5,7 @@ export interface ReachedUser {
   name: string
   slug?: string
   avatar?: string
+  isApproved?: boolean
 }
 
 export interface Feedback {

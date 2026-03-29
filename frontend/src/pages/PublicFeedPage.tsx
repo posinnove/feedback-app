@@ -40,6 +40,7 @@ export default function PublicFeedPage({ sort }: { sort: PublicFeedbackSort }) {
         name: feedback.company.name ?? 'Company',
         slug: feedback.company.slug,
         avatar: feedback.company.logoUrl ?? undefined,
+        isApproved: feedback.company.isApproved,
       },
     ],
   }))

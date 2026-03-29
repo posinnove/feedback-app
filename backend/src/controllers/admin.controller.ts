@@ -14,7 +14,8 @@ export async function getStats(req: Request, res: Response) {
 
 export async function getCompanies(req: Request, res: Response) {
   try {
-    const companies = await adminService.getAllCompaniesForAdmin();
+    const search = req.query.search as string;
+    const companies = await adminService.getAllCompaniesForAdmin(search);
     res.json(companies);
   } catch (error) {
     res.status(500).json({ message: 'Internal server error' });

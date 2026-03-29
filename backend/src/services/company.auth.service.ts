@@ -157,6 +157,7 @@ export async function loginCompany(email: string, password: string) {
       location: company.location,
       logoUrl: company.logoUrl,
       themeMode: company.themeMode,
+      isApproved: company.isApproved,
     },
   };
 }
@@ -250,6 +251,7 @@ export async function getCompanyProfile(id: number) {
       'weeklyDigest',
       'publicProfile',
       'themeMode',
+      'isApproved',
       'createdAt',
     ],
   });
@@ -334,6 +336,7 @@ export async function updateCompanyProfile(
     weeklyDigest: company.weeklyDigest,
     publicProfile: company.publicProfile,
     themeMode: company.themeMode,
+    isApproved: company.isApproved,
   };
 }
 
@@ -370,6 +373,7 @@ export async function updateCompanySettings(
     weeklyDigest: company.weeklyDigest,
     publicProfile: company.publicProfile,
     themeMode: company.themeMode,
+    isApproved: company.isApproved,
   };
 }
 

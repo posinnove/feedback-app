@@ -1,15 +1,24 @@
 import { useGetAdminCompaniesQuery, useVerifyAdminCompanyMutation, useDeleteAdminCompanyMutation } from '../../store/api/adminApi'
 import { Button } from '../../components/ui/button'
 import LoadingSpinner from '../../components/LoadingSpinner'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { IconSearch } from '@tabler/icons-react'
 
 export default function AdminCompanies() {
-  const { data: companies, isLoading } = useGetAdminCompaniesQuery()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  const { data: companies, isLoading, isFetching } = useGetAdminCompaniesQuery(debouncedSearch || undefined)
   const [verifyCompany] = useVerifyAdminCompanyMutation()
   const [deleteCompany] = useDeleteAdminCompanyMutation()
   const [loadingId, setLoadingId] = useState<number | null>(null)
 
-  if (isLoading) return <LoadingSpinner />
+  if (isLoading && !isFetching) return <LoadingSpinner />
 
   const handleToggleVerification = async (id: number, currentStatus: boolean) => {
     setLoadingId(id)
@@ -33,7 +42,21 @@ export default function AdminCompanies() {
 
   return (
     <div className="flex flex-col h-full space-y-4 max-h-[100%]">
-      <h2 className="text-lg font-semibold text-base-200 shrink-0">Manage Companies</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+        <h2 className="text-lg font-semibold text-base-200">Manage Companies</h2>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <IconSearch size={16} className="text-base-100" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search companies..."
+            className="w-full sm:w-64 pl-9 pr-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
       
       <div className="overflow-x-auto overflow-y-auto w-full custom-scroll pr-2 h-full">
         <table className="w-full text-sm text-left align-middle border-collapse rounded-lg">

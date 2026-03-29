@@ -3,6 +3,7 @@ import { Company } from '../models/company.model.ts';
 import { Feedback } from '../models/feedback.model.ts';
 import { FeedbackReply } from '../models/feedback.reply.model.ts';
 import { sendCompanyApprovalEmail } from '../utils/sendEmail.ts';
+import { Op } from 'sequelize';
 
 export async function getDashboardStats() {
   const [totalUsers, totalCompanies, totalFeedbacks, totalReplies] = await Promise.all([
@@ -15,8 +16,16 @@ export async function getDashboardStats() {
   return { totalUsers, totalCompanies, totalFeedbacks, totalReplies };
 }
 
-export async function getAllCompaniesForAdmin() {
+export async function getAllCompaniesForAdmin(search?: string) {
+  const whereClause = search ? {
+    [Op.or]: [
+      { name: { [Op.iLike]: `%${search}%` } },
+      { email: { [Op.iLike]: `%${search}%` } }
+    ]
+  } : {};
+
   return Company.findAll({
+    where: whereClause,
     attributes: ['id', 'name', 'slug', 'email', 'isEmailVerified', 'isApproved', 'createdAt'],
     order: [['createdAt', 'DESC']],
   });

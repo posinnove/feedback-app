@@ -22,6 +22,7 @@ export interface AuthUser {
   weeklyDigest?: boolean
   publicProfile?: boolean
   isAdmin?: boolean
+  isApproved?: boolean
 }
 
 interface AuthState {
