@@ -8,9 +8,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const isServerless = !!process.env.VERCEL;
 // Ensure log directory exists
 const logDir = path.join(__dirname, '../../logs');
-if (!fs.existsSync(logDir)) {
+if (!isServerless&&!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true }); // recursive: true creates nested directories
 }
 
@@ -35,7 +36,7 @@ const transports: winston.transport[] = [
 ];
 
 // File transport in production
-if (process.env.NODE_ENV === "production") {
+if (!isServerless && process.env.NODE_ENV === "production") {
     transports.push(
         new winston.transports.File({ 
             filename: path.join(logDir, 'error.log'), 
@@ -49,7 +50,7 @@ if (process.env.NODE_ENV === "production") {
             maxFiles: 5,
         })
     );
-} else if (process.env.LOG_TO_FILE === 'true') { // File logging in development for debugging
+} else if (!isServerless && process.env.LOG_TO_FILE === 'true') { // File logging in development for debugging
     transports.push(
         new winston.transports.File({ 
             filename: path.join(logDir, 'dev.log'),

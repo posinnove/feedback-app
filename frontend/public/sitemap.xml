@@ -11,19 +11,9 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://voxella.app/popular</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://voxella.app/explore</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://voxella.app/all</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://voxella.app/search</loc>
