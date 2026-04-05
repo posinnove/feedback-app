@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { IconClock, IconTrendingUp } from '@tabler/icons-react'
 import { useGetCompanyBySlugQuery, useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
 import { SEOHead } from '../components/SEOHead'
@@ -87,7 +87,7 @@ export default function CompanyBoardPage() {
     downvotes: voteOverrides[feedback.id]?.downvotes ?? feedback.downvotes ?? 0,
   }))
 
-  const sortedFeedbacks = useMemo(() => {
+  const sortedFeedbacks = (() => {
     const withScore = feedbacks.map((feedback) => {
       const createdAtMs = feedback.createdAt ? new Date(feedback.createdAt).getTime() : 0
       const netVotes = feedback.upvotes - (feedback.downvotes ?? 0)
@@ -113,7 +113,7 @@ export default function CompanyBoardPage() {
     }
 
     return withScore.sort((a, b) => b.trendingScore - a.trendingScore).map((item) => item.feedback)
-  }, [activeSort, feedbacks])
+  })()
 
   if (isLoading) return <LoadingSpinner />
   if (isError || !company) return <NotFoundState />
@@ -130,12 +130,12 @@ export default function CompanyBoardPage() {
             {/* Mobile stats card */}
             <div className="lg:hidden mb-5">
               <Link
-              to={`/request-feedback?company=${encodeURIComponent(company.slug)}`}
-              className="inline-flex w-full mb-3 h-9 items-center justify-center rounded-lg bg-primary-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-primary-800"
-              aria-label={`Provide feedback for ${company.name}`}
-            >
-              Provide Feedback
-            </Link>
+                to={`/request-feedback?company=${encodeURIComponent(company.slug)}`}
+                className="inline-flex w-full mb-3 h-9 items-center justify-center rounded-lg bg-primary-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-primary-800"
+                aria-label={`Provide feedback for ${company.name}`}
+              >
+                Provide Feedback
+              </Link>
               <StatsCard company={{ ...company, feedbacks }} />
             </div>
 

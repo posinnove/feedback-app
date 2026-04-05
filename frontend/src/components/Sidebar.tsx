@@ -90,17 +90,15 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
                 data-gsap-drawer-item
                 className={`group flex items-center rounded-lg text-sm transition-all duration-200 ${
                   isCollapsed ? 'justify-center p-2 mx-auto w-10 h-10' : 'gap-3 px-3 py-2'
-                } ${
-                  isActive ? 'bg-active font-medium' : 'hover:bg-border/50'
-                }`}
+                } ${isActive ? 'bg-active font-medium' : 'hover:bg-border/50'}`}
                 title={isCollapsed ? item.label : undefined}
               >
-                <span className={`transition-transform duration-200 ${!isCollapsed && 'group-hover:translate-x-0.5'}`}>
+                <span
+                  className={`transition-transform duration-200 ${!isCollapsed && 'group-hover:translate-x-0.5'}`}
+                >
                   {item.icon}
                 </span>
-                {!isCollapsed && (
-                  <span className="transition-all duration-150">{item.label}</span>
-                )}
+                {!isCollapsed && <span className="transition-all duration-150">{item.label}</span>}
               </Link>
             )
           })}
@@ -117,7 +115,9 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
               }`}
               title={isCollapsed ? KANBAN_NAV_ITEM.label : undefined}
             >
-              <span className={`transition-transform duration-200 ${!isCollapsed && 'group-hover:translate-x-0.5'}`}>
+              <span
+                className={`transition-transform duration-200 ${!isCollapsed && 'group-hover:translate-x-0.5'}`}
+              >
                 {KANBAN_NAV_ITEM.icon}
               </span>
               {!isCollapsed && (
@@ -160,9 +160,7 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
               stroke={1.5}
               className={`transition-transform duration-200 ${!isCollapsed && 'group-hover:translate-x-0.5'}`}
             />
-            {!isCollapsed && (
-              <span className="transition-all duration-150">Provide Feedback</span>
-            )}
+            {!isCollapsed && <span className="transition-all duration-150">Provide Feedback</span>}
           </Link>
         )}
 
@@ -211,7 +209,9 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
 
       {/* Companies List - Scrollable */}
       {isAuthenticated && !isCompanyUser && (
-        <div className={`flex-1 overflow-y-auto px-2 ${isCollapsed ? 'hidden' : ''}`}>
+        <div
+          className={`h-[70%] overflow-y-auto custom-scroll px-2 ${isCollapsed ? 'hidden' : ''}`}
+        >
           <div className="space-y-0.5">
             {companiesLoading ? (
               <div className="px-3 py-2 text-xs text-base-100">Loading...</div>

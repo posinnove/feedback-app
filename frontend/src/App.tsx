@@ -178,7 +178,10 @@ function AppLayout() {
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapse}
         />
-        <main ref={mainRef} className={`flex-1 min-h-0 w-full overflow-y-auto custom-scroll px-2 lg:px-0`}>
+        <main
+          ref={mainRef}
+          className={`flex-1 min-h-0 w-full overflow-y-auto custom-scroll px-2 lg:px-0`}
+        >
           <Outlet />
         </main>
       </div>
@@ -206,8 +209,6 @@ function App() {
         .finally(() => {
           setIsRestoring(false)
         })
-    } else {
-      setIsRestoring(false)
     }
   }, [entity, accessToken, refreshToken, dispatch])
 
