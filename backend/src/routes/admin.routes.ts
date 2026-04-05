@@ -13,6 +13,8 @@ router.get('/stats', adminController.getStats);
 
 // Company Management
 router.get('/companies', adminController.getCompanies);
+router.post('/companies', adminController.createCompany);
+router.patch('/companies/:id', adminController.updateCompany);
 router.patch('/companies/:id/verify', adminController.verifyCompany);
 router.delete('/companies/:id', adminController.removeCompany);
 

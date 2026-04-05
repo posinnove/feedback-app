@@ -24,15 +24,11 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
   return (
     <div className="relative mb-6 rounded-xl border border-border bg-card-bg p-4 sm:p-5">
       <div className="flex items-start gap-3 sm:gap-4">
-        <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-2xl bg-primary-100 flex items-center justify-center shrink-0">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-2xl bg-primary-100 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
           {company.logoUrl ? (
-            <img
-              src={company.logoUrl}
-              alt={company.name}
-              className="w-full h-full rounded-2xl object-cover"
-            />
+            <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" />
           ) : (
-            <span className="text-lg sm:text-xl lg:text-2xl font-bold text-base-200">
+            <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-600">
               {company.name.charAt(0).toUpperCase()}
             </span>
           )}
@@ -40,10 +36,9 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-base-200 wrap-break-word">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-base-200 wrap-break-word">
               {company.name}
             </h1>
-            {/* Mobile share button — visible only when stats card is hidden */}
             <div className="lg:hidden shrink-0 flex items-center gap-1.5">
               {website ? (
                 <a
@@ -57,7 +52,6 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
                   <IconWorldWww size={15} stroke={1.9} />
                 </a>
               ) : null}
-              {/* <ShareButton size={16} label="" /> */}
             </div>
             {/* Desktop website icon */}
             {website ? (
@@ -75,7 +69,7 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
           </div>
 
           {company.description && (
-            <p className="text-sm text-base-100 mt-1 line-clamp-2 sm:line-clamp-3">
+            <p className="text-sm text-base-100 mt-2 line-clamp-3 sm:line-clamp-4">
               {company.description}
             </p>
           )}

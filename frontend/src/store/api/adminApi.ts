@@ -12,9 +12,25 @@ export interface AdminCompany {
   name: string
   slug: string
   email: string
+  location?: string | null
+  website?: string | null
+  description?: string | null
+  logoUrl?: string | null
   isEmailVerified: boolean
   isApproved: boolean
+  subscriberCount?: number
   createdAt: string
+}
+
+export interface AdminCompanyPayload {
+  name: string
+  email: string
+  location?: string
+  website?: string
+  description?: string
+  logoUrl?: string
+  isEmailVerified?: boolean
+  isApproved?: boolean
 }
 
 export interface AdminFeedback {
@@ -32,6 +48,14 @@ export interface AdminFeedback {
   }
 }
 
+export interface AdminFeedbackResponse {
+  feedbacks: AdminFeedback[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 export const adminApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAdminStats: builder.query<AdminStats, void>({
@@ -39,7 +63,8 @@ export const adminApi = apiSlice.injectEndpoints({
       providesTags: ['Company', 'AuthUser', 'PublicFeed'],
     }),
     getAdminCompanies: builder.query<AdminCompany[], string | void>({
-      query: (search) => search ? `/admin/companies?search=${encodeURIComponent(search)}` : '/admin/companies',
+      query: (search) =>
+        search ? `/admin/companies?search=${encodeURIComponent(search)}` : '/admin/companies',
       providesTags: ['Company'],
     }),
     verifyAdminCompany: builder.mutation<void, { id: number; status: boolean }>({
@@ -57,8 +82,35 @@ export const adminApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Company'],
     }),
-    getAdminFeedbacks: builder.query<AdminFeedback[], void>({
-      query: () => '/admin/feedbacks',
+    createAdminCompany: builder.mutation<{ company: AdminCompany }, AdminCompanyPayload>({
+      query: (body) => ({
+        url: '/admin/companies',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Company'],
+    }),
+    updateAdminCompany: builder.mutation<
+      { company: AdminCompany },
+      { id: number; body: AdminCompanyPayload }
+    >({
+      query: ({ id, body }) => ({
+        url: `/admin/companies/${id}`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Company'],
+    }),
+    getAdminFeedbacks: builder.query<
+      AdminFeedbackResponse,
+      { page?: number; limit?: number } | void
+    >({
+      query: (args) => {
+        const params = new URLSearchParams()
+        if (args && 'page' in args) params.append('page', String(args.page || 1))
+        if (args && 'limit' in args) params.append('limit', String(args.limit || 20))
+        return `/admin/feedbacks?${params.toString()}`
+      },
       providesTags: ['PublicFeed'],
     }),
     deleteAdminFeedback: builder.mutation<void, number>({
@@ -83,6 +135,8 @@ export const {
   useGetAdminCompaniesQuery,
   useVerifyAdminCompanyMutation,
   useDeleteAdminCompanyMutation,
+  useCreateAdminCompanyMutation,
+  useUpdateAdminCompanyMutation,
   useGetAdminFeedbacksQuery,
   useDeleteAdminFeedbackMutation,
   useDeleteAdminReplyMutation,

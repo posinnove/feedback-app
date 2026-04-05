@@ -1,8 +1,14 @@
 import type { Request, Response, NextFunction } from 'express';
-import { verifyAccessToken, type JwtPayload, generateAnonToken, verifyAnonToken, deriveFingerprint } from '../utils/token.ts';
+import {
+  verifyAccessToken,
+  type JwtPayload,
+  generateAnonToken,
+  verifyAnonToken,
+  deriveFingerprint,
+} from '../utils/token.ts';
 import { Users } from '../models/users.model.ts';
 
-// 365 days in ms 
+// 365 days in ms
 const ANON_COOKIE_MAX_AGE = 365 * 24 * 60 * 60 * 1000;
 
 // Extend Express Request to carry the auth payload
@@ -10,6 +16,7 @@ declare global {
   namespace Express {
     interface Request {
       auth?: JwtPayload;
+      anonFingerprint?: string;
     }
   }
 }
@@ -136,4 +143,3 @@ export async function requireAdmin(
     res.status(500).json({ message: 'Internal server error' });
   }
 }
-

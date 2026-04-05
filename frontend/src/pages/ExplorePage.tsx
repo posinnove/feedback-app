@@ -87,13 +87,30 @@ export default function ExplorePage() {
                     className="border border-border rounded-xl p-4 bg-background hover:border-primary-600/30 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h2 className="text-base font-semibold text-base-200 truncate">
-                          {company.name}
-                        </h2>
-                        <p className="text-sm text-base-100 mt-1 line-clamp-2">
-                          {company.description ?? 'No description yet.'}
-                        </p>
+                      <div className="min-w-0 flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary-100 border border-border/70 shrink-0 overflow-hidden flex items-center justify-center">
+                          {company.logoUrl ? (
+                            <img
+                              src={company.logoUrl}
+                              alt={company.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <span className="text-sm font-bold text-base-200">
+                              {company.name.charAt(0).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <h2 className="text-base font-semibold text-base-200 truncate">
+                            {company.name}
+                          </h2>
+                          <p className="text-sm text-base-100 mt-1 line-clamp-2">
+                            {company.description ?? 'No description yet.'}
+                          </p>
+                        </div>
                       </div>
                       <Button
                         type="button"

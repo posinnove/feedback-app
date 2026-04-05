@@ -23,7 +23,7 @@ export const sequelize = new Sequelize(process.env.DATABASE_URL as string, {
 export async function connectDb() {
   try {
     await sequelize.authenticate();
-    logger.info('Connected to DB successfully [VOXELA]');
+    logger.info('Connected to DB successfully [VOXELLA]');
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error('Unable to connect to the database:', { message });

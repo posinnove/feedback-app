@@ -164,7 +164,6 @@ export default function RequestDetailPage() {
   const displayedUpvotes = voteOverride?.upvotes ?? feedback.upvotes
   const displayedDownvotes = voteOverride?.downvotes ?? feedback.downvotes
   const userVote = voteOverride?.userVote ?? feedback.userVote ?? null
-  const companySlug = feedback.company?.slug
   const companyIsApproved = feedback.company?.isApproved
 
   function handleCompanyClick() {
@@ -657,7 +656,13 @@ export default function RequestDetailPage() {
 
                   {/* Action Footer */}
                   <div className="flex items-center gap-3 pt-4 border-t border-border mt-auto">
-                    <div title={companyIsApproved === false ? "Interactions are limited until this company is verified." : ""}>
+                    <div
+                      title={
+                        companyIsApproved === false
+                          ? 'Interactions are limited until this company is verified.'
+                          : ''
+                      }
+                    >
                       <VoteButtons
                         upvotes={displayedUpvotes}
                         downvotes={displayedDownvotes}
@@ -666,8 +671,12 @@ export default function RequestDetailPage() {
                           (!isAuthenticated ? getGuestVote(`feedback:${feedbackId}`) : null) ??
                           null
                         }
-                        onUpvote={companyIsApproved === false ? undefined : () => void handleVote('up')}
-                        onDownvote={companyIsApproved === false ? undefined : () => void handleVote('down')}
+                        onUpvote={
+                          companyIsApproved === false ? undefined : () => void handleVote('up')
+                        }
+                        onDownvote={
+                          companyIsApproved === false ? undefined : () => void handleVote('down')
+                        }
                       />
                     </div>
 
@@ -772,10 +781,19 @@ export default function RequestDetailPage() {
                     <div className="flex justify-end p-2 bg-card-bg border-t border-border">
                       <Button
                         type="submit"
-                        disabled={companyIsApproved === false || isPostingReply || replyDraft.trim().length < 2 || !replyVisibility}
+                        disabled={
+                          companyIsApproved === false ||
+                          isPostingReply ||
+                          replyDraft.trim().length < 2 ||
+                          !replyVisibility
+                        }
                         className="px-4"
                         size="sm"
-                        title={companyIsApproved === false ? "Interactions are limited until this company is verified." : ""}
+                        title={
+                          companyIsApproved === false
+                            ? 'Interactions are limited until this company is verified.'
+                            : ''
+                        }
                       >
                         Reply
                       </Button>
@@ -823,7 +841,10 @@ export default function RequestDetailPage() {
                       <span className="font-semibold text-base-200">
                         {companyName}
                         {companyIsApproved === false && (
-                          <span className="ml-2 inline-flex items-center rounded bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider title-attr" title="Interactions are limited until this company is verified.">
+                          <span
+                            className="ml-2 inline-flex items-center rounded bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider title-attr"
+                            title="Interactions are limited until this company is verified."
+                          >
                             Unverified
                           </span>
                         )}
@@ -854,7 +875,6 @@ export default function RequestDetailPage() {
                         <div className="font-bold text-base-200">{feedback.viewCount ?? 0}</div>
                         <div className="text-[10px] text-base-100 uppercase mt-0.5">Views</div>
                       </div>
-
                     </div>
                   </div>
                 </div>
