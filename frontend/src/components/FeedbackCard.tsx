@@ -23,6 +23,7 @@ interface ReusableFeedbackCardData {
   companyName?: string
   companyAvatar?: string
   companySlug?: string
+  companyIsApproved?: boolean
   status?: FeedbackStatus
 }
 
@@ -78,12 +79,26 @@ export default function FeedbackCard({
             aria-label={`Open ${companyName} company page`}
           >
             <Avatar name={companyName} avatar={companyAvatar} size="sm" />
-            <span className="font-semibold text-base-200 transition-colors">{companyName}</span>
+            <span className="font-semibold text-base-200 transition-colors">
+              {companyName}
+              {feedback.companyIsApproved === false && (
+                <span className="ml-2 inline-flex items-center rounded bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider title-attr" title="Interactions are limited until this company is verified.">
+                  Unverified
+                </span>
+              )}
+            </span>
           </Button>
         ) : (
           <>
             <Avatar name={companyName} avatar={companyAvatar} size="sm" />
-            <span className="font-semibold text-base-200">{companyName}</span>
+            <span className="font-semibold text-base-200">
+              {companyName}
+              {feedback.companyIsApproved === false && (
+                <span className="ml-2 inline-flex items-center rounded bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider title-attr" title="Interactions are limited until this company is verified.">
+                  Unverified
+                </span>
+              )}
+            </span>
           </>
         )}
         <span className="truncate min-w-0">
@@ -116,23 +131,32 @@ export default function FeedbackCard({
       )}
 
       <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-auto relative z-10">
-        <VoteButtons
-          upvotes={feedback.upvotes}
-          downvotes={downvotes}
-          userVote={userVote}
-          onUpvote={onUpvote}
-          onDownvote={onDownvote}
-        />
+        <div title={feedback.companyIsApproved === false ? "Interactions are limited until this company is verified." : ""}>
+          <VoteButtons
+            upvotes={feedback.upvotes}
+            downvotes={downvotes}
+            userVote={userVote}
+            onUpvote={feedback.companyIsApproved === false ? undefined : onUpvote}
+            onDownvote={feedback.companyIsApproved === false ? undefined : onDownvote}
+          />
+        </div>
 
-        {discussionHref && (
-          <Link
-            to={discussionHref}
-            className="flex cursor-pointer items-center gap-1.5 bg-border/50 hover:bg-border px-2 py-1.5 sm:px-2.5 rounded-lg transition-colors text-xs font-medium text-base-100 hover:text-base-200"
-          >
-            <IconMessageCircle size={14} stroke={1.5} />
-            <span>{feedback.comments ?? 0} Replies</span>
-          </Link>
-        )}
+        {discussionHref ? (
+          feedback.companyIsApproved === false ? (
+            <div className="flex items-center gap-1.5 bg-border/50 px-2 py-1.5 sm:px-2.5 rounded-lg text-xs font-medium text-base-100 opacity-50 cursor-not-allowed" title="Interactions are limited until this company is verified.">
+              <IconMessageCircle size={14} stroke={1.5} />
+              <span>{feedback.comments ?? 0} Replies</span>
+            </div>
+          ) : (
+            <Link
+              to={discussionHref}
+              className="flex cursor-pointer items-center gap-1.5 bg-border/50 hover:bg-border px-2 py-1.5 sm:px-2.5 rounded-lg transition-colors text-xs font-medium text-base-100 hover:text-base-200"
+            >
+              <IconMessageCircle size={14} stroke={1.5} />
+              <span>{feedback.comments ?? 0} Replies</span>
+            </Link>
+          )
+        ) : null}
 
         <ShareButton
           url={shareUrl ?? window.location.href}

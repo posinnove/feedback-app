@@ -5,6 +5,7 @@ export interface CompanySummary {
   description?: string | null
   followerCount?: number
   logoUrl?: string | null
+  isApproved?: boolean
 }
 
 export interface CompanyData {
@@ -20,6 +21,7 @@ export interface CompanyData {
   updatedAt: string
   followerCount?: number
   feedbacks: CompanyFeedback[]
+  isApproved?: boolean
 }
 
 export interface CompanyFeedback {

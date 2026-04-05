@@ -21,6 +21,8 @@ export interface AuthUser {
   emailNotifications?: boolean
   weeklyDigest?: boolean
   publicProfile?: boolean
+  isAdmin?: boolean
+  isApproved?: boolean
 }
 
 interface AuthState {
@@ -70,7 +72,7 @@ const authSlice = createSlice({
       state.accessToken = accessToken
       state.isAuthenticated = true
 
-      localStorage.setItem('auth', JSON.stringify({ entity, type, accessToken }))
+      localStorage.setItem('auth', JSON.stringify({ entity, type }))
     },
 
     clearCredentials(state) {
@@ -91,7 +93,6 @@ const authSlice = createSlice({
         JSON.stringify({
           entity: state.entity,
           type: state.type,
-          accessToken: action.payload,
         })
       )
     },

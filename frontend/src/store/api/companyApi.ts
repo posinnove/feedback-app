@@ -91,6 +91,7 @@ interface PublicFeedbackItem {
     name?: string
     slug?: string
     logoUrl?: string | null
+    isApproved?: boolean
   }
 }
 

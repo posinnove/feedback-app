@@ -12,8 +12,8 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import LoadingSpinner from './components/LoadingSpinner'
 import { useAppSelector, useAppDispatch } from './store/hooks'
-import { clearCredentials, setAuthError } from './store/slices/authSlice'
-import { useLogoutMutation } from './store/api/authApi'
+import { clearCredentials, setAuthError, setAccessToken } from './store/slices/authSlice'
+import { useLogoutMutation, useRefreshTokenMutation } from './store/api/authApi'
 import { useGsapReveal } from './utils/gsapMotion'
 import { motionProfile } from './utils/motionProfile'
 import { useGoogleSilentLogin } from './hooks/useGoogleSilentLogin'
@@ -37,6 +37,13 @@ const LandingPage = lazy(() => import('./pages/LandingPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
 const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'))
+
+// Admin Pages
+const AdminRoute = lazy(() => import('./components/auth/AdminRoute'))
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminCompanies = lazy(() => import('./pages/admin/AdminCompanies'))
+const AdminFeedbacks = lazy(() => import('./pages/admin/AdminFeedbacks'))
 
 type ThemeMode = 'system' | 'light' | 'dark'
 
@@ -182,12 +189,37 @@ function AppLayout() {
 function App() {
   const dispatch = useAppDispatch()
   const hasAuthError = useAppSelector((state) => state.auth.hasAuthError)
+  const { entity, accessToken } = useAppSelector((state) => state.auth)
+  const [refreshToken] = useRefreshTokenMutation()
+  const [isRestoring, setIsRestoring] = useState(!!entity && !accessToken)
+
+  useEffect(() => {
+    if (entity && !accessToken) {
+      refreshToken()
+        .unwrap()
+        .then((res) => {
+          dispatch(setAccessToken(res.accessToken))
+        })
+        .catch(() => {
+          dispatch(clearCredentials())
+        })
+        .finally(() => {
+          setIsRestoring(false)
+        })
+    } else {
+      setIsRestoring(false)
+    }
+  }, [entity, accessToken, refreshToken, dispatch])
 
   // Initialize silent Google login at app level
   useGoogleSilentLogin()
 
   function handleCloseAuthModal() {
     dispatch(setAuthError(false))
+  }
+
+  if (isRestoring) {
+    return <LoadingSpinner />
   }
 
   return (
@@ -223,6 +255,15 @@ function App() {
             <Route path="/company/:slug" element={<LegacyCompanyRedirect />} />
             <Route path="/request/:id" element={<RequestDetailPage />} />
             <Route path="/:slug" element={<CompanyBoardPage />} />
+
+            {/* Admin Routes */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route path="stats" element={<AdminDashboard />} />
+                <Route path="companies" element={<AdminCompanies />} />
+                <Route path="feedbacks" element={<AdminFeedbacks />} />
+              </Route>
+            </Route>
           </Route>
         </Routes>
       </Suspense>

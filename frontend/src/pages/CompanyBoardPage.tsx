@@ -209,6 +209,7 @@ export default function CompanyBoardPage() {
                       companyName: company.name,
                       companyAvatar: company.logoUrl ?? undefined,
                       companySlug: company.slug,
+                      companyIsApproved: company.isApproved,
                       status: feedback.status,
                     }}
                     detailHref={`/request/${feedback.id}`}

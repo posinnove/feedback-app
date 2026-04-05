@@ -11,6 +11,7 @@ export class Users extends Model<
   InferCreationAttributes<Users>
 > {
   declare id: CreationOptional<number>;
+  declare isAdmin: CreationOptional<boolean>;
   declare firstName: string;
   declare lastName: string;
   declare email: string;
@@ -117,6 +118,12 @@ Users.init(
       allowNull: false,
       defaultValue: 'system',
       field: 'theme_mode',
+    },
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: 'is_admin',
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

@@ -307,6 +307,7 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                     companyName: f.reachedTo?.[0]?.name || 'a company',
                     companyAvatar: f.reachedTo?.[0]?.avatar,
                     companySlug: f.reachedTo?.[0]?.slug,
+                    companyIsApproved: f.reachedTo?.[0]?.isApproved,
                     status: f.status,
                   }}
                   detailHref={`/request/${f.id}`}

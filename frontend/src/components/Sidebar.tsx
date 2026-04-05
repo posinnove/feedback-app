@@ -11,7 +11,7 @@ import CompanyListItem from './ui/CompanyListItem'
 import { Button } from './ui/button'
 import { useGetFollowedCompaniesQuery } from '../store/api/companyApi'
 import { useAppSelector } from '../store/hooks'
-import { NAV_ITEMS, KANBAN_NAV_ITEM } from '../utils/navItems'
+import { NAV_ITEMS, KANBAN_NAV_ITEM, ADMIN_NAV_ITEM } from '../utils/navItems'
 import { useGsapStagger } from '../utils/gsapMotion'
 import { motionProfile } from '../utils/motionProfile'
 
@@ -24,8 +24,9 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const location = useLocation()
-  const { isAuthenticated, type } = useAppSelector((s) => s.auth)
+  const { isAuthenticated, type, entity } = useAppSelector((s) => s.auth)
   const isCompanyUser = isAuthenticated && type === 'company'
+  const isAdminUser = isAuthenticated && type === 'user' && entity?.isAdmin
   const { data: followedCompanies, isLoading: companiesLoading } = useGetFollowedCompaniesQuery(
     undefined,
     { skip: !isAuthenticated || isCompanyUser }
@@ -121,6 +122,25 @@ export default function Sidebar({ open, onClose, collapsed, onToggleCollapse }: 
               </span>
               {!isCollapsed && (
                 <span className="transition-all duration-150">{KANBAN_NAV_ITEM.label}</span>
+              )}
+            </Link>
+          )}
+          {isAdminUser && (
+            <Link
+              to={ADMIN_NAV_ITEM.path}
+              data-gsap-drawer-item
+              className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${isCollapsed ? 'justify-center px-2' : ''} ${
+                location.pathname.startsWith(ADMIN_NAV_ITEM.path)
+                  ? 'bg-active font-medium'
+                  : 'hover:bg-border/50'
+              }`}
+              title={isCollapsed ? ADMIN_NAV_ITEM.label : undefined}
+            >
+              <span className="transition-transform duration-200 group-hover:translate-x-0.5">
+                {ADMIN_NAV_ITEM.icon}
+              </span>
+              {!isCollapsed && (
+                <span className={`transition-all duration-150`}>{ADMIN_NAV_ITEM.label}</span>
               )}
             </Link>
           )}

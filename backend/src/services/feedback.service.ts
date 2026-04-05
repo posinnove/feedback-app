@@ -60,7 +60,7 @@ export async function getPublicFeedbackFeed(
       {
         model: Company,
         as: 'company',
-        attributes: ['id', 'name', 'slug', 'logoUrl'],
+        attributes: ['id', 'name', 'slug', 'logoUrl', 'isApproved'],
       },
       {
         model: FeedbackType,
@@ -113,6 +113,7 @@ export async function getPublicFeedbackFeed(
       name: feedback.company?.name,
       slug: feedback.company?.slug,
       logoUrl: feedback.company?.logoUrl,
+      isApproved: feedback.company?.isApproved,
     },
     feedbackType: feedback.feedbackType
       ? {
@@ -164,7 +165,7 @@ export async function getPublicFeedbackById(
       {
         model: Company,
         as: 'company',
-        attributes: ['id', 'name', 'slug', 'logoUrl'],
+        attributes: ['id', 'name', 'slug', 'logoUrl', 'isApproved'],
       },
       {
         model: FeedbackType,
@@ -217,6 +218,7 @@ export async function getPublicFeedbackById(
       name: feedback.company?.name,
       slug: feedback.company?.slug,
       logoUrl: feedback.company?.logoUrl,
+      isApproved: feedback.company?.isApproved,
     },
     feedbackType: feedback.feedbackType
       ? {

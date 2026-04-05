@@ -2,6 +2,7 @@ import {
   IconHome2,
   IconBuildingStore,
   IconLayoutColumns,
+  IconShieldLock,
 } from '@tabler/icons-react'
 
 export const NAV_ITEMS = [
@@ -13,4 +14,10 @@ export const KANBAN_NAV_ITEM = {
   label: 'Kanban',
   path: '/portal-kanban',
   icon: <IconLayoutColumns size={20} stroke={1.5} />,
+}
+
+export const ADMIN_NAV_ITEM = {
+  label: 'Admin',
+  path: '/admin',
+  icon: <IconShieldLock size={20} stroke={1.5} />,
 }

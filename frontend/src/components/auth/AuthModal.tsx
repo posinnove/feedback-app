@@ -108,7 +108,11 @@ export default function AuthModal({ open, mode, onClose }: Props) {
         })
       )
       onClose()
-      navigate('/feed', { replace: true })
+      if (response.type === 'user' && entity.isAdmin) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/feed', { replace: true })
+      }
     },
     [dispatch, navigate, onClose]
   )
@@ -162,7 +166,11 @@ export default function AuthModal({ open, mode, onClose }: Props) {
         })
       )
       onClose()
-      navigate('/feed', { replace: true })
+      if (response.type === 'user' && entity.isAdmin) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/feed', { replace: true })
+      }
     } catch (err: unknown) {
       const msg = (err as { data?: { message?: string } })?.data?.message
       setApiError(msg ?? 'Login failed. Please try again.')
