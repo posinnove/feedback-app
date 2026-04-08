@@ -36,6 +36,8 @@ interface FeedbackCardProps {
   userVote?: 'up' | 'down' | null
   onUpvote?: () => void
   onDownvote?: () => void
+  isUpvotePending?: boolean
+  isDownvotePending?: boolean
 }
 
 export default function FeedbackCard({
@@ -47,6 +49,8 @@ export default function FeedbackCard({
   userVote = null,
   onUpvote,
   onDownvote,
+  isUpvotePending,
+  isDownvotePending,
 }: FeedbackCardProps) {
   const navigate = useNavigate()
   const companyName = feedback.companyName ?? 'a company'
@@ -66,6 +70,9 @@ export default function FeedbackCard({
     navigate(`/${companySlug}`)
   }
 
+  const contentPaddingClass =
+    showStatus && feedback.status ? 'p-3 sm:p-4 lg:p-5 pt-10 sm:pt-6' : 'p-3 sm:p-4 lg:p-5'
+
   const content = (
     <>
       <div className="flex items-center gap-2 text-xs text-base-100 mb-2.5 sm:mb-3 flex-wrap">
@@ -82,7 +89,10 @@ export default function FeedbackCard({
             <span className="font-semibold text-base-200 transition-colors">
               {companyName}
               {feedback.companyIsApproved === false && (
-                <span className="ml-2 inline-flex items-center rounded bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider title-attr" title="Interactions are limited until this company is verified.">
+                <span
+                  className="ml-2 inline-flex items-center rounded bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider title-attr"
+                  title="Interactions are limited until this company is verified."
+                >
                   Unverified
                 </span>
               )}
@@ -94,7 +104,10 @@ export default function FeedbackCard({
             <span className="font-semibold text-base-200">
               {companyName}
               {feedback.companyIsApproved === false && (
-                <span className="ml-2 inline-flex items-center rounded bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider title-attr" title="Interactions are limited until this company is verified.">
+                <span
+                  className="ml-2 inline-flex items-center rounded bg-yellow-500/10 text-yellow-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider title-attr"
+                  title="Interactions are limited until this company is verified."
+                >
                   Unverified
                 </span>
               )}
@@ -117,33 +130,66 @@ export default function FeedbackCard({
         </div>
       ) : null}
 
-      <h3 className="text-base sm:text-lg font-bold text-base-200 mb-2 leading-snug">
-        {feedback.title}
-      </h3>
+      {detailHref ? (
+        <Link
+          to={detailHref}
+          className="block rounded-lg -mx-1 px-1 py-0.5 hover:bg-border/20 transition-colors"
+        >
+          <h3 className="text-base sm:text-lg font-bold text-base-200 mb-2 leading-snug">
+            {feedback.title}
+          </h3>
 
-      {feedback.description && (
-        <SafeHtml
-          html={feedback.description}
-          className={`text-sm text-base-100 leading-relaxed mb-4 ${
-            hasImageInDescription ? 'feedback-card-html' : 'line-clamp-3'
-          }`}
-        />
+          {feedback.description && (
+            <SafeHtml
+              html={feedback.description}
+              className={`text-sm text-base-100 leading-relaxed mb-4 ${
+                hasImageInDescription ? 'feedback-card-html' : 'line-clamp-3'
+              }`}
+            />
+          )}
+        </Link>
+      ) : (
+        <>
+          <h3 className="text-base sm:text-lg font-bold text-base-200 mb-2 leading-snug">
+            {feedback.title}
+          </h3>
+
+          {feedback.description && (
+            <SafeHtml
+              html={feedback.description}
+              className={`text-sm text-base-100 leading-relaxed mb-4 ${
+                hasImageInDescription ? 'feedback-card-html' : 'line-clamp-3'
+              }`}
+            />
+          )}
+        </>
       )}
 
       <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-auto relative z-10">
-        <div title={feedback.companyIsApproved === false ? "Interactions are limited until this company is verified." : ""}>
+        <div
+          title={
+            feedback.companyIsApproved === false
+              ? 'Interactions are limited until this company is verified.'
+              : ''
+          }
+        >
           <VoteButtons
             upvotes={feedback.upvotes}
             downvotes={downvotes}
             userVote={userVote}
             onUpvote={feedback.companyIsApproved === false ? undefined : onUpvote}
             onDownvote={feedback.companyIsApproved === false ? undefined : onDownvote}
+            isUpvotePending={isUpvotePending}
+            isDownvotePending={isDownvotePending}
           />
         </div>
 
         {discussionHref ? (
           feedback.companyIsApproved === false ? (
-            <div className="flex items-center gap-1.5 bg-border/50 px-2 py-1.5 sm:px-2.5 rounded-lg text-xs font-medium text-base-100 opacity-50 cursor-not-allowed" title="Interactions are limited until this company is verified.">
+            <div
+              className="flex items-center gap-1.5 bg-border/50 px-2 py-1.5 sm:px-2.5 rounded-lg text-xs font-medium text-base-100 opacity-50 cursor-not-allowed"
+              title="Interactions are limited until this company is verified."
+            >
               <IconMessageCircle size={14} stroke={1.5} />
               <span>{feedback.comments ?? 0} Replies</span>
             </div>
@@ -169,24 +215,7 @@ export default function FeedbackCard({
 
   return (
     <div className="bg-card-bg border border-border rounded-xl flex flex-row overflow-hidden p-0 hover:border-primary-600/30 transition-colors relative">
-      {detailHref ? (
-        <Link
-          to={detailHref}
-          className={`flex-1 flex flex-col min-w-0 bg-transparent hover:bg-border/20 transition-colors cursor-pointer ${
-            showStatus && feedback.status ? 'p-3 sm:p-4 lg:p-5 pt-10 sm:pt-6' : 'p-3 sm:p-4 lg:p-5'
-          }`}
-        >
-          {content}
-        </Link>
-      ) : (
-        <div
-          className={`flex-1 flex flex-col min-w-0 ${
-            showStatus && feedback.status ? 'p-3 sm:p-4 lg:p-5 pt-10 sm:pt-6' : 'p-3 sm:p-4 lg:p-5'
-          }`}
-        >
-          {content}
-        </div>
-      )}
+      <div className={`flex-1 flex flex-col min-w-0 ${contentPaddingClass}`}>{content}</div>
 
       {showStatus && feedback.status && (
         <div className="absolute top-3 right-3">

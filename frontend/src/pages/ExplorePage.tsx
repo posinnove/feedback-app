@@ -88,7 +88,7 @@ export default function ExplorePage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary-100 border border-border/70 shrink-0 overflow-hidden flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-lg bg-primary-100 border border-border/70 shrink-0 overflow-hidden flex items-center justify-center logo-surface">
                           {company.logoUrl ? (
                             <img
                               src={company.logoUrl}

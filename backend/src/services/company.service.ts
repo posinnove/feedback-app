@@ -12,8 +12,42 @@ import logger from '../utils/logger.ts';
 
 export type VoteDirection = 'up' | 'down';
 
+function getStableHash(value: string) {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+
+  return hash;
+}
+
+function getExploreRankingDate() {
+  const now = new Date();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+}
+
+function getExploreCompanyScore(company: {
+  slug: string;
+  followerCount?: number;
+  createdAt?: Date | string | null;
+}) {
+  const followerCount = company.followerCount ?? 0;
+  const createdAtMs = company.createdAt
+    ? new Date(company.createdAt).getTime()
+    : 0;
+  const nowMs = getExploreRankingDate().getTime();
+  const ageInDays = Math.max(0, (nowMs - createdAtMs) / 86_400_000);
+  const freshnessBoost = Math.max(0, 30 - ageInDays) * 25;
+  const dailyJitter = (getStableHash(`${company.slug}:${nowMs}`) % 1000) / 1000;
+
+  return followerCount * 1000 + freshnessBoost + dailyJitter;
+}
+
 export async function getAllCompanies() {
-  return Company.findAll({
+  const companies = await Company.findAll({
     where: { isApproved: true },
     attributes: [
       'id',
@@ -28,7 +62,25 @@ export async function getAllCompanies() {
         'followerCount',
       ],
     ],
-    order: [['name', 'ASC']],
+  });
+
+  return companies.sort((a, b) => {
+    const aScore = getExploreCompanyScore({
+      slug: a.slug,
+      followerCount: a.followerCount,
+      createdAt: a.createdAt,
+    });
+    const bScore = getExploreCompanyScore({
+      slug: b.slug,
+      followerCount: b.followerCount,
+      createdAt: b.createdAt,
+    });
+
+    if (bScore !== aScore) {
+      return bScore - aScore;
+    }
+
+    return a.name.localeCompare(b.name);
   });
 }
 

@@ -44,6 +44,8 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
     Record<string, { upvotes: number; downvotes: number }>
   >({})
   const [voteSelections, setVoteSelections] = useState<Record<string, 'up' | 'down' | null>>({})
+  const [pendingVoteIds, setPendingVoteIds] = useState<Set<string>>(() => new Set())
+  const pendingVoteLockRef = useRef<Set<string>>(new Set())
   const [voteFeedback] = useVoteCompanyFeedbackMutation()
   const navigate = useNavigate()
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
@@ -132,30 +134,20 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
     const numericFeedbackId = Number.parseInt(feedbackId, 10)
     if (!companySlug || !Number.isFinite(numericFeedbackId)) return
 
+    // Synchronous guard to block rapid repeated clicks before state updates flush.
+    if (pendingVoteLockRef.current.has(feedbackId)) {
+      return
+    }
+    pendingVoteLockRef.current.add(feedbackId)
+
     if (!isAuthenticated) {
       const guestVoteKey = `feedback:${numericFeedbackId}`
       const existingGuestVote = getGuestVote(guestVoteKey)
       if (existingGuestVote) {
-        const nextUpvotes =
-          existingGuestVote === 'up' ? Math.max(0, current.upvotes - 1) : current.upvotes
-        const nextDownvotes =
-          existingGuestVote === 'down'
-            ? Math.max(0, (current.downvotes ?? 0) - 1)
-            : (current.downvotes ?? 0)
-
-        setVoteOverrides((prev) => ({
-          ...prev,
-          [feedbackId]: {
-            upvotes: nextUpvotes,
-            downvotes: nextDownvotes,
-          },
-        }))
         setVoteSelections((prev) => ({
           ...prev,
-          [feedbackId]: null,
+          [feedbackId]: existingGuestVote,
         }))
-        removeGuestVote(guestVoteKey)
-        return
       }
     }
 
@@ -182,6 +174,13 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
       [feedbackId]: optimistic.userVote,
     }))
 
+    // Mark as pending before API call
+    setPendingVoteIds((prev) => {
+      const next = new Set(prev)
+      next.add(feedbackId)
+      return next
+    })
+
     try {
       const result = await voteFeedback({
         slug: companySlug,
@@ -190,7 +189,11 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
       }).unwrap()
 
       if (!isAuthenticated) {
-        recordGuestVote(`feedback:${numericFeedbackId}`, direction)
+        if (result.userVote) {
+          recordGuestVote(`feedback:${numericFeedbackId}`, result.userVote)
+        } else {
+          removeGuestVote(`feedback:${numericFeedbackId}`)
+        }
       }
 
       setVoteOverrides((prev) => ({
@@ -203,7 +206,7 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
 
       setVoteSelections((prev) => ({
         ...prev,
-        [feedbackId]: !isAuthenticated ? direction : result.userVote,
+        [feedbackId]: result.userVote,
       }))
 
       return
@@ -229,6 +232,13 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
       })
 
       return
+    } finally {
+      pendingVoteLockRef.current.delete(feedbackId)
+      setPendingVoteIds((prev) => {
+        const next = new Set(prev)
+        next.delete(feedbackId)
+        return next
+      })
     }
   }
 
@@ -324,6 +334,8 @@ export default function PublicFeedbackBoard({ feedbacks }: { feedbacks: Feedback
                   }
                   onUpvote={() => void incrementVote(f.id, 'up')}
                   onDownvote={() => void incrementVote(f.id, 'down')}
+                  isUpvotePending={pendingVoteIds.has(f.id.toString())}
+                  isDownvotePending={pendingVoteIds.has(f.id.toString())}
                 />
               </div>
             ))}

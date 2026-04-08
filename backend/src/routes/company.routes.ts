@@ -12,6 +12,7 @@ import {
 import {
   authenticate,
   optionalAuthenticate,
+  resolveAnonToken,
   requireType,
 } from '../middleware/auth.middleware.ts';
 import { validateSlug } from '../middleware/slug.validation.ts';
@@ -46,6 +47,7 @@ router.post(
   '/:slug/feedback/:feedbackId/vote',
   validateSlug,
   resolveCompany,
+  resolveAnonToken,
   optionalAuthenticate,
   voteOnFeedback,
 );

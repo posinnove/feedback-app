@@ -10,6 +10,7 @@ import {
   updateFeedbackReply,
   updateFeedbackRequest,
 } from '../services/feedback.service.ts';
+import { getAnonVoterIdFromFingerprint } from '../utils/anonVoter.ts';
 
 const allowedSorts: PublicFeedbackSort[] = ['trending', 'new', 'top', 'all'];
 
@@ -160,12 +161,19 @@ export async function voteReply(req: Request, res: Response) {
       .json({ message: 'direction must be either "up" or "down"' });
   }
 
+  const voterId =
+    req.auth?.id ??
+    (req.anonFingerprint
+      ? getAnonVoterIdFromFingerprint(req.anonFingerprint)
+      : undefined);
+  const voterType = req.auth?.type ?? (voterId ? 'user' : undefined);
+
   const voted = await voteOnReply(
     feedbackId,
     replyId,
     direction,
-    req.auth?.id,
-    req.auth?.type,
+    voterId,
+    voterType,
   );
 
   if (!voted) {

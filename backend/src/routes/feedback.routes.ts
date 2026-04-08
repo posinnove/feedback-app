@@ -12,6 +12,7 @@ import {
 import {
   authenticate,
   optionalAuthenticate,
+  resolveAnonToken,
 } from '../middleware/auth.middleware.ts';
 
 const router = Router();
@@ -21,7 +22,12 @@ router.get('/', optionalAuthenticate, getPublicFeedbacks);
 router.get('/:id/replies', optionalAuthenticate, getReplies);
 router.post('/:id/replies', optionalAuthenticate, postReply);
 router.patch('/:id/replies/:replyId', authenticate, patchReply);
-router.post('/:id/replies/:replyId/vote', optionalAuthenticate, voteReply);
+router.post(
+  '/:id/replies/:replyId/vote',
+  resolveAnonToken,
+  optionalAuthenticate,
+  voteReply,
+);
 router.patch('/:id', authenticate, patchFeedback);
 router.get('/:id', optionalAuthenticate, getPublicFeedback);
 

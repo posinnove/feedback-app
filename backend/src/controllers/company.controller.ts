@@ -8,6 +8,7 @@ import {
   voteOnFeedback as voteOnFeedbackService,
   updateFeedbackStatus as updateFeedbackStatusService,
 } from '../services/company.service.ts';
+import { getAnonVoterIdFromFingerprint } from '../utils/anonVoter.ts';
 import logger from '../utils/logger.ts';
 
 export async function getAllCompanies(_req: Request, res: Response) {
@@ -120,12 +121,19 @@ export async function voteOnFeedback(req: Request, res: Response) {
       return;
     }
 
+    const voterId =
+      auth?.id ??
+      (req.anonFingerprint
+        ? getAnonVoterIdFromFingerprint(req.anonFingerprint)
+        : undefined);
+    const voterType = auth?.type ?? (voterId ? 'user' : undefined);
+
     const feedback = await voteOnFeedbackService(
       company.id,
       feedbackId,
       direction,
-      auth?.id,
-      auth?.type,
+      voterId,
+      voterType,
     );
     if (!feedback) {
       res.status(404).json({ message: 'Feedback not found' });

@@ -1,5 +1,5 @@
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { IconMessageCircle, IconArrowLeft, IconPencil } from '@tabler/icons-react'
 import Avatar from '../components/ui/Avatar'
 import { SEOHead } from '../components/SEOHead'
@@ -95,6 +95,8 @@ export default function RequestDetailPage() {
     downvotes: number
     userVote: 'up' | 'down' | null
   } | null>(null)
+  const feedbackVoteLockRef = useRef(false)
+  const [isFeedbackVotePending, setIsFeedbackVotePending] = useState(false)
 
   const feedbackId = Number.parseInt(id ?? '', 10)
   const {
@@ -121,6 +123,8 @@ export default function RequestDetailPage() {
   const [replyVoteState, setReplyVoteState] = useState<
     Record<number, { upvotes: number; downvotes: number; userVote: 'up' | 'down' | null }>
   >({})
+  const replyVoteLockRef = useRef<Set<number>>(new Set())
+  const [pendingReplyVoteIds, setPendingReplyVoteIds] = useState<Set<number>>(new Set())
 
   const replies = useMemo(() => repliesData?.replies ?? [], [repliesData?.replies])
 
@@ -259,25 +263,19 @@ export default function RequestDetailPage() {
     const companySlug = feedback.company?.slug
     if (!companySlug) return
 
+    if (feedbackVoteLockRef.current) return
+    feedbackVoteLockRef.current = true
+    setIsFeedbackVotePending(true)
+
     if (!isAuthenticated) {
       const guestVoteKey = `feedback:${feedbackId}`
       const existingGuestVote = getGuestVote(guestVoteKey)
       if (existingGuestVote) {
-        const currentVote = voteOverride?.userVote ?? feedback.userVote ?? null
-        const currentUpvotes = voteOverride?.upvotes ?? feedback.upvotes
-        const currentDownvotes = voteOverride?.downvotes ?? feedback.downvotes
-
-        if (currentVote === existingGuestVote) {
-          setVoteOverride({
-            upvotes: existingGuestVote === 'up' ? Math.max(0, currentUpvotes - 1) : currentUpvotes,
-            downvotes:
-              existingGuestVote === 'down' ? Math.max(0, currentDownvotes - 1) : currentDownvotes,
-            userVote: null,
-          })
-        }
-
-        removeGuestVote(guestVoteKey)
-        return
+        setVoteOverride((prev) => ({
+          upvotes: prev?.upvotes ?? feedback.upvotes,
+          downvotes: prev?.downvotes ?? feedback.downvotes,
+          userVote: existingGuestVote,
+        }))
       }
     }
 
@@ -300,16 +298,23 @@ export default function RequestDetailPage() {
       }).unwrap()
 
       if (!isAuthenticated) {
-        recordGuestVote(`feedback:${feedbackId}`, direction)
+        if (result.userVote) {
+          recordGuestVote(`feedback:${feedbackId}`, result.userVote)
+        } else {
+          removeGuestVote(`feedback:${feedbackId}`)
+        }
       }
 
       setVoteOverride({
         upvotes: result.feedback.upvotes,
         downvotes: result.feedback.downvotes,
-        userVote: !isAuthenticated ? direction : result.userVote,
+        userVote: result.userVote,
       })
     } catch {
       setVoteOverride(previousOverride)
+    } finally {
+      feedbackVoteLockRef.current = false
+      setIsFeedbackVotePending(false)
     }
   }
 
@@ -353,25 +358,32 @@ export default function RequestDetailPage() {
     const existingReply = replies.find((reply) => reply.id === replyId)
     if (!existingReply) return
 
+    if (replyVoteLockRef.current.has(replyId)) return
+    replyVoteLockRef.current.add(replyId)
+    setPendingReplyVoteIds((prev) => {
+      const next = new Set(prev)
+      next.add(replyId)
+      return next
+    })
+
     if (!isAuthenticated) {
       const guestVoteKey = `reply:${replyId}`
       const existingGuestVote = getGuestVote(guestVoteKey)
       if (existingGuestVote) {
-        const previousVoteState = replyVoteState[replyId]
-        const currentUpvotes = previousVoteState?.upvotes ?? existingReply.upvotes
-        const currentDownvotes = previousVoteState?.downvotes ?? existingReply.downvotes
-
         setReplyVoteState((prev) => ({
           ...prev,
           [replyId]: {
-            upvotes: existingGuestVote === 'up' ? Math.max(0, currentUpvotes - 1) : currentUpvotes,
-            downvotes:
-              existingGuestVote === 'down' ? Math.max(0, currentDownvotes - 1) : currentDownvotes,
-            userVote: null,
+            upvotes: prev[replyId]?.upvotes ?? existingReply.upvotes,
+            downvotes: prev[replyId]?.downvotes ?? existingReply.downvotes,
+            userVote: existingGuestVote,
           },
         }))
-        removeGuestVote(guestVoteKey)
-        return
+        replyVoteLockRef.current.delete(replyId)
+        setPendingReplyVoteIds((prev) => {
+          const next = new Set(prev)
+          next.delete(replyId)
+          return next
+        })
       }
     }
 
@@ -396,7 +408,11 @@ export default function RequestDetailPage() {
       const result = await voteReply({ feedbackId, replyId, direction }).unwrap()
 
       if (!isAuthenticated) {
-        recordGuestVote(`reply:${replyId}`, direction)
+        if (result.userVote) {
+          recordGuestVote(`reply:${replyId}`, result.userVote)
+        } else {
+          removeGuestVote(`reply:${replyId}`)
+        }
       }
 
       setReplyVoteState((prev) => ({
@@ -404,7 +420,7 @@ export default function RequestDetailPage() {
         [replyId]: {
           upvotes: result.reply.upvotes,
           downvotes: result.reply.downvotes,
-          userVote: !isAuthenticated ? direction : result.userVote,
+          userVote: result.userVote,
         },
       }))
     } catch {
@@ -419,6 +435,13 @@ export default function RequestDetailPage() {
       setReplyVoteState((prev) => {
         const next = { ...prev }
         delete next[replyId]
+        return next
+      })
+    } finally {
+      replyVoteLockRef.current.delete(replyId)
+      setPendingReplyVoteIds((prev) => {
+        const next = new Set(prev)
+        next.delete(replyId)
         return next
       })
     }
@@ -495,6 +518,8 @@ export default function RequestDetailPage() {
                   userVote={userVote}
                   onUpvote={() => void handleReplyVote(reply.id, 'up')}
                   onDownvote={() => void handleReplyVote(reply.id, 'down')}
+                  isUpvotePending={pendingReplyVoteIds.has(reply.id)}
+                  isDownvotePending={pendingReplyVoteIds.has(reply.id)}
                 />
                 {reply.canEdit && editingReplyId !== reply.id ? (
                   <Button
@@ -677,6 +702,8 @@ export default function RequestDetailPage() {
                         onDownvote={
                           companyIsApproved === false ? undefined : () => void handleVote('down')
                         }
+                        isUpvotePending={isFeedbackVotePending}
+                        isDownvotePending={isFeedbackVotePending}
                       />
                     </div>
 

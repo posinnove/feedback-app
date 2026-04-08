@@ -9,6 +9,8 @@ interface VoteButtonsProps {
   onUpvote?: () => void
   onDownvote?: () => void
   userVote?: 'up' | 'down' | null
+  isUpvotePending?: boolean
+  isDownvotePending?: boolean
 }
 
 export default function VoteButtons({
@@ -17,6 +19,8 @@ export default function VoteButtons({
   onUpvote,
   onDownvote,
   userVote,
+  isUpvotePending,
+  isDownvotePending,
 }: VoteButtonsProps) {
   function handleVote(event: MouseEvent<HTMLButtonElement>, handler?: () => void) {
     event.preventDefault()
@@ -32,9 +36,11 @@ export default function VoteButtons({
         variant="ghost"
         size="sm"
         onClick={(event) => handleVote(event, onUpvote)}
+        disabled={isUpvotePending}
         className={cn(
           'h-6 w-6 rounded p-0 text-base-100 hover:bg-blue-500/15 hover:text-blue-500',
-          userVote === 'up' ? 'text-blue-500' : ''
+          userVote === 'up' ? 'text-blue-500' : '',
+          isUpvotePending ? 'opacity-50 cursor-not-allowed' : ''
         )}
         aria-label="Upvote"
       >
@@ -46,9 +52,11 @@ export default function VoteButtons({
         variant="ghost"
         size="sm"
         onClick={(event) => handleVote(event, onDownvote)}
+        disabled={isDownvotePending}
         className={cn(
           'h-6 w-6 rounded p-0 text-base-100 hover:bg-red-500/15 hover:text-red-500',
-          userVote === 'down' ? 'text-red-500' : ''
+          userVote === 'down' ? 'text-red-500' : '',
+          isDownvotePending ? 'opacity-50 cursor-not-allowed' : ''
         )}
         aria-label="Downvote"
       >

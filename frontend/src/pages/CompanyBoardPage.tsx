@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { IconClock, IconTrendingUp } from '@tabler/icons-react'
 import { useGetCompanyBySlugQuery, useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
 import { SEOHead } from '../components/SEOHead'
@@ -24,6 +24,8 @@ export default function CompanyBoardPage() {
     Record<number, { upvotes: number; downvotes: number }>
   >({})
   const [userVotes, setUserVotes] = useState<Record<number, 'up' | 'down' | null>>({})
+  const [pendingVoteIds, setPendingVoteIds] = useState<Set<number>>(new Set())
+  const pendingVoteLockRef = useRef<Set<number>>(new Set())
 
   async function handleVote(feedbackId: number, direction: 'up' | 'down') {
     if (!slug) return
@@ -31,39 +33,38 @@ export default function CompanyBoardPage() {
     const currentFeedback = feedbacks.find((item) => item.id === feedbackId)
     if (!currentFeedback) return
 
+    // Synchronous guard to block rapid repeated clicks before state updates flush.
+    if (pendingVoteLockRef.current.has(feedbackId)) {
+      return
+    }
+    pendingVoteLockRef.current.add(feedbackId)
+
     if (!isAuthenticated) {
       const guestVoteKey = `feedback:${feedbackId}`
       const existingGuestVote = getGuestVote(guestVoteKey)
       if (existingGuestVote) {
-        const nextUpvotes =
-          existingGuestVote === 'up'
-            ? Math.max(0, currentFeedback.upvotes - 1)
-            : currentFeedback.upvotes
-        const nextDownvotes =
-          existingGuestVote === 'down'
-            ? Math.max(0, (currentFeedback.downvotes ?? 0) - 1)
-            : (currentFeedback.downvotes ?? 0)
-
-        setVoteOverrides((prev) => ({
-          ...prev,
-          [feedbackId]: {
-            upvotes: nextUpvotes,
-            downvotes: nextDownvotes,
-          },
-        }))
         setUserVotes((prev) => ({
           ...prev,
-          [feedbackId]: null,
+          [feedbackId]: existingGuestVote,
         }))
-        removeGuestVote(guestVoteKey)
-        return
       }
     }
+
+    // Mark as pending before API call
+    setPendingVoteIds((prev) => {
+      const next = new Set(prev)
+      next.add(feedbackId)
+      return next
+    })
 
     try {
       const result = await voteFeedback({ slug, feedbackId, direction }).unwrap()
       if (!isAuthenticated) {
-        recordGuestVote(`feedback:${feedbackId}`, direction)
+        if (result.userVote) {
+          recordGuestVote(`feedback:${feedbackId}`, result.userVote)
+        } else {
+          removeGuestVote(`feedback:${feedbackId}`)
+        }
       }
       setVoteOverrides((prev) => ({
         ...prev,
@@ -74,10 +75,17 @@ export default function CompanyBoardPage() {
       }))
       setUserVotes((prev) => ({
         ...prev,
-        [feedbackId]: !isAuthenticated ? direction : result.userVote,
+        [feedbackId]: result.userVote,
       }))
     } catch {
       // Keep UI unchanged on failure; API errors are handled globally by consumers.
+    } finally {
+      pendingVoteLockRef.current.delete(feedbackId)
+      setPendingVoteIds((prev) => {
+        const next = new Set(prev)
+        next.delete(feedbackId)
+        return next
+      })
     }
   }
 
@@ -224,6 +232,8 @@ export default function CompanyBoardPage() {
                     }
                     onUpvote={() => void handleVote(feedback.id, 'up')}
                     onDownvote={() => void handleVote(feedback.id, 'down')}
+                    isUpvotePending={pendingVoteIds.has(feedback.id)}
+                    isDownvotePending={pendingVoteIds.has(feedback.id)}
                   />
                 ))}
               </div>

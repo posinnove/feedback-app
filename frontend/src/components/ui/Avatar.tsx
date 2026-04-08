@@ -29,14 +29,19 @@ export default function Avatar({ name, avatar, size = 'md' }: AvatarProps) {
     .slice(0, 2)
 
   const sizeClass = sizeClasses[size]
+  const isLikelyLogo = Boolean(
+    avatar && (avatar.includes('company-logos') || avatar.includes('logo'))
+  )
 
   if (avatar) {
     return (
-      <img
-        src={avatar}
-        alt={name}
-        className={`${sizeClass} rounded-full object-cover shrink-0 ring-2 ring-card-bg`}
-      />
+      <div
+        className={`${sizeClass} rounded-full shrink-0 ring-2 ring-card-bg overflow-hidden ${
+          isLikelyLogo ? 'logo-surface' : ''
+        }`}
+      >
+        <img src={avatar} alt={name} className="w-full h-full rounded-full object-cover" />
+      </div>
     )
   }
 

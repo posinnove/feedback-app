@@ -24,7 +24,7 @@ export default function CompanyInfo({ company }: CompanyInfoProps) {
   return (
     <div className="relative mb-6 rounded-xl border border-border bg-card-bg p-4 sm:p-5">
       <div className="flex items-start gap-3 sm:gap-4">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl bg-primary-100 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl bg-primary-100 flex items-center justify-center shrink-0 shadow-sm overflow-hidden logo-surface">
           {company.logoUrl ? (
             <img src={company.logoUrl} alt={company.name} className="w-full h-full object-cover" />
           ) : (

@@ -242,6 +242,27 @@
     color: #f7f7f7;
   }
 
+  /* Neutral plate for dark/transparent logos */
+  .logo-surface {
+    background-color: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) .logo-surface {
+      background-color: color-mix(in srgb, var(--card-bg) 80%, #d8d8d8 20%);
+      border: 0;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
+    }
+  }
+
+  :root[data-theme='dark'] .logo-surface {
+    background-color: color-mix(in srgb, var(--card-bg) 80%, #d8d8d8 20%);
+    border: 0;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
+  }
+
   /* Card hover mode inversion */
   .card-invert-hover {
     transition:
