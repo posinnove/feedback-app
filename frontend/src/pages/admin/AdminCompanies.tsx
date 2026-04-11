@@ -24,6 +24,9 @@ import {
 } from '../../components/ui/dialog'
 
 export default function AdminCompanies() {
+  const isGeneratedPlaceholderEmail = (email?: string | null) =>
+    Boolean(email && email.endsWith('@company.local'))
+
   const emptyForm = {
     name: '',
     email: '',
@@ -133,14 +136,14 @@ export default function AdminCompanies() {
       return
     }
 
-    if (!formState.email.trim()) {
+    if (editingCompanyId && !formState.email.trim()) {
       setFormError('Company email is required.')
       return
     }
 
     const payload = {
       name: formState.name.trim(),
-      email: formState.email.trim(),
+      email: formState.email.trim() || undefined,
       location: formState.location.trim() || undefined,
       website: formState.website.trim() || undefined,
       description: formState.description.trim() || undefined,
@@ -220,7 +223,7 @@ export default function AdminCompanies() {
               />
               <Input
                 type="email"
-                placeholder="Company email"
+                placeholder="Company email (optional for new company)"
                 className="bg-card-bg"
                 value={formState.email}
                 onChange={(e) => setFormState((prev) => ({ ...prev, email: e.target.value }))}
@@ -334,7 +337,11 @@ export default function AdminCompanies() {
               companies.map((company) => (
                 <tr key={company.id} className="hover:bg-border/20">
                   <td className="px-4 py-3 font-medium">{company.name}</td>
-                  <td className="px-4 py-3 text-base-100">{company.email}</td>
+                  <td className="px-4 py-3 text-base-100">
+                    {isGeneratedPlaceholderEmail(company.email)
+                      ? 'No email provided'
+                      : company.email}
+                  </td>
                   <td className="px-4 py-3 text-center text-base-100 font-semibold">
                     {company.subscriberCount || 0}
                   </td>

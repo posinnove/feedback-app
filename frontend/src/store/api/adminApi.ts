@@ -24,7 +24,7 @@ export interface AdminCompany {
 
 export interface AdminCompanyPayload {
   name: string
-  email: string
+  email?: string
   location?: string
   website?: string
   description?: string

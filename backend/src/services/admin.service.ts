@@ -59,6 +59,28 @@ async function ensureCompanyEmailAvailable(
   }
 }
 
+function isGeneratedAdminCompanyEmail(email: string): boolean {
+  return email.endsWith('@company.local');
+}
+
+async function generateUniqueAdminCompanyEmail(
+  baseName: string,
+): Promise<string> {
+  const baseSlug = toSlug(baseName) || 'company';
+  let suffix = Date.now();
+
+  while (true) {
+    const candidate = `${baseSlug}-${suffix}@company.local`;
+    const existing = await Company.findOne({ where: { email: candidate } });
+
+    if (!existing) {
+      return candidate;
+    }
+
+    suffix += 1;
+  }
+}
+
 export async function getDashboardStats() {
   const [totalUsers, totalCompanies, totalFeedbacks, totalReplies] =
     await Promise.all([
@@ -114,7 +136,7 @@ export async function getAllCompaniesForAdmin(search?: string) {
 
 export async function createCompanyByAdmin(data: {
   name: string;
-  email: string;
+  email?: string;
   location?: string;
   website?: string;
   description?: string;
@@ -123,10 +145,11 @@ export async function createCompanyByAdmin(data: {
   isEmailVerified?: boolean;
 }) {
   const name = data.name.trim();
-  const email = data.email.trim().toLowerCase();
+  const inputEmail = data.email?.trim().toLowerCase();
 
   if (!name) throw new Error('Company name is required');
-  if (!email) throw new Error('Company email is required');
+
+  const email = inputEmail || (await generateUniqueAdminCompanyEmail(name));
 
   await ensureCompanyEmailAvailable(email);
   const slug = await generateUniqueCompanySlug(name);
@@ -229,7 +252,7 @@ export async function toggleCompanyVerification(
   company.isApproved = status;
   await company.save();
 
-  if (!wasApproved && status) {
+  if (!wasApproved && status && !isGeneratedAdminCompanyEmail(company.email)) {
     // Notify company
     await sendCompanyApprovalEmail(
       company.email,

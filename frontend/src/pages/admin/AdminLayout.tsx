@@ -82,14 +82,9 @@ export default function AdminLayout() {
       return
     }
 
-    if (!formState.email.trim()) {
-      setFormError('Company email is required.')
-      return
-    }
-
     const payload = {
       name: formState.name.trim(),
-      email: formState.email.trim(),
+      email: formState.email.trim() || undefined,
       location: formState.location.trim() || undefined,
       website: formState.website.trim() || undefined,
       description: formState.description.trim() || undefined,
@@ -172,7 +167,7 @@ export default function AdminLayout() {
               />
               <Input
                 type="email"
-                placeholder="Company email"
+                placeholder="Company email (optional)"
                 className="bg-card-bg"
                 value={formState.email}
                 onChange={(e) => setFormState((prev) => ({ ...prev, email: e.target.value }))}

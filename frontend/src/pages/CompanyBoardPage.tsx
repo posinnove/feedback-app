@@ -1,7 +1,13 @@
 import { Link, useParams } from 'react-router-dom'
 import { useRef, useState } from 'react'
 import { IconClock, IconTrendingUp } from '@tabler/icons-react'
-import { useGetCompanyBySlugQuery, useVoteCompanyFeedbackMutation } from '../store/api/companyApi'
+import {
+  useFollowCompanyMutation,
+  useGetCompanyBySlugQuery,
+  useGetFollowedCompaniesQuery,
+  useUnfollowCompanyMutation,
+  useVoteCompanyFeedbackMutation,
+} from '../store/api/companyApi'
 import { SEOHead } from '../components/SEOHead'
 import FeedbackCard from '../components/FeedbackCard'
 import CompanyInfo from '../components/CompanyInfo'
@@ -13,6 +19,7 @@ import { Button } from '../components/ui/button'
 import { useAppSelector } from '../store/hooks'
 import { getGuestVote, recordGuestVote, removeGuestVote } from '../utils/guestVotes'
 import { companySEO } from '../utils/seoHelpers'
+import { useGoogleSilentLogin } from '../hooks/useGoogleSilentLogin'
 
 export default function CompanyBoardPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -20,6 +27,13 @@ export default function CompanyBoardPage() {
   const [activeSort, setActiveSort] = useState<'new' | 'top' | 'trending'>('new')
   const [voteFeedback] = useVoteCompanyFeedbackMutation()
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
+  const authType = useAppSelector((state) => state.auth.type)
+  const triggerSilentLogin = useGoogleSilentLogin()
+  const { data: followedCompanies } = useGetFollowedCompaniesQuery(undefined, {
+    skip: !isAuthenticated || authType === 'company',
+  })
+  const [followCompany, { isLoading: followLoading }] = useFollowCompanyMutation()
+  const [unfollowCompany, { isLoading: unfollowLoading }] = useUnfollowCompanyMutation()
   const [voteOverrides, setVoteOverrides] = useState<
     Record<number, { upvotes: number; downvotes: number }>
   >({})
@@ -126,6 +140,25 @@ export default function CompanyBoardPage() {
   if (isLoading) return <LoadingSpinner />
   if (isError || !company) return <NotFoundState />
 
+  const followedSlugs = new Set(
+    (followedCompanies ?? []).map((followedCompany) => followedCompany.slug)
+  )
+  const isFollowed = followedSlugs.has(company.slug)
+
+  async function handleFollowToggle(targetSlug: string) {
+    if (!isAuthenticated || authType === 'company') {
+      triggerSilentLogin()
+      return
+    }
+
+    if (isFollowed) {
+      await unfollowCompany(targetSlug)
+      return
+    }
+
+    await followCompany(targetSlug)
+  }
+
   return (
     <>
       <SEOHead seo={companySEO(company.name, company.slug, company.description ?? undefined)} />
@@ -133,7 +166,23 @@ export default function CompanyBoardPage() {
         <div className="max-w-6xl mx-auto px-1 sm:px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6 lg:gap-8">
           {/* Left column — Company info, tabs, feedback */}
           <div className="min-w-0">
-            <CompanyInfo company={company} />
+            <CompanyInfo
+              company={company}
+              action={
+                authType !== 'company' ? (
+                  <Button
+                    type="button"
+                    variant={isFollowed ? 'secondary' : 'default'}
+                    size="sm"
+                    className="h-8 rounded-lg px-3 text-xs"
+                    disabled={followLoading || unfollowLoading}
+                    onClick={() => void handleFollowToggle(company.slug)}
+                  >
+                    {isFollowed ? 'Unsubscribe' : 'Subscribe'}
+                  </Button>
+                ) : undefined
+              }
+            />
 
             {/* Mobile stats card */}
             <div className="lg:hidden mb-5">
