@@ -142,7 +142,7 @@ export default function FeedbackCard({
           {feedback.description && (
             <SafeHtml
               html={feedback.description}
-              className={`text-sm text-base-100 leading-relaxed mb-4 ${
+              className={`break-words text-sm text-base-100 leading-relaxed mb-4 ${
                 hasImageInDescription ? 'feedback-card-html' : 'line-clamp-3'
               }`}
             />
@@ -157,7 +157,7 @@ export default function FeedbackCard({
           {feedback.description && (
             <SafeHtml
               html={feedback.description}
-              className={`text-sm text-base-100 leading-relaxed mb-4 ${
+              className={`break-words text-sm text-base-100 leading-relaxed mb-4 ${
                 hasImageInDescription ? 'feedback-card-html' : 'line-clamp-3'
               }`}
             />

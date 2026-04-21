@@ -150,6 +150,11 @@
     max-height: 320px;
     object-fit: scale-down;
   }
+
+  .feedback-detail-html img {
+    max-height: 420px;
+    object-fit: contain;
+  }
 }
 
 @layer utilities {

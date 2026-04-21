@@ -508,7 +508,7 @@ export default function RequestDetailPage() {
               ) : (
                 <SafeHtml
                   html={reply.content}
-                  className="text-sm text-base-200 leading-relaxed mb-2"
+                  className="feedback-detail-html text-sm text-base-200 leading-relaxed mb-2"
                 />
               )}
               <div className="flex items-center gap-2">
@@ -673,7 +673,7 @@ export default function RequestDetailPage() {
                       {feedback.description && (
                         <SafeHtml
                           html={feedback.description}
-                          className="text-base text-base-100 leading-relaxed space-y-4 mb-6"
+                          className="feedback-detail-html wrap-break-word text-base text-base-100 leading-relaxed space-y-4 mb-6"
                         />
                       )}
                     </>
