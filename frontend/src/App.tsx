@@ -31,6 +31,7 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const RequestFeedbackPage = lazy(() => import('./pages/RequestFeedbackPage'))
 const SearchPage = lazy(() => import('./pages/SearchPage'))
 const HelpPage = lazy(() => import('./pages/HelpPage'))
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
 const PublicFeedPage = lazy(() => import('./pages/PublicFeedPage'))
 const CompanyPortalPage = lazy(() => import('./pages/CompanyPortalPage'))
 const LandingPage = lazy(() => import('./pages/LandingPage'))
@@ -252,6 +253,7 @@ function App() {
             <Route path="/request-feedback" element={<RequestFeedbackPage />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/help" element={<HelpPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
             <Route path="/portal-kanban" element={<CompanyPortalPage />} />
             <Route path="/company/:slug" element={<LegacyCompanyRedirect />} />
             <Route path="/request/:id" element={<RequestDetailPage />} />

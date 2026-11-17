@@ -547,7 +547,12 @@ export default function LandingPage() {
 
               <div className="mt-10 pt-5 border-t border-border text-xs text-base-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <p>Voxella, Inc. © {new Date().getFullYear()}. All rights reserved.</p>
-                <p>Built for community-driven product decisions.</p>
+                <div className="flex items-center gap-4">
+                  <Link to="/privacy" className="hover:text-base-200 transition-colors">
+                    Privacy Policy
+                  </Link>
+                  <p>Built for community-driven product decisions.</p>
+                </div>
               </div>
             </div>
           </footer>

@@ -162,11 +162,18 @@ export default function UserRegisterForm({ onSuccess, onApiError }: Props) {
         {busy ? 'Creating account…' : 'Create Account'}
       </Button>
 
-      {/* <p className="text-center text-xs text-base-100 pt-1">
+      <p className="text-center text-xs text-base-100 pt-1">
         By signing up you agree to our{' '}
-        <span className="text-primary-600 cursor-pointer hover:underline">Terms</span> and{' '}
-        <span className="text-primary-600 cursor-pointer hover:underline">Privacy Policy</span>.
-      </p> */}
+        <a
+          href="/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary-600 hover:underline"
+        >
+          Privacy Policy
+        </a>
+        .
+      </p>
     </form>
   )
 }

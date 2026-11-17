@@ -248,6 +248,19 @@ export default function CompanyRegisterForm({ onSuccess, onApiError, isGoogleAut
                   : 'Create Company Account'}
             </Button>
           </div>
+
+          <p className="text-center text-xs text-base-100 pt-1">
+            By signing up you agree to our{' '}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:underline"
+            >
+              Privacy Policy
+            </a>
+            .
+          </p>
         </>
       )}
     </form>
